@@ -1,0 +1,12 @@
+function FORCING=generateForcingRelativeHumidity(time, Lin, Sin, Tair, RH, wind, snowfall, rainfall)
+FORCING.data.t_span=time;
+FORCING.data.Lin=Lin;
+FORCING.data.Sin=Sin;
+FORCING.data.Sin(FORCING.data.Sin<0)=0;
+FORCING.data.Tair=Tair;
+FORCING.data.wind=wind;
+FORCING.data.wind(FORCING.data.wind<0.5)=0.5;
+FORCING.data.snowfall=snowfall;
+FORCING.data.rainfall=rainfall;
+FORCING.data.RH=RH/100;
+FORCING.data.q=convertRelative2absoluteHumidity(FORCING);
