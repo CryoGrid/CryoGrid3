@@ -1,6 +1,7 @@
 function [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, surface_runoff)
 
     %%% step 2: GRID update
+    %%% TODO: add a function updateGRID_infiltration
 
     soilGRIDsizeOld = sum(GRID.soil.cT_domain);
 
@@ -68,6 +69,11 @@ function [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, 
         GRID.soil.cT_natPor =   [ GRID.soil.cT_natPor(1); GRID.soil.cT_natPor ];    % take natPor of cell below
         GRID.soil.cT_mineral =  [ 0 ; GRID.soil.cT_mineral ];
         GRID.soil.cT_soilType = [ 1; GRID.soil.cT_soilType];                        % assume sand as soil type for water cell
+        % K fields are not used currently
+        %GRID.soil.K_water = [ wc(1); GRID.soil.K_water ];
+        %GRID.soil.K_organic = [ 0 ; GRID.soil.K_organic ];
+        %GRID.soil.K_mineral = [ 0 ; GRID.soil.K_mineral ];
+        %GRID.soil.K_soilType = [ GRID.soil.K_soilType(1); GRID.soil.K_soilType];
         GRID.soil.excessGroundIce = [ 0 ; GRID.soil.excessGroundIce ];
 
         % update GRID spacings

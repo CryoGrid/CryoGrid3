@@ -8,7 +8,7 @@
 
 paraFromFile = exist('configFile');     % check if config file passed
 add_modules;        % adds required modules
-createLogFile=1;    % set to true if the command window output shall be saved
+createLogFile=1;    % set to true/1 if the command window output shall be saved
 
 %---------------define input parameters------------------------------------
 % here you provide the ground stratigraphy
@@ -81,6 +81,7 @@ PARA.technical.waterCellSize=0.02;          % default size of a newly added wate
 PARA.technical.subsurfaceGrid = [[0:0.02:2], [2.1:0.1:10], [10.2:0.2:20], [21:1:30], [35:5:50], [60:10:100], [200:100:1000]]'; % the subsurface K-grid in [m]
 
 %initial temperature profile -> first column depth [m] -> second column temperature [degree C]
+%default:
 PARA.Tinitial = [-5  10;...
                  0    0;...
                  5    -5;...
@@ -92,9 +93,12 @@ PARA.Tinitial = [-5  10;...
 PARA = loadConstants(PARA);
 
 %FORCING data mat-file
-PARA.forcing.filename='samoylov_ERA_obs_fitted_1979_2014_spinup.mat';  %must be in subfolder "forcing" and follow the conventions for CryoGrid3 forcing files
-PARA.forcing.rain_fraction=1;
-PARA.forcing.snow_fraction=1;
+PARA.forcing.filename='samoylov_ERA_obs_fitted_1979_2014_spinup.mat';  %must be in subfolder "forcing" and follow the conventions for CryoGrid 3 forcing files
+PARA.forcing.rain_fraction=0;
+PARA.forcing.snow_fraction=0;
+
+% switches for modules
+PARA.modules.infiltration = 0;   % true if infiltration into unfrozen ground occurs
 
 % ------update parameter values if config file provided -------------------
 % ------changes output directory to name specified in configfile which is the config filename by default
@@ -126,8 +130,8 @@ clear success
 PARA = initializeParameters(PARA, FORCING); %set start time, etc.
 
 %----------------create and initialize the grids --------------------------
-GRID = makeGrids(PARA);                   %create all grids
-GRID = createStratigraphy(PARA,GRID);     %interpolate input stratigraphy to the soil grid
+GRID=makeGrids(PARA);                   %create all grids
+GRID=createStratigraphy(PARA,GRID);     %interpolate input stratigraphy to the soil grid
 
 %----- initializie soil thermal properties --------------------------------
 GRID = initializeSoilThermalProperties(GRID, PARA);
@@ -141,13 +145,16 @@ SEB = initializeSEB();
 %---- initialize temperature profile --------------------------------------
 T = inititializeTemperatureProfile_simple(GRID, PARA, FORCING);     
 
-%---- modification for infiltration ---------------------------------------
+%---- modification for infiltration
 wc=GRID.soil.cT_water;
 GRID.soil.E_lb = find(PARA.soil.evaporationDepth==GRID.soil.soilGrid(:,1))-1;
 GRID.soil.T_lb= find(PARA.soil.rootDepth==GRID.soil.soilGrid(:,1))-1;
 
 %---- preallocate temporary arrays for capacity and conductivity-----------
 [c_cTgrid, k_cTgrid, k_Kgrid, lwc_cTgrid] = initializeConductivityCapacity(T,wc, GRID, PARA);
+
+%---- energy and water balance initialization -----------------------------
+BALANCE = initializeBALANCE(T, wc, c_cTgrid, lwc_cTgrid, GRID, PARA);
 
 %__________________________________________________________________________
 %-------- provide arrays for data storage ---------------------------------
@@ -161,6 +168,7 @@ save([run_number '/' run_number '_settings.mat'], 'FORCING', 'PARA', 'GRID')
 % Time Integration Routine                                                I
 %                                                                         I
 %_________________________________________________________________________I
+
 while t<PARA.technical.endtime
         
     %------ interpolate forcing data to time t ----------------------------
@@ -168,7 +176,11 @@ while t<PARA.technical.endtime
     
     %------determine the thermal properties of the model domains ----------
     [c_cTgrid, k_cTgrid, k_Kgrid, lwc_cTgrid] = getThermalPropertiesInfiltration(T, wc, c_cTgrid, k_cTgrid, k_Kgrid, lwc_cTgrid, GRID, PARA);
+    lwc = lwc_cTgrid(GRID.soil.cT_domain);
 
+    %------- water and energy balance calculations ------------------------
+    BALANCE = updateBALANCE(T, wc, c_cTgrid, lwc_cTgrid, BALANCE, GRID, PARA);
+    
     %------ surface energy balance module ---------------------------------
     %set surface conditions (albedo, roughness length, etc.)
     [PARA, GRID] = surfaceCondition(GRID, PARA, T);
@@ -190,25 +202,49 @@ while t<PARA.technical.endtime
                              PARA.technical.minTimestep ] ), ...
                       TEMPORARY.outputTime-t ] );
     
+    % give a warning when timestep required by CFT criterion is below the minimum timestep specified
+    if timestep > 0.5 * min( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain) ) ./ (24.*3600)
+        warning( 'numerical stability not guaranteed' );
+    end
+    
     %------ update T array ------------------------------------------------
     T = T + SEB.dE_dt./c_cTgrid./GRID.general.K_delta.*timestep.*24.*3600;
     T(GRID.air.cT_domain)=FORCING.i.Tair;
         
     %------- snow cover module --------------------------------------------
-    [T, GRID, PARA, SEB] = CryoGridSnow(T, GRID, FORCING, SEB, PARA, c_cTgrid, timestep);
-    [GRID, T] = updateGRID_snow(T, GRID, PARA);
+    [T, GRID, PARA, SEB, BALANCE] = CryoGridSnow(T, GRID, FORCING, SEB, PARA, c_cTgrid, timestep, BALANCE);
+    [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE);
 
     %------- infiltration module-------------------------------------------
-    [wc, GRID] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRID, PARA, FORCING);
+    if PARA.modules.infiltration
+        [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRID, PARA, FORCING, BALANCE);
+    end
       
     %------- update Lstar for next time step ------------------------------
     SEB = L_star(FORCING, PARA, SEB);    
+
+    %------- water balance calculations -----------------------------------
+    % rainfall
+    BALANCE.water.dp_rain = BALANCE.water.dp_rain + FORCING.i.rainfall.*timestep;  %sum up rainfall in [mm] per output interval 
+    % snowfall
+    BALANCE.water.dp_snow = BALANCE.water.dp_snow + FORCING.i.snowfall.*timestep;  %sum up snowfall in [mm SWE] per output interval     
     
+    %---------- sum up + OUTPUT -------------------------------------------
+    sum_up_output_store;
+        
     %------- next time step -----------------------------------------------
     t=t+timestep;
     
-    %---------- sum up + OUTPUT -------------------------------------------
-    sum_up_output_store;    
+    %final energy state
+    if t>=PARA.technical.endtime
+        % get lwc for current (after timestep) thermal state
+        [c_cTgrid, ~, ~, lwc_cTgrid] = getThermalPropertiesInfiltration(T, wc, c_cTgrid, k_cTgrid, k_Kgrid, lwc_cTgrid, GRID, PARA);
+        BALANCE = updateBALANCE(T, wc, c_cTgrid, lwc_cTgrid, BALANCE, GRID, PARA);
+        % final output at t=endtime
+        sum_up_output_store;
+    end
+    
+    
 end
 %profile off
 save([run_number '/' run_number '_output.mat'], 'OUT')

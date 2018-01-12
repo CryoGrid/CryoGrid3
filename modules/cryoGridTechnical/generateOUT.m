@@ -26,4 +26,38 @@ function OUT = generateOUT()
     OUT.snow.topPosition=[];
     OUT.snow.botPosition=[];
 
+    % water balance (WB)
+    % all flows are defined as positive when they go into the soil/snow column
+    % cumulative values per output interval in [mm]
+    % storage
+    OUT.WB.dW_soil = [];
+    OUT.WB.dW_snow = [];
+    % precipitation
+    OUT.WB.dp_rain=[];
+    OUT.WB.dp_snow=[]; % SWE
+    % evapotranspiration and sublimation
+    OUT.WB.de=[];
+    OUT.WB.ds=[];
+    % runoff
+    OUT.WB.dr_surface=[];
+    OUT.WB.dr_subsurface=[];
+    OUT.WB.dr_snowmelt=[];
+    OUT.WB.dr_excessSnow=[];
+    OUT.WB.dr_rain=[];  % this is only rain on frozen ground
+    
+    % energy balance (EB)
+    % accumulated energy fluxes per output time in [ J / m^2 ]
+    OUT.EB.Qg = [];         % ground heat flux (positive into ground)
+    OUT.EB.Qe = [];         % latent heat flux (positive into ground)
+    OUT.EB.Qh = [];         % sensible heat flux (positive into ground)
+    OUT.EB.Qnet = [];
+    OUT.EB.Qgeo = [];       % geothermal heat flux
+
+    OUT.EB.dE_soil_sens = [];
+    OUT.EB.dE_soil_lat = [];
+    OUT.EB.dE_soil = [];
+    OUT.EB.dE_snow_sens = [];
+    OUT.EB.dE_snow_lat = [];
+    OUT.EB.dE_snow = [];
+
 end
