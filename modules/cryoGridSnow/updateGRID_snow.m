@@ -1,4 +1,4 @@
-function [GRID, T] = updateGRID_snow(T, GRID, PARA)
+function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
 
 snowCellSize=GRID.snow.snowCellSize;
     
@@ -35,7 +35,7 @@ else   %snow exists
     GRID.general.K_grid(GRID.snow.cT_domain_ub) = GRID.general.K_grid(GRID.snow.cT_domain_ub+1) -...
         ( GRID.snow.Snow_i(GRID.snow.cT_domain_ub) + GRID.snow.Snow_w(GRID.snow.cT_domain_ub) + GRID.snow.Snow_a(GRID.snow.cT_domain_ub)); %updates the position of the uppermost snow grid cell
 
-    if GRID.snow.Snow_i(GRID.snow.cT_domain_ub)>=1.5.*PARA.technical.SWEperCell  %create new grid cell
+    if GRID.snow.Snow_i(GRID.snow.cT_domain_ub)>=1.5.*PARA.technical.SWEperCell  %create new grid cell      % JAN: why 1.5 ???
        
         %------ modify snow and air grid -----------------------------
         GRID.snow.cT_domain(GRID.air.cT_domain_lb)=1;
@@ -123,7 +123,10 @@ else   %snow exists
     end 
         
     if (GRID.snow.Snow_i(GRID.snow.cT_domain_ub)<=0.5.*PARA.technical.SWEperCell && sum(GRID.snow.cT_domain)<2)  %remove last grid cell if snow threshold is reached
-          
+       
+       % for water balance: add snow of last grid cell to runoff
+       BALANCE.water.dr_snowmelt = BALANCE.water.dr_snowmelt - ( GRID.snow.Snow_i(GRID.snow.cT_domain_ub) + GRID.snow.Snow_w(GRID.snow.cT_domain_ub) ).*1000;
+       
        %------ modify snow and air grid ----------------------------------
        GRID.snow.cT_domain(GRID.snow.cT_domain_ub)=0;
        GRID.snow.K_domain(GRID.snow.cT_domain_ub)=0;
