@@ -10,6 +10,10 @@ function OUT = generateOUT()
     OUT.timestamp=[];
     OUT.TIMESTEP=[];
 
+    %auxiliary for tracking heat fluxes
+    OUT.SEB.dE_dt_SEB = [];
+    OUT.SEB.dE_dt_cond = [];
+
     OUT.SEB.Lsta=[];
     OUT.SEB.QE=[];
     OUT.SEB.QH=[];
@@ -26,6 +30,9 @@ function OUT = generateOUT()
     OUT.snow.topPosition=[];
     OUT.snow.botPosition=[];
 
+    % for DEBUGGING
+    OUT.K_grid = [];
+
     % water balance (WB)
     % all flows are defined as positive when they go into the soil/snow column
     % cumulative values per output interval in [mm]
@@ -40,11 +47,12 @@ function OUT = generateOUT()
     OUT.WB.ds=[];
     % runoff
     OUT.WB.dr_surface=[];
-    OUT.WB.dr_subsurface=[];
+    OUT.WB.dr_external=[];
     OUT.WB.dr_snowmelt=[];
     OUT.WB.dr_excessSnow=[];
     OUT.WB.dr_rain=[];  % this is only rain on frozen ground
-    
+
+
     % energy balance (EB)
     % accumulated energy fluxes per output time in [ J / m^2 ]
     OUT.EB.Qg = [];         % ground heat flux (positive into ground)
@@ -52,6 +60,7 @@ function OUT = generateOUT()
     OUT.EB.Qh = [];         % sensible heat flux (positive into ground)
     OUT.EB.Qnet = [];
     OUT.EB.Qgeo = [];       % geothermal heat flux
+    OUT.EB.Qsurf = [];      % heat flux into uppermost grid cell
 
     OUT.EB.dE_soil_sens = [];
     OUT.EB.dE_soil_lat = [];

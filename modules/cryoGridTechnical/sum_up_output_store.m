@@ -1,9 +1,19 @@
+function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT)
+
+
     TEMPORARY.timestep_sum=TEMPORARY.timestep_sum+(timestep*24*3600)*timestep;
     TEMPORARY.T_sum=TEMPORARY.T_sum+T.*timestep;
     TEMPORARY.Qe_sum=TEMPORARY.Qe_sum+SEB.Qe.*timestep;
 	TEMPORARY.Qh_sum=TEMPORARY.Qh_sum+SEB.Qh.*timestep;
 	TEMPORARY.Qnet_sum=TEMPORARY.Qnet_sum+SEB.Qnet.*timestep;
     TEMPORARY.Qg_sum=TEMPORARY.Qg_sum+SEB.Qg.*timestep;
+    
+    TEMPORARY.Qsurf_sum = TEMPORARY.Qsurf_sum + SEB.Qsurf * timestep;
+    TEMPORARY.dE_dt_SEB_sum = TEMPORARY.dE_dt_SEB_sum + SEB.dE_dt_SEB * timestep;
+    TEMPORARY.dE_dt_cond_sum = TEMPORARY.dE_dt_cond_sum + SEB.dE_dt_cond * timestep;
+    
+    
+	
     
     %----store in output table --------------------------------------------
     if  t==TEMPORARY.outputTime
@@ -22,6 +32,11 @@
         TEMPORARY.Qnet=TEMPORARY.Qnet_sum./TEMPORARY.dt_out;
         TEMPORARY.Qg=TEMPORARY.Qg_sum./TEMPORARY.dt_out;
         
+        TEMPORARY.Qsurf = TEMPORARY.Qsurf_sum ./ TEMPORARY.dt_out;          
+        TEMPORARY.dE_dt_SEB=TEMPORARY.dE_dt_SEB_sum./TEMPORARY.dt_out;
+        TEMPORARY.dE_dt_cond=TEMPORARY.dE_dt_cond_sum./TEMPORARY.dt_out;
+
+        
         TEMPORARY.timestep_out=TEMPORARY.timestep_sum./TEMPORARY.dt_out;             
         
         %reset sum variables
@@ -30,7 +45,11 @@
         TEMPORARY.Qh_sum=0;
         TEMPORARY.Qe_sum=0;
         TEMPORARY.Qnet_sum=0;
-        TEMPORARY.Qg_sum=0;     
+        TEMPORARY.Qg_sum=0;
+        TEMPORARY.Qsurf_sum = 0;
+        TEMPORARY.dE_dt_SEB_sum=0;
+        TEMPORARY.dE_dt_cond_sum=0;
+        
         
         TEMPORARY.timestep_sum=0;
         
@@ -45,7 +64,10 @@
         OUT.snow.outSnow_a=[OUT.snow.outSnow_a GRID.snow.Snow_a];
         OUT.snow.outSnow_w=[OUT.snow.outSnow_w GRID.snow.Snow_w];
                
-        % surface energy balance      
+        % surface energy balance
+        OUT.SEB.dE_dt_SEB = [OUT.SEB.dE_dt_SEB [ TEMPORARY.dE_dt_SEB ] ];
+        OUT.SEB.dE_dt_cond = [OUT.SEB.dE_dt_cond [ TEMPORARY.dE_dt_cond ]];
+        
         OUT.SEB.Lsta=[OUT.SEB.Lsta; mean(SEB.L_star)];
         OUT.SEB.QE=[OUT.SEB.QE; TEMPORARY.Qe];
         OUT.SEB.QH=[OUT.SEB.QH; TEMPORARY.Qh];
@@ -60,6 +82,7 @@
         OUT.EB.Qh = [OUT.EB.Qh; TEMPORARY.Qh];         % sensible heat flux (positive into ground)
         OUT.EB.Qnet = [OUT.EB.Qnet; TEMPORARY.Qnet];
         OUT.EB.Qgeo = [OUT.EB.Qgeo; PARA.soil.Qgeo];       % geothermal heat flux
+        OUT.EB.Qsurf = [OUT.EB.Qsurf; TEMPORARY.Qsurf];
         OUT.EB.dE_soil_sens = [OUT.EB.dE_soil_sens; BALANCE.energy.dE_soil_sens ];
         BALANCE.energy.dE_soil_sens = 0;
         OUT.EB.dE_soil_lat = [OUT.EB.dE_soil_lat; BALANCE.energy.dE_soil_lat ];
@@ -86,12 +109,13 @@
         OUT.WB.de = [ OUT.WB.de; BALANCE.water.de ];
         OUT.WB.ds = [ OUT.WB.ds; BALANCE.water.ds ];
         % runoff
-        OUT.WB.dr_surface=[ OUT.WB.dr_surface; BALANCE.water.dr_surface ];
-        OUT.WB.dr_subsurface = [ OUT.WB.dr_subsurface; BALANCE.water.dr_subsurface ];
+        OUT.WB.dr_surface= [ OUT.WB.dr_surface; BALANCE.water.dr_surface ];
+        OUT.WB.dr_external = [ OUT.WB.dr_external; BALANCE.water.dr_external ];
         OUT.WB.dr_snowmelt = [ OUT.WB.dr_snowmelt; BALANCE.water.dr_snowmelt ];
         OUT.WB.dr_excessSnow=[ OUT.WB.dr_excessSnow; BALANCE.water.dr_excessSnow ];
         OUT.WB.dr_rain = [ OUT.WB.dr_rain; BALANCE.water.dr_rain ];  % this is only rain on frozen ground
         % set accumulated fluxes in BALANCE.water struct to zero
+        % storage
         BALANCE.water.dW_soil = 0;
         BALANCE.water.dW_snow = 0;
         % precipitation
@@ -102,16 +126,22 @@
         BALANCE.water.ds=0;
         % runoff
         BALANCE.water.dr_surface=0;
-        BALANCE.water.dr_subsurface=0;
+        BALANCE.water.dr_external=0;
         BALANCE.water.dr_snowmelt=0;
         BALANCE.water.dr_excessSnow=0;
-        BALANCE.water.dr_rain=0;  % this is only rain on frozen ground
+        BALANCE.water.dr_rain=0;
 
         % soil     
         OUT.soil.soil{1, size(OUT.soil.soil,2)+1}=[GRID.soil.cT_water GRID.soil.cT_mineral GRID.soil.cT_organic];
         OUT.soil.topPosition=[OUT.soil.topPosition; -GRID.general.K_grid(GRID.soil.cT_domain_ub)];
         
         % water body
+%         waterBody = GRID.soil.cT_organic+GRID.soil.cT_mineral<=1e-6;
+%         if sum(waterBody)>0
+%             OUT.soil.lakeFloor = [OUT.soil.lakeFloor; - GRID.general.K_grid( GRID.soil.cT_domain_ub + find(waterBody,1,'last') ) ] ;
+%         else
+%             OUT.soil.lakeFloor = [OUT.soil.lakeFloor; NaN];
+%         end
         if ~isempty( GRID.lake.cT_domain_ub )
             OUT.soil.lakeFloor = [OUT.soil.lakeFloor; - GRID.general.K_grid(GRID.lake.cT_domain_lb+1) ];
         else
@@ -129,6 +159,10 @@
         OUT.snow.topPosition=[OUT.snow.topPosition; TEMPORARY.topPosition];
         OUT.snow.botPosition=[OUT.snow.botPosition; TEMPORARY.botPosition];
         
+        % for DEBUGGING
+        OUT.K_grid = [OUT.K_grid, GRID.general.K_grid ];
+        
+
         %------------------------------------------------------------------     
         disp([datestr(now,'yyyy-mm-dd HH:MM:SS'),':  at ',datestr(t), ',  Average timestep: ',  num2str(TEMPORARY.timestep_out), ' seconds'])
       

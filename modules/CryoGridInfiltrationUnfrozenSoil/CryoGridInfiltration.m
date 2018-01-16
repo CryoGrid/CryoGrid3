@@ -10,7 +10,7 @@ function [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRI
     
     % external flux
     external_flux_rate = PARA.soil.externalWaterFlux;             % in m/day
-    BALANCE.water.dr_subsurface = BALANCE.water.dr_subsurface + external_flux_rate.*timestep.*1000;    %in mm
+    BALANCE.water.dr_external = BALANCE.water.dr_external + external_flux_rate.*timestep.*1000;    %in mm
 
     if isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0   %no snow cover and uppermost grid cell unfrozen
 

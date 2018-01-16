@@ -14,6 +14,26 @@ TEMPORARY.Qe_sum=0;
 TEMPORARY.Qnet_sum=0;
 TEMPORARY.Qg_sum=0;
 
+%for EB checks
+TEMPORARY.Qsurf_sum = 0;
+TEMPORARY.dE_dt_SEB_sum = 0.*T;
+TEMPORARY.dE_dt_cond_sum = 0.*T;
+
+
+%TEMPORARY.dEeffSoil = 0;
+
+TEMPORARY.dE_soil_sens = 0;
+TEMPORARY.dE_soil_lat = 0;
+TEMPORARY.dE_soil = 0;
+TEMPORARY.dE_snow_sens = 0;
+TEMPORARY.dE_snow_lat = 0;
+TEMPORARY.dE_snow = 0;
+
+% TEMPORARY.dEsensSoil = 0;
+% TEMPORARY.dEsensSnow = 0;
+% TEMPORARY.dElatentSoil = 0;
+% TEMPORARY.dElatentSnow = 0;
+
 TEMPORARY.timestep_sum=0;
 
 TEMPORARY.T_sum=0.*T;

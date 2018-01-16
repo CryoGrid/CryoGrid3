@@ -1,7 +1,4 @@
-% %clear all
-if ~paraFromFile
-    clearvars -except paraFromFile     %added by JAN to enable running with or without config file from same script
-end
+clear all
 close all
 profile off
 dbclear if error
@@ -13,7 +10,6 @@ addpath('modules/cryoGridInitialize/')
 addpath('modules/cryoGridSEB/')
 addpath('modules/cryoGridSoil/')
 addpath('modules/cryoGridSnow/')
-addpath('modules/CryoGridInfiltrationUnfrozenSoil')
+
 addpath('modules/cryoGridExcessIce/')
-addpath('modules/cryoGridExcessIceInfiltration')
-%addpath('modules/cryoGridRockFields/')
+addpath('modules/cryoGridRockFields/')

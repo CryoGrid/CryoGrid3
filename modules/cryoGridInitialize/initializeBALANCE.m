@@ -18,6 +18,9 @@ function BALANCE = initializeBALANCE(T, wc, c_cTgrid, lwc_cTgrid, GRID, PARA)
     BALANCE.energy.dE_snow_lat = 0;
     BALANCE.energy.dE_snow = 0;
     
+    BALANCE.energy.Q_lateral = zeros( length(GRID.general.cT_grid) , 1 );
+    
+    
     % WATER balance
     % water content soil domain in [m]
     BALANCE.water.W_soil = nansum( wc .* GRID.general.K_delta(GRID.soil.cT_domain) );
@@ -35,8 +38,10 @@ function BALANCE = initializeBALANCE(T, wc, c_cTgrid, lwc_cTgrid, GRID, PARA)
     BALANCE.water.ds=0;
     % runoff
     BALANCE.water.dr_surface=0;
-    BALANCE.water.dr_subsurface=0;
+    BALANCE.water.dr_external=0;
     BALANCE.water.dr_snowmelt=0;
     BALANCE.water.dr_excessSnow=0;
+    BALANCE.water.dr_lateralSnow=0;
     BALANCE.water.dr_rain=0;  % this is only rain on frozen ground
+    BALANCE.water.dr_lateral=0;
 end
