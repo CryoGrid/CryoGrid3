@@ -164,7 +164,7 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
     if sum( GRID.general.K_delta < 0 ) > 0
         disp('updateGRID_snow - bugfix K grid');
         %update grid spacings
-        GRID.general.K_grid(GRID.snow.cT_domain) = GRID.general.K_grid(GRID.snow.cT_domain_lb+1) - flipud(cumsum(flipud(GRID.snow.Snow_i(GRID.snow.cT_domain) + GRID.snow.Snow_w(GRID.snow.cT_domain) + GRID.snow.Snow_a(GRID.snow.cT_domain))));
+        %GRID.general.K_grid(GRID.snow.cT_domain) = GRID.general.K_grid(GRID.snow.cT_domain_lb+1) - flipud(cumsum(flipud(GRID.snow.Snow_i(GRID.snow.cT_domain) + GRID.snow.Snow_w(GRID.snow.cT_domain) + GRID.snow.Snow_a(GRID.snow.cT_domain))));
         GRID.general.K_grid(GRID.air.cT_domain) = [GRID.general.K_grid(GRID.air.cT_domain_lb)+(-2*snowCellSize)*(GRID.air.cT_domain_lb-1):2*snowCellSize:GRID.general.K_grid(GRID.air.cT_domain_lb)]';
         GRID.general.cT_grid  = (  GRID.general.K_grid(1:end-1)    + GRID.general.K_grid(2:end)    ) ./ 2; %grid on which capacity and temperature information lives (midpoints of grid cells)
         GRID.general.cT_delta = ( -GRID.general.cT_grid(1:end-1,1) + GRID.general.cT_grid(2:end,1) );
