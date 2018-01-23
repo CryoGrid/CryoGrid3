@@ -1,4 +1,4 @@
-% script to excecute multiple indipendent runs of CryoGrid3 in parallel
+% script to excecute multiple independent runs of CryoGrid3 in parallel
 
 delete( gcp('nocreate') );
 
@@ -8,7 +8,7 @@ number_of_combinations = 12;
 
 
 startDate=datenum( 1979, 6, 1);
-endDate=datenum( 1999, 6, 1);
+endDate=datenum( 1989, 6, 1);
 
 rainFrac=1;
 snowFrac=1;
@@ -47,23 +47,23 @@ end
 % end
 
 %start parallel pool
-parpool(number_of_combinations, 'SpmdEnabled', false );
+% parpool(number_of_combinations, 'SpmdEnabled', false );
+% 
+% parfor i=1:number_of_combinations
+%     fprintf ( 'Started execution of combination %d ...',  i  );
+%     %CryoGrid3_function_variableExice( startYear, endYear, rainFrac, snowFrac, combinations{i}(1), maxSnow, snowDens, extFlux, fieldCapacity, combinations{i}(2), natPor);
+%     CryoGrid3_function_spinup( startDate, endDate, rainFrac, snowFrac, waterTable, combinations{i}(1), combinations{i}(2), combinations{i}(3), fieldCapacity )
+%     fprintf ( '... finished execution of combination %d.',  i  );
+% end
 
-parfor i=1:number_of_combinations
-    fprintf ( 'Started execution of combination %d ...',  i  );
-    %CryoGrid3_function_variableExice( startYear, endYear, rainFrac, snowFrac, combinations{i}(1), maxSnow, snowDens, extFlux, fieldCapacity, combinations{i}(2), natPor);
-    CryoGrid3_function_spinup( startDate, endDate, rainFrac, snowFrac, waterTable, combinations{i}(1), combinations{i}(2), combinations{i}(3), fieldCapacity )
-    fprintf ( '... finished execution of combination %d.',  i  );
+%delete( gcp('nocreate') );
+
+parpool(number_of_combinations );
+%alternative implementation using spmd
+spmd
+   i=labindex();
+   CryoGrid3_function_spinup( startDate, endDate, rainFrac, snowFrac, waterTable, combinations{i}(1), combinations{i}(2), combinations{i}(3), fieldCapacity );
 end
-
-delete( gcp('nocreate') );
-
-%parpool(number_of_combinations );
-% alternative implementation using spmd
-%spmd
-   %i=labindex()
-   %CryoGrid3_function_spinup( startDate, endDate, rainFrac, snowFrac, waterTable, combinations{i}(1), combinations{i}(2), combinations{i}(3), fieldCapacity )
-%end
 
 % alternative implementation using parfeval
 

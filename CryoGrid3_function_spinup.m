@@ -1,4 +1,4 @@
-function CryoGrid3_function_spinup( startDate, endDate, rainFrac, snowFrac, waterTable, maxSnow, snowDens, extFlux, fieldCapacity )
+function CryoGrid3_function_spinup( taskName, startDate, endDate, rainFrac, snowFrac, waterTable, maxSnow, snowDens, extFlux, fieldCapacity )
 
 % -------------------------------------------------------------------------
     % CryoGRID3
@@ -13,7 +13,7 @@ function CryoGrid3_function_spinup( startDate, endDate, rainFrac, snowFrac, wate
     %add_modules_function;  %adds required modules
     %add_modules;
     
-    createLogFile=1;
+    createLogFile=0;
 
     %---------------define input parameters------------------------------------
     % here you provide the ground stratigraphy
@@ -138,18 +138,19 @@ function CryoGrid3_function_spinup( startDate, endDate, rainFrac, snowFrac, wate
     if paraFromFile
         run(configFile);
     end
+ 
+%     run_number = sprintf( [ 'spinup_' datestr( startDate, 'yyyymm' ) '-' datestr( endDate, 'yyyymm' ) '_stratSam_rf%d_sf%d_maxSnow%0.1f_snowDens=%0.1f_wt%0.1f_extFlux%0.4f_fc%0.2f' ], ...
+%                   [ PARA.forcing.rain_fraction, PARA.forcing.snow_fraction, PARA.snow.maxSnow, PARA.snow.rho_snow, ...
+%                     PARA.soil.waterTable, PARA.soil.externalWaterFlux, PARA.soil.fieldCapacity ] );
 
-    run_number = sprintf( [ 'spinup_' datestr( startDate, 'yyyymm' ) '-' datestr( endDate, 'yyyymm' ) '_stratSam_rf%d_sf%d_maxSnow%0.1f_snowDens=%0.1f_wt%0.1f_extFlux%0.4f_fc%0.2f' ], ...
-                  [ PARA.forcing.rain_fraction, PARA.forcing.snow_fraction, PARA.snow.maxSnow, PARA.snow.rho_snow, ...
-                    PARA.soil.waterTable, PARA.soil.externalWaterFlux, PARA.soil.fieldCapacity ] );
-
+    run_number = taskName;
 
     % ------make output directory (name depends on parameters) ----------------
-    mkdir(['./runs/' run_number])
+    mkdir(['./runs/' run_number]);
 
     % ------redirect command line output to logfile ---------------------------
     if createLogFile
-        diary(['./runs/' run_number '/' run_number '_diary.log']);
+        diary(['./runs/' run_number '/' run_number '_diary.txt']);
     end
 
 
@@ -262,6 +263,7 @@ function CryoGrid3_function_spinup( startDate, endDate, rainFrac, snowFrac, wate
         [T, GRID, PARA, SEB, BALANCE] = CryoGridSnow(T, GRID, FORCING, SEB, PARA, c_cTgrid, timestep, BALANCE);
         [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE);
 
+
         %------- infiltration module-------------------------------------------
         if PARA.modules.infiltration
             [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRID, PARA, FORCING, BALANCE);
@@ -279,7 +281,9 @@ function CryoGrid3_function_spinup( startDate, endDate, rainFrac, snowFrac, wate
         end
 
         %------- update Lstar for next time step ------------------------------
-        SEB = L_star(FORCING, PARA, SEB);    
+        SEB = L_star(FORCING, PARA, SEB);
+
+
 
         %------- water balance calculations -----------------------------------
         % rainfall

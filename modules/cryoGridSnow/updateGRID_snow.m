@@ -24,7 +24,7 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
             GRID.snow.SWEinitial=0;       
 
             % -------- update K grid -------------------------------------
-            GRID.general.K_grid(GRID.snow.K_domain_ub)= GRID.general.K_grid(GRID.air.cT_domain_lb+1)  - ( GRID.snow.Snow_i(GRID.snow.cT_domain_ub) + GRID.snow.Snow_a(GRID.snow.cT_domain_ub) + GRID.snow.Snow_w(GRID.snow.cT_domain_ub) );
+            GRID.general.K_grid(GRID.snow.cT_domain_ub) = GRID.general.K_grid(GRID.snow.cT_domain_ub+1)  - ( GRID.snow.Snow_i(GRID.snow.cT_domain_ub) + GRID.snow.Snow_a(GRID.snow.cT_domain_ub) + GRID.snow.Snow_w(GRID.snow.cT_domain_ub) );
             T(GRID.snow.cT_domain_ub)=T(GRID.air.cT_domain_lb);
 
         end
@@ -36,7 +36,9 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
         GRID.general.K_grid(GRID.snow.cT_domain_ub) = GRID.general.K_grid(GRID.snow.cT_domain_ub+1) -...
             ( GRID.snow.Snow_i(GRID.snow.cT_domain_ub) + GRID.snow.Snow_w(GRID.snow.cT_domain_ub) + GRID.snow.Snow_a(GRID.snow.cT_domain_ub)); %updates the position of the uppermost snow grid cell
 
-        if GRID.snow.Snow_i(GRID.snow.cT_domain_ub)>=1.5.*PARA.technical.SWEperCell  %create new grid cell      % JAN: why 1.5 ???
+        assert( ~isnan( GRID.general.K_grid(GRID.snow.cT_domain_ub) ), 'updateGRID_snow - error in uppermost snow cell position' );
+        
+        if GRID.snow.Snow_i(GRID.snow.cT_domain_ub)>=1.5.*PARA.technical.SWEperCell  %create new grid cell
 
             %------ modify snow and air grid -----------------------------
             GRID.snow.cT_domain(GRID.air.cT_domain_lb)=1;
@@ -61,7 +63,7 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
         end
 
         if min(GRID.snow.Snow_i(GRID.snow.cT_domain))<=0.5.*PARA.technical.SWEperCell %avoid looping when unnecessary 
-            for i=GRID.snow.cT_domain_ub:GRID.snow.cT_domain_lb-1  %check all snow cells except for the lowermost one for too small ice and water contents - merge with lower cell %JAN: replace with while-loop instead?
+            for i=GRID.snow.cT_domain_ub:GRID.snow.cT_domain_lb-1  %check all snow cells except for the lowermost one for too small ice and water contents - merge with lower cell
 
                  if GRID.snow.Snow_i(i)<=0.5.*PARA.technical.SWEperCell
 
@@ -118,9 +120,25 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
         end
 
 
-        if check_change==true %update grid spacings       
-            GRID.general.K_grid(GRID.snow.cT_domain)=GRID.general.K_grid(GRID.snow.cT_domain_lb+1) - flipud(cumsum(flipud(GRID.snow.Snow_i(GRID.snow.cT_domain) + GRID.snow.Snow_w(GRID.snow.cT_domain) + GRID.snow.Snow_a(GRID.snow.cT_domain))));
-            GRID.general.K_grid(GRID.air.cT_domain)=[GRID.general.K_grid(GRID.air.cT_domain_lb)+(-snowCellSize)*(GRID.air.cT_domain_lb-1):snowCellSize:GRID.general.K_grid(GRID.air.cT_domain_lb)]';
+        if check_change==true %update grid spacings  
+            
+            assert( sum( sum( isnan(GRID.snow.Snow_i(GRID.snow.cT_domain) + GRID.snow.Snow_w(GRID.snow.cT_domain) + GRID.snow.Snow_a(GRID.snow.cT_domain)) ) ) == 0 , 'updateGRID_snow - error in Snow_i/a/w grid' );
+            
+            % snow grid
+            soilTop = GRID.general.K_grid(GRID.snow.cT_domain_lb+1);
+            GRID.general.K_grid(GRID.snow.cT_domain)= soilTop - flipud(cumsum(flipud(GRID.snow.Snow_i(GRID.snow.cT_domain) + GRID.snow.Snow_w(GRID.snow.cT_domain) + GRID.snow.Snow_a(GRID.snow.cT_domain))));
+
+            assert( sum( isnan( GRID.general.K_grid ) )==0, 'updateGRID_snow - error in K grid after snow grid update')
+
+            % air grid
+            snowTop = GRID.general.K_grid(GRID.snow.cT_domain_ub);
+            numAirCells = sum( GRID.air.cT_domain );
+            GRID.general.K_grid(GRID.air.cT_domain) = flip( snowTop-snowCellSize:-snowCellSize:snowTop-snowCellSize*numAirCells );
+            
+            assert( sum( isnan( GRID.general.K_grid ) )==0, 'updateGRID_snow - error in K grid after air grid update')
+
+            
+            %GRID.general.K_grid(GRID.air.cT_domain) = [GRID.general.K_grid(GRID.air.cT_domain_lb)+(-2*snowCellSize)*(GRID.air.cT_domain_lb-1):2*snowCellSize:GRID.general.K_grid(GRID.air.cT_domain_lb)]';
         end 
 
         if (GRID.snow.Snow_i(GRID.snow.cT_domain_ub)<=0.5.*PARA.technical.SWEperCell && sum(GRID.snow.cT_domain)<2)  %remove last grid cell if snow threshold is reached
@@ -150,8 +168,6 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
 
     end
 
-    % JAN: why does this need to be done in each timestep?
-
     GRID.general.K_grid(GRID.air.cT_domain_lb)= GRID.general.K_grid(GRID.air.cT_domain_lb+1)-snowCellSize;
     GRID.general.K_grid(GRID.air.cT_domain_lb-1)= GRID.general.K_grid(GRID.air.cT_domain_lb+1)-2.*snowCellSize;
 
@@ -160,15 +176,26 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
     GRID.general.K_delta=(- GRID.general.K_grid(1:end-1,1)+ GRID.general.K_grid(2:end,1));
 
 
-    % bugfix as still situations can occur where K_delta<0
-    if sum( GRID.general.K_delta < 0 ) > 0
+    %bugfix as still situations may occur where K_delta<0
+    if ( sum( GRID.general.K_delta < 0 ) > 0 ) 
         disp('updateGRID_snow - bugfix K grid');
         %update grid spacings
-        %GRID.general.K_grid(GRID.snow.cT_domain) = GRID.general.K_grid(GRID.snow.cT_domain_lb+1) - flipud(cumsum(flipud(GRID.snow.Snow_i(GRID.snow.cT_domain) + GRID.snow.Snow_w(GRID.snow.cT_domain) + GRID.snow.Snow_a(GRID.snow.cT_domain))));
-        GRID.general.K_grid(GRID.air.cT_domain) = [GRID.general.K_grid(GRID.air.cT_domain_lb)+(-2*snowCellSize)*(GRID.air.cT_domain_lb-1):2*snowCellSize:GRID.general.K_grid(GRID.air.cT_domain_lb)]';
-        GRID.general.cT_grid  = (  GRID.general.K_grid(1:end-1)    + GRID.general.K_grid(2:end)    ) ./ 2; %grid on which capacity and temperature information lives (midpoints of grid cells)
+        % snow grid
+        if ~isempty(GRID.snow.cT_domain_ub) % snow cover
+            GRID.general.K_grid(GRID.snow.cT_domain) = GRID.general.K_grid(GRID.snow.cT_domain_lb+1) - flipud(cumsum(flipud(GRID.snow.Snow_i(GRID.snow.cT_domain) + GRID.snow.Snow_w(GRID.snow.cT_domain) + GRID.snow.Snow_a(GRID.snow.cT_domain))));        
+            surfaceTop = GRID.general.K_grid(GRID.snow.cT_domain_ub);
+        else % no snow cover
+            surfaceTop = GRID.general.K_grid(GRID.soil.cT_domain_ub);
+        end
+        % air grid
+        numAirCells = sum( GRID.air.cT_domain );
+        GRID.general.K_grid(GRID.air.cT_domain) = flip( surfaceTop-snowCellSize:-snowCellSize:surfaceTop-snowCellSize*numAirCells );
+        GRID.general.cT_grid  = (  GRID.general.K_grid(1:end-1)    + GRID.general.K_grid(2:end)    ) ./ 2;
         GRID.general.cT_delta = ( -GRID.general.cT_grid(1:end-1,1) + GRID.general.cT_grid(2:end,1) );
         GRID.general.K_delta  = ( -GRID.general.K_grid(1:end-1,1)  + GRID.general.K_grid(2:end,1)  );
     end
+    
+    assert( sum( isnan(T(GRID.snow.cT_domain)))==0, 'updateGRID_snow - error in T after grid update' );
+    assert( sum( isnan(GRID.general.K_grid))==0, 'update_GRID_snow - error in Kgrid after grid update');
 
 end
