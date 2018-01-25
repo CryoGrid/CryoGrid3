@@ -1,5 +1,5 @@
 % script to excecute multiple independent runs of CryoGrid3 in parallel
-% using the job/task batch framwork
+% using the job/task batch framework
 
 add_modules_function;
 
@@ -21,15 +21,25 @@ exices = [ 0.9, 0.8, 0.7, 0.6, 0.5, 0.4];
 natPor = 0.4;
 
 
+% combinations = {};
+% 
+% i=1;
+% for ms=maxSnows
+%     for sd=snowDensities
+%         for ef=externalFluxes
+%             combinations{i} = [ms, sd, ef];
+%             i=i+1;
+%         end
+%     end
+% end
+
 combinations = {};
 
 i=1;
-for ms=maxSnows
-    for sd=snowDensities
-        for ef=externalFluxes
-            combinations{i} = [ms, sd, ef];
-            i=i+1;
-        end
+for ex=exices
+    for wt=waterTables
+        combinations{i}= [ex,wt];
+        i=i+1;
     end
 end
 
@@ -37,7 +47,7 @@ end
 
 numTasks = length( combinations );
 
-jobName = 'SPINUP';
+jobName = 'SPINUP-EXICE';
 
 parallel.defaultClusterProfile('local');
 c = parcluster();
@@ -46,16 +56,29 @@ job = createJob( c, 'Name', jobName );
 disp( [datestr(now) ': created job ' jobName ] );
 
 tasks = {};
+% for i=1:numTasks
+%     maxSnow=combinations{i}(1);
+%     snowDens=combinations{i}(2);
+%     extFlux = combinations{i}(3);
+%     
+%     taskName = sprintf(  [ jobName '_' datestr( startDate, 'yyyymm' ) '-' datestr( endDate, 'yyyymm' ) '_stratSam_rf%d_sf%d_maxSnow%0.1f_snowDens=%0.1f_wt%0.1f_extFlux%0.4f_fc%0.2f' ], ...
+%                   [ rainFrac, snowFrac, maxSnow, snowDens, ...
+%                     waterTable, extFlux, fieldCapacity ] );
+%     tasks{i} = createTask( job , @CryoGrid3_function_spinup, 0 , { taskName, startDate, endDate, rainFrac, snowFrac, waterTable, maxSnow, snowDens, extFlux, fieldCapacity }, 'CaptureDiary', true, 'Name', taskName );
+%     disp( [ datestr(now) ': created task ' taskName ] );
+% end
+
 for i=1:numTasks
-    maxSnow=combinations{i}(1);
-    snowDens=combinations{i}(2);
-    extFlux = combinations{i}(3);
+    exice=combinations{i}(1);
+    waterTable=combinations{i}(2);
     
-    taskName = sprintf(  [ jobName '_' datestr( startDate, 'yyyymm' ) '-' datestr( endDate, 'yyyymm' ) '_stratSam_rf%d_sf%d_maxSnow%0.1f_snowDens=%0.1f_wt%0.1f_extFlux%0.4f_fc%0.2f' ], ...
-                  [ rainFrac, snowFrac, maxSnow, snowDens, ...
-                    waterTable, extFlux, fieldCapacity ] );
-    tasks{i} = createTask( job , @CryoGrid3_function_spinup, 0 , { taskName, startDate, endDate, rainFrac, snowFrac, waterTable, maxSnow, snowDens, extFlux, fieldCapacity }, 'CaptureDiary', true, 'Name', taskName );
-    disp( [ datestr(now) ': created task ' taskName ] );
+    taskName = sprintf(  [ jobName '_' datestr( startDate, 'yyyymm' ) '-' datestr( endDate, 'yyyymm' ) '_stratSamExice_rf%d_sf%d_maxSnow%0.2f_snowDens=%d_wt%0.1f_extFlux%0.4f_fc%0.2f_exice%0.2f_natPor%0.2f' ], ...
+                   [ rainFrac, snowFrac, maxSnow, snowDens, waterTable, extFlux, fieldCapacity, exice, natPor ] );
+
+    tasks{i} = createTask( job, @CryoGrid3_function_variableExice, 0, ...
+                            { taskName, startDate, endDate, rainFrac, snowFrac, waterTable, maxSnow, snowDens, extFlux, fieldCapacity, exice, natPor }, ...
+                            'CaptureDiary', true, 'Name', taskName);
+    disp( [ datestr(now) ': created task ' taskName ] );    
 end
 
 submit(job);

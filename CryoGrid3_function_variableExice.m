@@ -1,4 +1,4 @@
-function [] = CryoGrid3_function_variableExice( startYear, endYear, rainFrac, snowFrac, waterTable, maxSnow, snowDens, extFlux, fieldCapacity, exice, natPor )
+function [] = CryoGrid3_function_variableExice( taskName, startDate, endDate, rainFrac, snowFrac, waterTable, maxSnow, snowDens, extFlux, fieldCapacity, exice, natPor )
 
     % -------------------------------------------------------------------------
     % CryoGRID3
@@ -25,7 +25,7 @@ function [] = CryoGrid3_function_variableExice( startYear, endYear, rainFrac, sn
     
     %default used in publication:
     PARA.soil.layer_properties=[ 0.0   0.60    0.10    0.15    1   0.75;...  
-                                0.15   theta_w theta_m theta_o 2   natPor;...   
+                                 0.15   theta_w theta_m theta_o 2   natPor;...   
                                  0.9   theta_w theta_m theta_o 1   natPor;...   
                                  9.0   0.30    0.70    0.00    1   0.30     ];       
     %simple stratigraphy with excess ice used to test water balance:
@@ -98,8 +98,8 @@ function [] = CryoGrid3_function_variableExice( startYear, endYear, rainFrac, sn
     PARA.technical.SWEperCell=0.005;            % SWE per grid cell in [m] - determines size of snow grid cells
     PARA.technical.maxSWE=0.4;                  % in [m] SWE
     PARA.technical.arraySizeT=5002;             % number of values in the look-up tables for conductivity and capacity
-    PARA.technical.starttime=datenum(startYear, 6, 1);       % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum(endYear, 6, 1);         % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.starttime=startDate;       % starttime of the simulation - if empty start from first value of time series
+    PARA.technical.endtime=endDate;         % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;   % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;   % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;            % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
@@ -146,10 +146,11 @@ function [] = CryoGrid3_function_variableExice( startYear, endYear, rainFrac, sn
         run(configFile);
     end
 
-    run_number = sprintf('spinup_%d-%d_stratSamExice_rf%d_sf%d_maxSnow%0.1f_snowDens=%0.1f_wt%0.1f_extFlux%0.4f_fc%0.2f_exice%0.2f_natPor%0.2f', ...
-                 [ startYear, endYear, PARA.forcing.rain_fraction, PARA.forcing.snow_fraction, ...
-                   PARA.snow.maxSnow, PARA.snow.rho_snow, PARA.soil.waterTable, PARA.soil.externalWaterFlux, PARA.soil.fieldCapacity, exice, natPor ]);
+%     run_number = sprintf('spinup_%d-%d_stratSamExice_rf%d_sf%d_maxSnow%0.1f_snowDens=%0.1f_wt%0.1f_extFlux%0.4f_fc%0.2f_exice%0.2f_natPor%0.2f', ...
+%                  [ startYear, endYear, PARA.forcing.rain_fraction, PARA.forcing.snow_fraction, ...
+%                    PARA.snow.maxSnow, PARA.snow.rho_snow, PARA.soil.waterTable, PARA.soil.externalWaterFlux, PARA.soil.fieldCapacity, exice, natPor ]);
 
+    run_number = taskName;
 
     % ------make output directory (name depends on parameters) ----------------
     mkdir(['./runs/' run_number])
