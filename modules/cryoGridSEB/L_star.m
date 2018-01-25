@@ -29,10 +29,3 @@ L_star=(abs(L_star)<1e-7).*L_star./abs(L_star).*1e-7 + (abs(L_star)>=1e-7).*L_st
 
 SEB.ustar = u_star;
 SEB.L_star=[SEB.L_star(2:end) L_star];  
-
-
-assert(~isnan(L_star), 'Lstar is nan');
-
-
-
-

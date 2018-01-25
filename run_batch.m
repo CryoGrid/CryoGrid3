@@ -61,7 +61,6 @@ end
 submit(job);
 disp( [ datestr(now) ': submitted job ' jobName ] );
 
-whos
 
 % wait(job);
 % disp( [ datestr(now) ': finished job ' jobName ] );

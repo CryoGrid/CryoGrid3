@@ -240,17 +240,17 @@ function CryoGrid3_function_spinup( taskName, startDate, endDate, rainFrac, snow
         % account for min and max timesteps specified, max. energy change per grid cell and the CFT stability criterion.
         % energy change due to advection of heat through water fluxes is still excluded.
         % timestep in [days]
-        timestep = min( [ max( [ min( [ 0.5 * nanmin( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain) ) ./ (24.*3600), ... % + GRID.snow.cT_domain
-                                        PARA.technical.targetDeltaE .* nanmin( abs(GRID.general.K_delta(GRID.soil.cT_domain) ./ SEB.dE_dt(GRID.soil.cT_domain) ) ) ./ (24.*3600), ...
-                                        PARA.technical.maxTimestep ] ), ...
-                                 PARA.technical.minTimestep ] ), ...
-                          TEMPORARY.outputTime-t ] );
+        timestep = min( [ max( [ min( [ 0.5 * nanmin( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain ) ) ./ (24.*3600), ...
+                                    PARA.technical.targetDeltaE .* nanmin( abs(GRID.general.K_delta ./ SEB.dE_dt ) ) ./ (24.*3600), ...
+                                    PARA.technical.maxTimestep ] ), ...
+                             PARA.technical.minTimestep ] ), ...
+                      TEMPORARY.outputTime-t ] );
 
 
         % give a warning when timestep required by CFT criterion is below the minimum timestep specified
-%         if timestep > 0.5 * min( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain) ) ./ (24.*3600)
-%             warning( 'numerical stability not guaranteed' );
-%         end
+        if timestep > 0.5 * min( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain) ) ./ (24.*3600)
+            warning( 'numerical stability not guaranteed' );
+        end
 
         %------ update T array ------------------------------------------------
         T = T + SEB.dE_dt./c_cTgrid./GRID.general.K_delta.*timestep.*24.*3600;

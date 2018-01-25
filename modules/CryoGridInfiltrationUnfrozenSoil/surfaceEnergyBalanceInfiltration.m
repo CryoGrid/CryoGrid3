@@ -26,11 +26,6 @@ if ~isempty(GRID.snow.cT_domain_ub)
     dE_dt(GRID.snow.cT_domain_lb+1) = Qsolar(GRID.snow.cT_domain_lb+1);    
 end
 
-% JAN : here a modification for water bodies would be needed (extinction),
-% but this would probably make no difference for summer due to mixing,
-% maybe different in winter/spring
-
-
 %__________________________________________________________________________
 Sout = PARA.surf.albedo*FORCING.i.Sin;
 Lout = PARA.surf.epsilon.*sigma.*(T(GRID.air.cT_domain_lb+1)+273.15).^4 + (1-PARA.surf.epsilon).*FORCING.i.Lin;
@@ -41,7 +36,7 @@ Qnet = FORCING.i.Sin-Sout + FORCING.i.Lin - Lout ;
 %calculate ET
 if PARA.modules.infiltration
     
-    %snow cover or uppermost grid cell frozen --> no ET ; JAN: this includes the case of a frozen water body
+    % snow cover or uppermost grid cell frozen --> no ET ; this includes the case of a frozen water body
     if ~isempty(GRID.snow.cT_domain_ub) || T(GRID.soil.cT_domain_ub)<=0   
         Qe=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, PARA.surf.rs, FORCING.i.p, PARA));
     % unfrozen water body at surface
@@ -49,7 +44,7 @@ if PARA.modules.infiltration
         Qe=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, PARA.surf.rs, FORCING.i.p, PARA));
         dwc_dt(1)=-Qe./L; %in m water per sec, this can be evaporation or condensation
         
-    % JAN: this is the "default" case of an unfrozen soil surface    
+    % unfrozen soil surface    
     else 
         Qe_pot=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, 0, FORCING.i.p, PARA));  %potential ET 
         if Qe_pot>0

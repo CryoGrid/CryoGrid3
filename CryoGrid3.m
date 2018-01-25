@@ -95,8 +95,8 @@ PARA.technical.z=2.0;                       % height of input air temperature ab
 PARA.technical.SWEperCell=0.005;            % SWE per grid cell in [m] - determines size of snow grid cells
 PARA.technical.maxSWE=0.4;                  % in [m] SWE
 PARA.technical.arraySizeT=5002;             % number of values in the look-up tables for conductivity and capacity
-PARA.technical.starttime=datenum(1980, 6, 1);       % starttime of the simulation - if empty start from first value of time series
-PARA.technical.endtime=datenum(1983, 6, 1);         % endtime of the simulation - if empty end at last value of time series
+PARA.technical.starttime=datenum(1979, 6, 1);       % starttime of the simulation - if empty start from first value of time series
+PARA.technical.endtime=datenum(1989, 6, 1);         % endtime of the simulation - if empty end at last value of time series
 PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;   % smallest possible time step in [days] - here 0.1 seconds
 PARA.technical.maxTimestep=300 ./ 3600 ./ 24;   % largest possible time step in [days] - here 300 seconds
 PARA.technical.targetDeltaE=1e5;            % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
@@ -142,7 +142,7 @@ if paraFromFile
 end
 
  
-run_number = sprintf( [ 'TESTRUN_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' ) '_stratSam_rf%d_sf%d_maxSnow%0.1f_snowDens=%0.1f_wt%0.1f_extFlux%0.4f_fc%0.2f' ], ...
+run_number = sprintf( [ 'TESTRUN_oldSnowScheme_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' ) '_stratSam_rf%d_sf%d_maxSnow%0.1f_snowDens=%0.1f_wt%0.1f_extFlux%0.4f_fc%0.2f' ], ...
                       [ PARA.forcing.rain_fraction, PARA.forcing.snow_fraction, PARA.snow.maxSnow, PARA.snow.rho_snow, ...
                       PARA.soil.waterTable, PARA.soil.externalWaterFlux, PARA.soil.fieldCapacity ] );
 
@@ -222,11 +222,11 @@ while t<PARA.technical.endtime
     %------determine the thermal properties of the model domains ----------
     [c_cTgrid, k_cTgrid, k_Kgrid, lwc_cTgrid] = getThermalPropertiesInfiltration(T, wc, c_cTgrid, k_cTgrid, k_Kgrid, lwc_cTgrid, GRID, PARA);
     
-    try
-        assert( sum( isnan(k_cTgrid)) + sum( isnan(k_Kgrid)) + sum( isnan( c_cTgrid)) ==0, 'Cryogrid3 - nan in c or k grids');
-    catch
-        save( [ './runs/' run_number '/' run_number '_workspaceAtckgridCrash.mat'] );
-    end
+%     try
+%         assert( sum( isnan(k_cTgrid)) + sum( isnan(k_Kgrid)) + sum( isnan( c_cTgrid)) ==0, 'Cryogrid3 - nan in c or k grids');
+%     catch
+%         save( [ './runs/' run_number '/' run_number '_workspaceAtckgridCrash.mat'] );
+%     end
 
     %------- water and energy balance calculations ------------------------
     BALANCE = updateBALANCE(T, wc, c_cTgrid, lwc_cTgrid, BALANCE, GRID, PARA);
@@ -236,11 +236,11 @@ while t<PARA.technical.endtime
     [PARA, GRID] = surfaceCondition(GRID, PARA, T);
     %calculate the surface energy balance
     [SEB, dwc_dt] = surfaceEnergyBalanceInfiltration(T, wc, FORCING, GRID, PARA, SEB);
-    try
-        assert( abs(SEB.Qe)<1e5 && abs(SEB.Qh)<1e5 , 'CryoGrid3 - Qe or Qh too large' );
-    catch
-        save( [ './runs/' run_number '/' run_number '_workspaceAtQeQhCrash.mat'] );
-    end
+%     try
+%         assert( abs(SEB.Qe)<1e5 && abs(SEB.Qh)<1e5 , 'CryoGrid3 - Qe or Qh too large' );
+%     catch
+%         save( [ './runs/' run_number '/' run_number '_workspaceAtQeQhCrash.mat'] );
+%     end
     
     
     %------ soil module  --------------------------------------------------
@@ -254,8 +254,8 @@ while t<PARA.technical.endtime
     % account for min and max timesteps specified, max. energy change per grid cell and the CFT stability criterion.
     % energy change due to advection of heat through water fluxes is still excluded.
     % timestep in [days]
-    timestep = min( [ max( [ min( [ 0.5 * nanmin( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain ) ) ./ (24.*3600), ...    %+ GRID.snow.cT_domain
-                                    PARA.technical.targetDeltaE .* nanmin( abs(GRID.general.K_delta(GRID.soil.cT_domain ) ./ SEB.dE_dt(GRID.soil.cT_domain ) ) ) ./ (24.*3600), ...
+    timestep = min( [ max( [ min( [ 0.5 * nanmin( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain ) ) ./ (24.*3600), ...
+                                    PARA.technical.targetDeltaE .* nanmin( abs(GRID.general.K_delta ./ SEB.dE_dt ) ) ./ (24.*3600), ...
                                     PARA.technical.maxTimestep ] ), ...
                              PARA.technical.minTimestep ] ), ...
                       TEMPORARY.outputTime-t ] );
@@ -272,33 +272,34 @@ while t<PARA.technical.endtime
     
     %------- water body module --------------------------------------------
     T = mixingWaterBody(T, GRID);
-    
-    try
-        assert( sum( T<-60 )+sum(T>50)==0, 'CryoGrid3 - T exceeds physical limits' );
-    catch
-        save( [ './runs/' run_number '/' run_number '_workspaceAtTlimitsCrash.mat'] );
-    end
+%     
+%     try
+%         assert( sum( T<-60 )+sum(T>50)==0, 'CryoGrid3 - T exceeds physical limits' );
+%     catch
+%         save( [ './runs/' run_number '/' run_number '_workspaceAtTlimitsCrash.mat'] );
+%     end
 
           
     %------- snow cover module --------------------------------------------
     %[T, GRID, PARA, SEB, BALANCE] = CryoGridSnow(T, GRID, FORCING, SEB, PARA, c_cTgrid, timestep, BALANCE);
     [T, GRID, PARA, SEB] = CryoGridSnow_old(T, GRID, FORCING, SEB, PARA, c_cTgrid, timestep);
 
-    [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE);
+    %[GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE);
+    [GRID, T] = updateGRID_snow_old(T, GRID, PARA);
 
-    try
-        assert( ~isnan(T(GRID.air.cT_domain_lb+1)) , 'CryoGrid3 - T surf is nan after snow module');
-    catch
-        save( [ './runs/' run_number '/' run_number '_workspaceAtTsurfCrash.mat'] );
-    end
+%     try
+%         assert( ~isnan(T(GRID.air.cT_domain_lb+1)) , 'CryoGrid3 - T surf is nan after snow module');
+%     catch
+%         save( [ './runs/' run_number '/' run_number '_workspaceAtTsurfCrash.mat'] );
+%     end
     
     
             
-    try
-        assert( sum(GRID.general.K_delta<0)==0 , 'updateGRIDsnow - error in K grid');
-    catch
-        save( [ './runs/' run_number '/' run_number '_workspaceAtKgridCrash.mat'] );
-    end
+%     try
+%         assert( sum(GRID.general.K_delta<0)==0 , 'updateGRIDsnow - error in K grid');
+%     catch
+%         save( [ './runs/' run_number '/' run_number '_workspaceAtKgridCrash.mat'] );
+%     end
     
     %------- infiltration module-------------------------------------------
     if PARA.modules.infiltration
@@ -318,11 +319,11 @@ while t<PARA.technical.endtime
     
     %------- update Lstar for next time step ------------------------------
     SEB = L_star(FORCING, PARA, SEB);
-    try
-        assert( ~isnan(SEB.L_star(end)), 'L_star - Lstar is nan' );
-    catch
-        save( [ './runs/' run_number '/' run_number '_workspaceAtLstarCrash.mat'] );
-    end
+%     try
+%         assert( ~isnan(SEB.L_star(end)), 'L_star - Lstar is nan' );
+%     catch
+%         save( [ './runs/' run_number '/' run_number '_workspaceAtLstarCrash.mat'] );
+%     end
 
     %------- water balance calculations -----------------------------------
     % rainfall
