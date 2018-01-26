@@ -100,8 +100,8 @@ function CryoGrid3_function_spinup( taskName, startDate, endDate, rainFrac, snow
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;   % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;            % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
     PARA.technical.outputTimestep= 3 ./ 24.0 ;          % output time step in [days] - here three hours
-    PARA.technical.saveDate='01.09.';           % date of year when output file is written - no effect if "saveInterval" is empty
-    PARA.technical.saveInterval=[];             % interval [years] in which output files are written - if empty the entire time series is written - minimum is 1 year
+    PARA.technical.saveDate='01.01.';           % date of year when output file is written - no effect if "saveInterval" is empty
+    PARA.technical.saveInterval=[1];             % interval [years] in which output files are written - if empty the entire time series is written - minimum is 1 year
     PARA.technical.waterCellSize=0.02;          % default size of a newly added water cell when water ponds below water table [m]
 
     %default grid used for publications and testing of water balance:
