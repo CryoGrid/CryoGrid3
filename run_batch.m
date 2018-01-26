@@ -4,7 +4,7 @@
 add_modules_function;
 
 startDate=datenum( 1979, 6, 1);
-endDate=datenum( 1989, 6, 1);
+endDate=datenum( 1980, 6, 1);
 
 rainFrac=1;
 snowFrac=1;
