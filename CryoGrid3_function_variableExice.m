@@ -13,7 +13,7 @@ function [] = CryoGrid3_function_variableExice( taskName, startDate, endDate, ra
     %add_modules_function;  %adds required modules
     %add_modules;
     
-    createLogFile=1;
+    createLogFile=0;
 
     %---------------define input parameters------------------------------------
     % here you provide the ground stratigraphy
@@ -104,14 +104,14 @@ function [] = CryoGrid3_function_variableExice( taskName, startDate, endDate, ra
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;   % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;            % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
     PARA.technical.outputTimestep= 3 ./ 24.0 ;          % output time step in [days] - here three hours
-    PARA.technical.saveDate='01.08.';           % date of year when output file is written - no effect if "saveInterval" is empty
-    PARA.technical.saveInterval=[];             % interval [years] in which output files are written - if empty the entire time series is written - minimum is 1 year
+    PARA.technical.saveDate='01.01.';           % date of year when output file is written - no effect if "saveInterval" is empty
+    PARA.technical.saveInterval=[1];             % interval [years] in which output files are written - if empty the entire time series is written - minimum is 1 year
     PARA.technical.waterCellSize=0.02;          % default size of a newly added water cell when water ponds below water table [m]
 
     %default grid used for publications and testing of water balance:
     %PARA.technical.subsurfaceGrid = [[0:0.02:2], [2.1:0.1:10], [10.2:0.2:20], [21:1:30], [35:5:50], [60:10:100], [200:100:1000]]'; % the subsurface K-grid in [m]
     % use finer grid in upper 10 m to ensure correct evapotranspiration in case of subsidence
-    PARA.technical.subsurfaceGrid = [[0:0.02:10], [10.1:0.1:20], [20.2:0.2:30], [31:1:40], [45:5:60], [70:10:100], [200:100:1000]]'; % the subsurface K-grid in [m]
+    PARA.technical.subsurfaceGrid = [[0:0.02:5], [5.1:0.1:15], [15.2:0.2:20], [21:1:30], [35:5:50], [60:10:100], [200:100:1000]]'; % the subsurface K-grid in [m]
     
     %very simple grid used for testing of energy balance:
     %PARA.technical.subsurfaceGrid = [ [0:0.02:2] ]';
@@ -302,5 +302,7 @@ function [] = CryoGrid3_function_variableExice( taskName, startDate, endDate, ra
 
     end
     %profile off
-    save(['./runs/' run_number '/' run_number '_output.mat'], 'OUT')
+    save(['./runs/' run_number '/' run_number '_output' datestr(t,'yyyy') '.mat'], 'OUT')
+    save(['./runs/' run_number '/' run_number '_finalState' datestr(t,'yyyy') '.mat'], 'T', 'wc', 'SEB', 'PARA', 'GRID')
+
     disp('Done.');
