@@ -114,6 +114,8 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
         OUT.WB.dr_snowmelt = [ OUT.WB.dr_snowmelt; BALANCE.water.dr_snowmelt ];
         OUT.WB.dr_excessSnow=[ OUT.WB.dr_excessSnow; BALANCE.water.dr_excessSnow ];
         OUT.WB.dr_rain = [ OUT.WB.dr_rain; BALANCE.water.dr_rain ];  % this is only rain on frozen ground
+        % mismatch
+        OUT.WB.d_lacking = [OUT.WB.d_lacking; BALANCE.water.d_lacking ];
         % set accumulated fluxes in BALANCE.water struct to zero
         % storage
         BALANCE.water.dW_soil = 0;
@@ -130,6 +132,8 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
         BALANCE.water.dr_snowmelt=0;
         BALANCE.water.dr_excessSnow=0;
         BALANCE.water.dr_rain=0;
+        %mismatch
+        BALANCE.water.d_lacking=0;
 
         % soil     
         OUT.soil.soil{1, size(OUT.soil.soil,2)+1}=[GRID.soil.cT_water GRID.soil.cT_mineral GRID.soil.cT_organic];

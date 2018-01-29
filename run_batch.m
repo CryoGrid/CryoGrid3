@@ -4,7 +4,7 @@
 add_modules_function;
 
 startDate=datenum( 1979, 6, 1);
-endDate=datenum( 1980, 6, 1);
+endDate=datenum( 2014, 6, 1);
 
 rainFrac=1;
 snowFrac=1;
@@ -85,8 +85,8 @@ submit(job);
 disp( [ datestr(now) ': submitted job ' jobName ] );
 
 
-% wait(job);
-% disp( [ datestr(now) ': finished job ' jobName ] );
+wait(job);
+disp( [ datestr(now) ': finished job ' jobName ] );
 % 
 % for i=1:numTasks
 %     diary( [ './runs/' tasks{i}.Name '/' tasks{i}.Name '_diary.txt' ] );

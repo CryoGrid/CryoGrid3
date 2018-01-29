@@ -26,7 +26,7 @@ function [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRI
         dwc_dt(1)=dwc_dt(1)+meltwaterGroundIce;
 
         % routing of water    
-        [wc, surface_runoff] = bucketScheme(T, wc, dwc_dt, GRID, PARA, external_flux_rate.*timestep);
+        [wc, surface_runoff, lacking_water] = bucketScheme(T, wc, dwc_dt, GRID, PARA, external_flux_rate.*timestep);
 
         % consistency check
         if sum( wc<0 )~=0
@@ -61,7 +61,7 @@ function [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRI
 
         % store remaining surface runoff
         BALANCE.water.dr_surface = BALANCE.water.dr_surface - surface_runoff*1000; % in [mm]
-
+        BALANCE.water.d_lacking = BALANCE.water.d_lacking + lacking_water*1000;
 
     end
 

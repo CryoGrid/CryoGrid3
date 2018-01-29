@@ -51,6 +51,7 @@ function OUT = generateOUT()
     OUT.WB.dr_snowmelt=[];
     OUT.WB.dr_excessSnow=[];
     OUT.WB.dr_rain=[];  % this is only rain on frozen ground
+    OUT.WB.d_lacking =[];
 
 
     % energy balance (EB)
