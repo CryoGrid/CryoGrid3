@@ -298,5 +298,7 @@ function CryoGrid3_function_spinup( taskName, startDate, endDate, rainFrac, snow
 
     end
     %profile off
-    save(['./runs/' run_number '/' run_number '_output.mat'], 'OUT')
+    save(['./runs/' run_number '/' run_number '_output' datestr(t,'yyyy') '.mat'], 'OUT')
+    save(['./runs/' run_number '/' run_number '_finalState' datestr(t,'yyyy') '.mat'], 'T', 'wc', 'SEB', 'PARA', 'GRID')
+
     disp('Done.');
