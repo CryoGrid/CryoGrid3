@@ -44,4 +44,6 @@ function BALANCE = initializeBALANCE(T, wc, c_cTgrid, lwc_cTgrid, GRID, PARA)
     BALANCE.water.dr_lateralSnow=0;
     BALANCE.water.dr_rain=0;  % this is only rain on frozen ground
     BALANCE.water.dr_lateral=0;
+    BALANCE.water.d_lacking=0;
+    
 end

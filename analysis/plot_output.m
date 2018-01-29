@@ -3,11 +3,11 @@
 % 
 %function plot_output(dirname, runname, number_of_realizations)
 
-clear all
+%clear all
 close all
 
  dirname = '../runs/';
- runname = 'SPINUP-EXICE_197906-198906_stratSamExice_rf1_sf1_maxSnow0.40_snowDens=200_wt10.0_extFlux0.0000_fc0.30_exice0.60_natPor0.40';
+ runname = 'SPINUP-EXICE_197906-201406_stratSamExice_rf1_sf1_maxSnow0.40_snowDens=200_wt0.0_extFlux0.0000_fc0.30_exice0.60_natPor0.40';
  number_of_realizations = 1;
 % 
 
@@ -15,7 +15,7 @@ close all
 
 
     dir = dirname;%'/home/jnitzbon/gls1/CryoGrid/CryoGrid3_infiltration_xice_mpi_DEV/';
-    cm=load( [ 'cm_blueautumn.mat' ] );
+    %cm=load( [ './analysis/cm_blueautumn.mat' ] );
 
     infil=0;
     xice=0;
@@ -30,7 +30,7 @@ close all
         if number_of_realizations>1
             run = [ run num2str(i) ];
         end
-        outputfile = [dir run  '/' run '_output.mat'];
+        outputfile = [dir run  '/' run '_output2012.mat'];
         configfile = [dir run  '/' run '_settings.mat'];
 
         load(outputfile);
@@ -66,8 +66,8 @@ close all
     %lakeFloor = [ NaN(length(soilTop)-length(lakeFloor),1); lakeFloor ];
 
     % limits
-    minz = min(OUTS{1}.PARA.location.altitude - 10);
-    maxz = max(OUTS{1}.PARA.location.altitude + 1);
+    minz = min(OUTS{1}.PARA.location.altitude - 1);
+    maxz = max(OUTS{1}.PARA.location.altitude + 0.5);
 
     mint = min(ts);
     maxt = max(ts);
@@ -172,7 +172,7 @@ close all
     % (liquid) water content fields
     for i=1:number_of_realizations
         subplot(2, number_of_realizations, number_of_realizations+i);
-        pcolor( ts', zs{i}', LWCs{i});  %ax,
+        pcolor( ts', zs{i}', WCs{i});  %ax,
         hold on;
         caxis( [ 0. , 1. ] );
         colormap(gca, 'parula');

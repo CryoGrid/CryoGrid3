@@ -12,10 +12,11 @@ add_modules;  %adds required modules
 
 %addpath('./nansuite/')
 
+dbstop if error;
 
 createLogFile=0;
 
-spinupFile = [ './runs/TESTRUN_197906-197906_stratSam_rf1_sf1_maxSnow0.4_snowDens=200.0_wt0.0_extFlux0.0020_fc0.30/TESTRUN_197906-197906_stratSam_rf1_sf1_maxSnow0.4_snowDens=200.0_wt0.0_extFlux0.0020_fc0.30_finalState.mat' ];
+spinupFile = [ './runs/SPINUP-EXICE_197906-201406_stratSamExice_rf1_sf1_maxSnow0.40_snowDens=200_wt0.0_extFlux0.0000_fc0.30_exice0.60_natPor0.40/SPINUP-EXICE_197906-201406_stratSamExice_rf1_sf1_maxSnow0.40_snowDens=200_wt0.0_extFlux0.0000_fc0.30_exice0.60_natPor0.40_finalState2012.mat' ];
 
 if isempty(spinupFile)
 
@@ -106,8 +107,8 @@ if isempty(spinupFile)
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;   % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;            % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
     PARA.technical.outputTimestep= 3 ./ 24.0 ;          % output time step in [days] - here three hours
-    PARA.technical.saveDate='01.08.';           % date of year when output file is written - no effect if "saveInterval" is empty
-    PARA.technical.saveInterval=[];             % interval [years] in which output files are written - if empty the entire time series is written - minimum is 1 year
+    PARA.technical.saveDate='01.01.';           % date of year when output file is written - no effect if "saveInterval" is empty
+    PARA.technical.saveInterval=[1];             % interval [years] in which output files are written - if empty the entire time series is written - minimum is 1 year
     PARA.technical.waterCellSize=0.02;          % default size of a newly added water cell when water ponds below water table [m]
 
     %default grid used for publications and testing of water balance:
@@ -216,7 +217,11 @@ if isempty(spinupFile)
     
 else %take setting from spinup file
     load(spinupFile); % this loads T, wc, PARA, GRID, SEB from final state of spinup run
+    wc(wc<PARA.soil.residualWC)=PARA.soil.residualWC;
+    GRID.soil.cT_water = wc;
+    GRID = initializeSoilThermalProperties(GRID, PARA);
 
+    
     % here one could optionally change the forcing settings
     
     [FORCING, success]=load_forcing_from_file(PARA); % load FORCING mat-file
@@ -225,12 +230,14 @@ else %take setting from spinup file
     end
     clear success
       
-    PARA.technical.starttime = PARA.technical.endtime;  %take the end time from the spinup run as start time
-    PARA.technical.endtime = datenum(1979, 7, 1);
+    PARA.technical.starttime = datenum(2013, 1, 1);  %take the end time from the spinup run as start time
+    PARA.technical.endtime = datenum(2014, 6, 1);
     
-    run_number = sprintf( [ 'TESTRUN_SPUNUP_' datestr( PARA.technical.starttime, 'yyyymmdd' ) '-' datestr(PARA.technical.endtime, 'yyyymmdd' ) '_stratSam_rf%d_sf%d_maxSnow%0.1f_snowDens=%0.1f_wt%0.1f_extFlux%0.4f_fc%0.2f' ], ...
+    run_number = sprintf( [ 'SPINUP-EXICE_' datestr( PARA.technical.starttime, 'yyyymmdd' ) '-' datestr(PARA.technical.endtime, 'yyyymmdd' ) '_stratSamExice_rf%d_sf%d_maxSnow%0.1f_snowDens=%0.1f_wt%0.1f_extFlux%0.4f_fc%0.2f_exice%0.2f_natPor%0.2f' ], ...
                           [ PARA.forcing.rain_fraction, PARA.forcing.snow_fraction, PARA.snow.maxSnow, PARA.snow.rho_snow, ...
-                          PARA.soil.waterTable, PARA.soil.externalWaterFlux, PARA.soil.fieldCapacity ] );
+                          PARA.soil.waterTable, PARA.soil.externalWaterFlux, PARA.soil.fieldCapacity , ...
+                          PARA.soil.layer_properties(3,2), PARA.soil.layer_properties(3,6) ] );
+    
     % ------make output directory (name depends on parameters) ----------------
     mkdir(['./runs/' run_number])
     % necessary initializations
@@ -290,9 +297,9 @@ while t<PARA.technical.endtime
 
     
     % give a warning when timestep required by CFT criterion is below the minimum timestep specified
-    if timestep > 0.5 * min( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain) ) ./ (24.*3600)
-        warning( 'numerical stability not guaranteed' );
-    end
+%     if timestep > 0.5 * min( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain) ) ./ (24.*3600)
+%         warning( 'numerical stability not guaranteed' );
+%     end
     
     %------ update T array ------------------------------------------------
     T = T + SEB.dE_dt./c_cTgrid./GRID.general.K_delta.*timestep.*24.*3600;
@@ -321,6 +328,11 @@ while t<PARA.technical.endtime
         [GRID, PARA, wc, meltwaterGroundIce] = excessGroundIceInfiltration(T, wc, GRID, PARA);
         GRID = updateGRID_excessiceInfiltration2(meltwaterGroundIce, GRID);
     end
+    
+    assert( sum( sum( GRID.soil.capacity < 0 ) ) == 0, 'CryoGrid3 - negative entry in capacity LUT');
+    
+    assert( sum( sum( GRID.soil.conductivity < 0 ) ) == 0, 'CryoGrid3 - negative entry in conductivity LUT');
+    
     
     %------- update Lstar for next time step ------------------------------
     SEB = L_star(FORCING, PARA, SEB);
