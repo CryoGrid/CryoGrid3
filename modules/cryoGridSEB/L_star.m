@@ -19,12 +19,10 @@ g = PARA.constants.g; %9.81;
 
 % potential error here, pressure set to 1005 hPa, must be changed? 
 
-%Tz=Tz+273.15;
-
-
 u_star = real(uz.*kappa./(log(z./z0)- psi_M(z./Lstar, z0./Lstar)));
 L_star = real(-rho.*cp.*Tz./kappa./g.*u_star.^3./(Qh + 0.61.*cp./L.*Tz.*Qe));
-L_star=(abs(L_star)<1e-7).*L_star./abs(L_star).*1e-7 + (abs(L_star)>=1e-7).*L_star;  %changed to 1e-5, as 1e-7 before
+L_star=(abs(L_star)<1e-6).*L_star./abs(L_star).*1e-6 + (abs(L_star)>=1e-6).*L_star;  % lower limit for Lstar (before 1e-7 and 1e-5)
+L_star=(abs(L_star)>1e6).*L_star./abs(L_star).*1e6 + (abs(L_star)<=1e6).*L_star;    % introduced upper limit for Lstar
 
 
 SEB.ustar = u_star;

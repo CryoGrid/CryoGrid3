@@ -8,10 +8,7 @@ cT_water = GRID.soil.cT_water;
 cT_mineral = GRID.soil.cT_mineral;
 cT_organic = GRID.soil.cT_organic;
 cT_soilType = GRID.soil.cT_soilType;
-K_water = GRID.soil.K_water;
-K_mineral = GRID.soil.K_mineral;
-K_organic = GRID.soil.K_organic;
-K_soilType = GRID.soil.K_soilType;
+
 arraySize = PARA.technical.arraySizeT;
 cT_grid = GRID.general.cT_grid(GRID.soil.cT_domain);
 kh_bedrock = PARA.soil.kh_bedrock;
@@ -42,24 +39,19 @@ mineral=cT_mineral;
 organic=cT_organic;
 a=cT_soilType;
 
-
+% set cT_thawed
 cT_thawed=zeros(size(a,1),1);
-%cT_frozen=-15*ones(size(a,1),1);
-
+% determine cT_frozen
 ch=mineral*c_m+organic*c_o+waterMin.*c_w+(water-waterMin)*c_i;
-
 %preallocate variable
 c_h2o=ones(length(a),length(-30:0.01:-1));
-
 j=1;
 for i= -30:0.01:-1
     c_h2o(:,j)=L_si*rho_w*(freezeC(water, 1-mineral-organic, a, i+deltaT/2, PARA)-freezeC(water, 1-mineral-organic, a, i-deltaT/2, PARA))/deltaT(1,1) < 0.05.*ch;
     j=j+1;
 end
-
 %preallocate variables
 cT_frozen=-30+((sum(c_h2o')')-1).*0.01; 
-
 c_h2o=ones(length(a),length(1:arraySize-2)+1); 
 water_c=c_h2o;
 ch=c_h2o;
@@ -89,15 +81,6 @@ liquidWaterContent = [water_c water]; % water content
 
 
 %---------- conductivity part ---------------------------------------------
-% water=K_water;
-% mineral=K_mineral;
-% organic=K_organic;
-% a=K_soilType;
-%%K_frozen=-15*ones(size(a,1),1);
-%K_frozen=[cT_frozen(1,1); 0.5.*(cT_frozen(1:end-1,1)+cT_frozen(2:end,1)) ; cT_frozen(end,1)];
-%K_thawed=zeros(size(a,1),1);
-
-
 % changed to cT-grid since K- interpolation is done external now
 % water=cT_water;
 % mineral=cT_mineral;
@@ -111,7 +94,7 @@ liquidWaterContent = [water_c water]; % water content
 % water_c2=ones(length(a),length(1:arraySize-2)+1);
 % water_c2(:,1)=freezeC(water, 1-mineral-organic, a, K_frozen, PARA);      % JAN: this is identical to water_c for 
 
-conductivity=water_c;
+conductivity=water_c;	% initialize to same size as water_c
 
 % for i=1:arraySize-2
 %     water_c2(:,i+1)=freezeC(water, 1-mineral-organic, a, K_thawed+(K_frozen-K_thawed)*(arraySize-2-i)/(arraySize-2), PARA);
@@ -128,11 +111,6 @@ end
 
 conductivity=[conductivity conductivity(:,size(conductivity,2))]; %conductivity matrix for soil filled
 
-% lastSnowCell=find((:,1)<0);
-% lastSnowCell=lastSnowCell(end);
-% conductivity(1:lastSnowCell,:) = repmat(kh_snow, lastSnowCell, size(conductivity,2));
-
-
 %----------- write lookup tables to GRID struct
 
 liquidWaterContent = real(liquidWaterContent);
@@ -142,8 +120,6 @@ capacity = real(capacity);
 
 GRID.soil.cT_frozen = cT_frozen;
 GRID.soil.cT_thawed = cT_thawed;
-GRID.soil.K_frozen = K_frozen;
-GRID.soil.K_thawed = K_thawed;
 GRID.soil.conductivity = conductivity;
 GRID.soil.capacity = capacity;
 GRID.soil.liquidWaterContent = liquidWaterContent;
@@ -155,26 +131,23 @@ GRID.soil.liquidWaterContent = liquidWaterContent;
 %content is 'water' by default
 function waterC =  freezeC(thetaTot, thetaSat, soilType, T, PARA)
     T=T+273.15;
-    % thetaTot=0.3;
-    % thetaSat=0.4;
+
     thetaTot=min(thetaSat, thetaTot); 
     thetaRes=zeros(size(soilType));
     alpha=zeros(size(soilType));
     n=zeros(size(soilType));
 
-
     %set conditions for soil types 
-    thetaRes(soilType==1) = 0;
-    alpha(soilType==1)    = 4;
-    n(soilType==1)        = 2;
+    thetaRes(soilType==1) = PARA.soil.soilType(1,1);
+    alpha(soilType==1)    = PARA.soil.soilType(1,3);
+    n(soilType==1)        = PARA.soil.soilType(1,4);
 
-    thetaRes(soilType==2) = 0.05;
-    alpha(soilType==2)    = 0.65;
-    n(soilType==2)        = 1.7;
+    thetaRes(soilType==2) = PARA.soil.soilType(2,1);
+    alpha(soilType==2)    = PARA.soil.soilType(2,3);
+    n(soilType==2)        = PARA.soil.soilType(2,4);
     
     m=1-1./n;
     waterPotZero=-1./alpha .*( ((thetaTot-thetaRes)./(thetaSat-thetaRes) ).^(-1./m) -1 ).^(1./n);
-    %Tstar=273.15+9.81.*273.15./3.34e5.*waterPotZero;
     Tstar = 273.15 + PARA.constants.g .* 273.15 ./ PARA.constants.L_sl .* waterPotZero;
     waterC=zeros(size(T));
 
@@ -182,7 +155,7 @@ function waterC =  freezeC(thetaTot, thetaSat, soilType, T, PARA)
 
     waterC(T>=273.15) = thetaTot(T>=273.15);
 
-    % OLD implementation ( plateau from 0 to -0.05 )
+    % implementation ( linear from 0 to -0.05 )
     waterPot(T<273.15 & T>273.1) = waterPotZero(T<273.15 & T>273.1)...
              + (3.34e5./9.81./Tstar(T<273.15 & T>273.1).*(273.1-Tstar(T<273.15 & T>273.1)))...
              .* (273.1<Tstar(T<273.15 & T>273.1));
@@ -201,29 +174,10 @@ function waterC =  freezeC(thetaTot, thetaSat, soilType, T, PARA)
     waterC( isnan(waterC) ) = thetaRes( isnan(waterC) );
     
     
-%JAN: new implementation ( smooth functions )
+%JAN: alternative implementation ( smooth functions )
 %     waterPot(T<=273.15)= waterPotZero(T<=273.15)+(PARA.constants.L_sl./PARA.constants.g./Tstar(T<=273.15).*(T(T<=273.15)-Tstar(T<=273.15))).*(T(T<=273.15)<Tstar(T<=273.15));
 %     %waterPot(T<=273.15)= waterPotZero(T<=273.15)+(3.34e5./9.81./Tstar(T<=273.15).*(T(T<=273.15)-Tstar(T<=273.15))).*(T(T<=273.15)<Tstar(T<=273.15));
 % 
 %     waterC(T<=273.15)  = thetaRes(T<=273.15)+(thetaSat(T<=273.15)-thetaRes(T<=273.15)).*(1+(-alpha(T<=273.15).*waterPot(T<=273.15)).^n(T<=273.15)).^(-m(T<=273.15));
 % 
-    % for i=1:size(soilType,1)
-    %     if T(i)>=273.15
-    %         waterC(i,1)=thetaTot(i,1);
-    %     else
-    %          
-    %         if T(i,1)>273.1
-    %             
-    %             
-    %             waterPot=waterPotZero(i,1)+(3.34e5./9.81./Tstar(i,1).*(273.1-Tstar(i,1))).*(273.1<Tstar(i,1));
-    %             waterC(i,1)=thetaRes(i,1)+(thetaSat(i,1)-thetaRes(i,1)).*(1+(-alpha(i,1).*waterPot).^n(i,1)).^(-m(i,1));
-    %             
-    %             waterC(i,1) = waterC(i,1)+ (thetaTot(i,1)-waterC(i,1)).*(T(i,1)-273.1)./0.05;
-    %             
-    %         else
-    %             waterPot=waterPotZero(i,1)+(3.34e5./9.81./Tstar(i,1).*(T(i,1)-Tstar(i,1))).*(T(i,1)<Tstar(i,1));
-    %             waterC(i,1)=thetaRes(i,1)+(thetaSat(i,1)-thetaRes(i,1)).*(1+(-alpha(i,1).*waterPot).^n(i,1)).^(-m(i,1));
-    %             
-    %        end
-    %     end
-    % end
+

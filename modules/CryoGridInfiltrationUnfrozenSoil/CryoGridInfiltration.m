@@ -1,16 +1,20 @@
-function [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRID, PARA, FORCING, BALANCE)
+function [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRID, PARA, FORCING, BALANCE, lateral_flux_rate)
     
     % possible meltwater contribution from xice
     if ~PARA.modules.xice
-        meltwaterGroundIce = 0;
+        meltwaterGroundIceAboveWaterTableThreshold = 0;
     else
-        meltwaterGroundIce = GRID.lake.residualWater;
+        meltwaterGroundIceAboveWaterTableThreshold = GRID.lake.residualWater;
         GRID.lake.residualWater=0;
     end
     
     % external flux
     external_flux_rate = PARA.soil.externalWaterFlux;             % in m/day
     BALANCE.water.dr_external = BALANCE.water.dr_external + external_flux_rate.*timestep.*1000;    %in mm
+    
+    % lateral flux to/from other workers
+    lateral_flux_rate = lateral_flux_rate.*3600.*24; % now in m/day
+    BALANCE.water.dr_lateral = BALANCE.water.dr_lateral + lateral_flux_rate.*timestep.*1000;
 
     if isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0   %no snow cover and uppermost grid cell unfrozen
 
@@ -23,25 +27,26 @@ function [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRI
         dwc_dt(1)=dwc_dt(1)+FORCING.i.rainfall./1000.*timestep;
 
         % changes due to meltwater from excess ice
-        dwc_dt(1)=dwc_dt(1)+meltwaterGroundIce;
+        dwc_dt(1)=dwc_dt(1)+meltwaterGroundIceAboveWaterTableThreshold;
 
         % routing of water    
-        [wc, surface_runoff, lacking_water] = bucketScheme(T, wc, dwc_dt, GRID, PARA, external_flux_rate.*timestep);
+        [wc, surface_runoff, lacking_water] = bucketScheme(T, wc, dwc_dt, GRID, PARA, (external_flux_rate+lateral_flux_rate).*timestep);
 
         % consistency check
         if sum( wc<0 )~=0
-            warning('negative water content occured');
+            warning( 'CryoGridInfiltration - negative water content occured after bucket scheme' );
             %here one could correct the water balance
+            
         end
 
         % remove water above water table in case of ponding, e.g. through rain (independent of xice module)
         if GRID.soil.cT_mineral(1)+GRID.soil.cT_organic(1)<1e-6 && ...
-                GRID.general.K_grid(GRID.soil.cT_domain_ub)<PARA.soil.waterTable
+                PARA.location.initial_altitude-GRID.general.K_grid(GRID.soil.cT_domain_ub)>PARA.location.absolute_maxWater_altitude
 
 
             cellSize = GRID.general.K_delta(GRID.soil.cT_domain_ub);
             actualWater = wc(1)*cellSize;
-            h = GRID.general.K_grid(GRID.soil.K_domain_ub+1)-PARA.soil.waterTable;
+            h = PARA.location.absolute_maxWater_altitude - (PARA.location.initial_altitude-GRID.general.K_grid(GRID.soil.cT_domain_ub+1));
             if h<0
                 warning('h<0. too much water above water table!')
             end
@@ -61,7 +66,7 @@ function [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRI
 
         % store remaining surface runoff
         BALANCE.water.dr_surface = BALANCE.water.dr_surface - surface_runoff*1000; % in [mm]
-        BALANCE.water.d_lacking = BALANCE.water.d_lacking + lacking_water*1000;
+        BALANCE.water.dm_lacking = BALANCE.water.dm_lacking + lacking_water*1000;
 
     end
 
