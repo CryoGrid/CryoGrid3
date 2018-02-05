@@ -14,14 +14,14 @@ cT_grid = GRID.general.cT_grid(GRID.soil.cT_domain);
 kh_bedrock = PARA.soil.kh_bedrock;
 
 
-c_w = PARA.constants.c_w; %4.2*10^6; %[J/m�K]
-c_o = PARA.constants.c_o; %2.5*10^6; %[J/m�K]
-c_m = PARA.constants.c_m; %2*10^6; %[J/m�K]
-c_a = PARA.constants.c_a; %0.00125*10^6;%[J/m�K]
-c_i = PARA.constants.c_i; %1.9*10^6;%[J/m�K]
+c_w = PARA.constants.c_w; %4.2*10^6; %[J/m???K]
+c_o = PARA.constants.c_o; %2.5*10^6; %[J/m???K]
+c_m = PARA.constants.c_m; %2*10^6; %[J/m???K]
+c_a = PARA.constants.c_a; %0.00125*10^6;%[J/m???K]
+c_i = PARA.constants.c_i; %1.9*10^6;%[J/m???K]
 
 %density of water
-rho_w = PARA.constants.rho_w; %1000; %[kg/m�]
+rho_w = PARA.constants.rho_w; %1000; %[kg/m???]
 %rho_i=900;
 %latent heat of freezing
 L_si = PARA.constants.L_sl; %334000; % [J/kg]
@@ -29,7 +29,6 @@ deltaT=0.001*ones(size(cT_grid,1),1);
 
 % JAN: modification to assume pure water for mixed air/water cells
 cT_water(cT_mineral+cT_organic<=1e-6)=1.;
-
 
 
 %------- capacity part ----------------------------------------------------
@@ -87,8 +86,7 @@ liquidWaterContent = [water_c water]; % water content
 % organic=cT_organic;
 % a=cT_soilType;
 % 
-% K_frozen=cT_frozen;
-% K_thawed=cT_thawed;
+
 % 
 % %preallocate variables
 % water_c2=ones(length(a),length(1:arraySize-2)+1);
@@ -120,6 +118,10 @@ capacity = real(capacity);
 
 GRID.soil.cT_frozen = cT_frozen;
 GRID.soil.cT_thawed = cT_thawed;
+K_frozen=cT_frozen;
+K_thawed=cT_thawed;
+GRID.soil.K_frozen = K_frozen;
+GRID.soil.K_thawed = K_thawed;
 GRID.soil.conductivity = conductivity;
 GRID.soil.capacity = capacity;
 GRID.soil.liquidWaterContent = liquidWaterContent;
@@ -138,13 +140,13 @@ function waterC =  freezeC(thetaTot, thetaSat, soilType, T, PARA)
     n=zeros(size(soilType));
 
     %set conditions for soil types 
-    thetaRes(soilType==1) = PARA.soil.soilType(1,1);
-    alpha(soilType==1)    = PARA.soil.soilType(1,3);
-    n(soilType==1)        = PARA.soil.soilType(1,4);
+    thetaRes(soilType==1) = PARA.soil.soilTypes(1,1);
+    alpha(soilType==1)    = PARA.soil.soilTypes(1,3);
+    n(soilType==1)        = PARA.soil.soilTypes(1,4);
 
-    thetaRes(soilType==2) = PARA.soil.soilType(2,1);
-    alpha(soilType==2)    = PARA.soil.soilType(2,3);
-    n(soilType==2)        = PARA.soil.soilType(2,4);
+    thetaRes(soilType==2) = PARA.soil.soilTypes(2,1);
+    alpha(soilType==2)    = PARA.soil.soilTypes(2,3);
+    n(soilType==2)        = PARA.soil.soilTypes(2,4);
     
     m=1-1./n;
     waterPotZero=-1./alpha .*( ((thetaTot-thetaRes)./(thetaSat-thetaRes) ).^(-1./m) -1 ).^(1./n);

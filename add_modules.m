@@ -5,9 +5,9 @@
 
 clear all
 close all
+
 profile off
-%dbclear if error
-dbstop if error
+
 
 %import CryoGrid modules (matlab functions)
 addpath('modules/cryoGridTechnical/')

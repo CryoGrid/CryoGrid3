@@ -1,10 +1,10 @@
-function [precond_water] = checkPreconditionsWaterExchange( T, GRID )
+function [precond_water] = checkPreconditionWaterExchange( T, GRID )
 
 	precondition_waterExchange = double( T(GRID.soil.cT_domain_ub)>0 && isempty(GRID.snow.cT_domain_ub) ); % matches with conditions of infiltration
 
 	for j=1:numlabs
         if j~=labindex
-            labSend( precondition_waterExchange_index, j, 2);
+            labSend( precondition_waterExchange, j, 2);
         end
     end
 	

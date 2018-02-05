@@ -1,4 +1,4 @@
-function [precond_snow] = checkPreconditionsSnowExchnge( GRID, PARA )
+function [precond_snow] = checkPreconditionSnowExchange( GRID, PARA )
 
 	precondition_snowExchange = double( ~isempty(GRID.snow.cT_domain_ub) && ( PARA.ensemble.surface_altitude(labindex) > PARA.ensemble.altitude(labindex)+PARA.ensemble.immobile_snow_height(labindex) ) );
 

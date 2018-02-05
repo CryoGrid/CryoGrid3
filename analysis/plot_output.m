@@ -3,12 +3,12 @@
 % 
 %function plot_output(dirname, runname, number_of_realizations)
 
-%clear all
+clear all
 close all
 
- dirname = '../runs/';
- runname = 'SPINUP-EXICE_197906-201406_stratSamExice_rf1_sf1_maxSnow0.40_snowDens=200_wt0.0_extFlux0.0000_fc0.30_exice0.60_natPor0.40';
- number_of_realizations = 1;
+ dirname = '/home/jnitzbon/CryoGrid/github/GITHUB_CryoGrid3_infiltration_xice_mpi/runs/';
+ runname = 'testrunMPI_POOL_xH1_xW1_xS1_infil1_xice1_rF1.000000_sF1.000000_realization';
+ number_of_realizations = 2;
 % 
 
     %% load output data and settings from files of all workers
@@ -30,7 +30,7 @@ close all
         if number_of_realizations>1
             run = [ run num2str(i) ];
         end
-        outputfile = [dir run  '/' run '_output2012.mat'];
+        outputfile = [dir run  '/' run '_output1979.mat'];
         configfile = [dir run  '/' run '_settings.mat'];
 
         load(outputfile);
@@ -82,7 +82,7 @@ close all
         subplot(2,3,1)
         hold on
         for i=1:number_of_realizations
-            plot(ts, OUTS{1}.OUT.ensemble.active_layer_depth_altitude(:,i)) ; %abs(OUTS{1}.OUT.ensemble.altitude(:,i)-
+            plot(ts, OUTS{i}.OUT.location.active_layer_depth_altitude(:)) ; %abs(OUTS{1}.OUT.ensemble.altitude(:,i)-
         end
         datetick;
         title('Frost table [m asl]')
@@ -91,7 +91,7 @@ close all
         subplot(2,3,2)
         hold on
         for i=1:number_of_realizations
-            plot(ts, OUTS{1}.OUT.ensemble.water_table(:,i));
+            plot(ts, OUTS{i}.OUT.location.water_table_altitude(:));
         end
         datetick;
         title('Water table [m asl]')
@@ -100,7 +100,7 @@ close all
         subplot(2,3,3)
         hold on
         for i=1:number_of_realizations
-            plot(ts, OUTS{1}.OUT.ensemble.surface_altitude(:,i));
+            plot(ts, OUTS{i}.OUT.location.surface_altitude(:));
         end
         datetick;
         title('Surface altitude [m asl]')
@@ -109,7 +109,7 @@ close all
         subplot(2,3,4)
         hold on
         for i=1:number_of_realizations
-            plot(ts, nansum(OUTS{i}.OUT.ensemble.heat_fluxes , 2));
+            plot(ts, nansum(OUTS{i}.OUT.lateral.heat_fluxes , 2));
         end
         datetick;
         title('Heat fluxes [ W / m^2 ]')
@@ -118,7 +118,7 @@ close all
         subplot(2,3,5)
         hold on
         for i=1:number_of_realizations
-            plot(ts, nansum(OUTS{i}.OUT.ensemble.water_fluxes .*1000 .* 3600 , 2));
+            plot(ts, nansum(OUTS{i}.OUT.lateral.water_fluxes .*1000 .* 3600 , 2));
         end
         datetick;
         title('Water fluxes [mm/h]')
@@ -127,7 +127,7 @@ close all
         subplot(2,3,6)
         hold on
         for i=1:number_of_realizations
-            plot(ts, nansum(OUTS{i}.OUT.ensemble.snow_fluxes .*1000 .* 3600 , 2) );
+            plot(ts, nansum(OUTS{i}.OUT.lateral.snow_fluxes .*1000 .* 3600 , 2) );
         end
         datetick;
         title('Snow fluxes [mm/h]')

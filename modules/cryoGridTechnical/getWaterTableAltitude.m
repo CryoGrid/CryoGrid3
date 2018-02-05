@@ -15,9 +15,9 @@ function waterTable = getWaterTableAltitude(T, wc, GRID, PARA)
             i=i+1;
         end
         
-        if T(i)<=0;
+        if T(i)<=0
             waterTable=NaN;
-            disp('Dry to permafrost - waterTable=NaN \n')% Loop was stopped by the temperature condition so no water table
+            %disp('Dry to permafrost - waterTable=NaN \n')% Loop was stopped by the temperature condition so no water table
         end
     end
 

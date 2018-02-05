@@ -1,4 +1,4 @@
-function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, run_number, water_fluxes, snow_fluxes, heat_fluxes); 
+function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, run_number, water_fluxes, snow_fluxes, heat_fluxes) 
 
 
     TEMPORARY.timestep_sum=TEMPORARY.timestep_sum+(timestep*24*3600)*timestep;
@@ -95,17 +95,17 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
 
     
         % derived characteristics and related to geometry
-        OUT.loaction.area = [OUT.location.area; PARA.location.area];
-        OUT.location.altitude=[OUT.loacation.altitude; PARA.location.altitude];
+        OUT.location.area = [OUT.location.area; PARA.location.area];
+        OUT.location.altitude=[OUT.location.altitude; PARA.location.altitude];
         OUT.location.surface_altitude=[OUT.location.surface_altitude; PARA.location.surface_altitude];
         OUT.location.active_layer_depth_altitude = [OUT.location.active_layer_depth_altitude; PARA.location.active_layer_depth_altitude];
-        OUT.location.water_table=[OUT.location.water_table; PARA.location.water_table];
+        OUT.location.water_table_altitude=[OUT.location.water_table_altitude; PARA.location.water_table_altitude];
 
         % lateral fluxes
         OUT.lateral.terrain_index_snow=[ OUT.lateral.terrain_index_snow; PARA.ensemble.terrain_index_snow ];
-        OUT.lateral.water_fluxes = [ OUT.lateral.water_fluxes; water_fluxes ];     % vector containing water fluxes in [m/s] to the current worker
-        OUT.lateral.snow_fluxes = [ OUT.lateral.snow_fluxes; snow_fluxes ];      % vector containing snow fluxes in [m SWE / s] to the current worker
-        OUT.lateral.heat_fluxes = [ OUT.lateral.heat_fluxes; heat_fluxes ];      % vector containing depth-integrated heat fluxes in [J/m^2 s ] to the current worker
+        OUT.lateral.water_fluxes = [ OUT.lateral.water_fluxes; water_fluxes' ];     % vector containing water fluxes in [m/s] to the current worker
+        OUT.lateral.snow_fluxes = [ OUT.lateral.snow_fluxes; snow_fluxes' ];      % vector containing snow fluxes in [m SWE / s] to the current worker
+        OUT.lateral.heat_fluxes = [ OUT.lateral.heat_fluxes; heat_fluxes' ];      % vector containing depth-integrated heat fluxes in [J/m^2 s ] to the current worker
 
 		% water balance (WB)
         % all flows are defined as positive when they go into the soil/snow column
@@ -185,8 +185,9 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
         %write output files      
         if  round((t-TEMPORARY.saveTime).*48)==0   
             iSaveOUT(['./runs/' run_number '/' run_number '_output' datestr(t,'yyyy')  '.mat'], OUT)
-            iSaveState(['./runs/' run_number '/' run_number '_finalState'  datestr(t,'yyyy') '.mat'], T, wc, SEB, PARA, GRID)
+            iSaveState(['./runs/' run_number '/' run_number '_finalState'  datestr(t,'yyyy') '.mat'], T, wc, t, SEB, PARA, GRID)
             OUT = generateOUT();  
             TEMPORARY.saveTime=datenum(str2num(datestr(t,'yyyy'))+1, str2num(datestr(t,'mm')), str2num(datestr(t,'dd')), str2num(datestr(t,'HH')), str2num(datestr(t,'MM')), 0);
         end            
     end
+end

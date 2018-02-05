@@ -10,7 +10,7 @@ delete(gcp('nocreate')) % useful to restart from a crash
 
 add_modules;  %adds required modules
 
-dbstop if error;
+%dbstop if error;
 
 number_of_realizations=2;
 
@@ -68,7 +68,8 @@ spmd
     PARA.soil.convectiveDomain=[];       % soil domain where air convection due to buoyancy is possible -> start and end [m] - if empty no convection is possible
     PARA.soil.mobileWaterDomain=[0 10.0];      % soil domain where water from excess ice melt is mobile -> start and end [m] - if empty water is not mobile
     PARA.soil.relative_maxWater=0.;              % depth at which a water table will form [m] - above excess water is removed, below it pools up  
-	PARA = loadSoilTypes();
+	PARA.soil.hydraulic_conductivity = 1e-5;
+    PARA = loadSoilTypes( PARA );
 
     % parameters related to snow
     PARA.snow.max_albedo=0.85;      % albedo of fresh snow
@@ -100,12 +101,12 @@ spmd
     PARA.technical.maxSWE=0.4;                  % in [m] SWE
     PARA.technical.arraySizeT=5002;             % number of values in the look-up tables for conductivity and capacity
     PARA.technical.starttime=datenum(1979, 6, 1);       % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum(1979, 6, 15);         % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.endtime=datenum(1980, 6, 1);         % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;   % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;   % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;            % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
     PARA.technical.outputTimestep= 3 ./ 24.0 ;          % output time step in [days] - here three hours
-    PARA.technical.syncTimestep = 3 ./ 24.0 ;          % output time step in [days] - here three hours
+    PARA.technical.syncTimeStep = 12 ./ 24.0 ;          % output time step in [days] - here three hours
     PARA.technical.saveDate='01.01.';           % date of year when output file is written - no effect if "saveInterval" is empty
     PARA.technical.saveInterval=[1];             % interval [years] in which output files are written - if empty the entire time series is written - minimum is 1 year
     PARA.technical.waterCellSize=0.02;          % default size of a newly added water cell when water ponds below water table [m]
@@ -114,6 +115,7 @@ spmd
     PARA.technical.subsurfaceGrid = [[0:0.02:2], [2.1:0.1:10], [10.2:0.2:20], [21:1:30], [35:5:50], [60:10:100], [200:100:1000]]'; % the subsurface K-grid in [m]
     %PARA.technical.subsurfaceGrid = [[0:0.02:10], [10.1:0.1:20], [20.2:0.2:30], [31:1:40], [45:5:60], [70:10:100], [200:100:1000]]'; % the subsurface K-grid in [m]
 
+    PARA.location.area=1.0;
     PARA.location.initial_altitude=20.0;            
 	% JAN: the following quantities are dynamic and should hence be moved to another struct, e.g. "STATE"
 	PARA.location.altitude = PARA.location.initial_altitude; 	% used to generate pressure forcing based on barometric altitude formula, if pressure forcing is not given; excluding snow domain
@@ -121,11 +123,11 @@ spmd
     PARA.location.active_layer_depth_altitude = nan; % defined at runtime
     PARA.location.water_table_altitude = nan; % defined at runtime   
 	% thresholds	
-	PARA.location.absolute_maxWater_altitude = PARA.location.altitude + PARA.soil.waterTable;
+	PARA.location.absolute_maxWater_altitude = PARA.location.altitude + PARA.soil.relative_maxWater;
 	if isempty( PARA.snow.relative_maxSnow )
     	PARA.location.absolute_maxSnow_altitude = [];
 	else
-    	PARA.location.absolute_maxSnow_altitude = [ PARA.location.altitude + PARA.snow.maxSnow ];
+    	PARA.location.absolute_maxSnow_altitude = [ PARA.location.altitude + PARA.snow.relative_maxSnow ];
 	end
 
     %initial temperature profile -> first column depth [m] -> second column temperature [degree C]
@@ -280,7 +282,7 @@ spmd
         % account for lateral heat fluxes
         T = T + dE_dt_lateral./c_cTgrid.*timestep.*24.*3600; % no division by K_delta necessary as dE_dt_lateral in [ J / m^3 / s ]
         % set grid cells in air to air temperature
-        T(GRID.air.cT_domain)=FORCING.i.Tair;  
+        T(GRID.air.cT_domain)=FORCING.i.Tair;
 
         %------- water body module --------------------------------------------
         T = mixingWaterBody(T, GRID);
@@ -313,7 +315,7 @@ spmd
 		PARA.location.altitude = getAltitude( PARA, GRID );
 		PARA.location.surface_altitude = getSurfaceAltitude( PARA, GRID );
  	    PARA.location.active_layer_depth_altitude = getActiveLayerDepthAltitude( PARA, GRID, T );
-    	PARA.location.water_table_altitude = getWaterTableAltitude(T, wc, GRID, PARA); 
+    	PARA.location.water_table_altitude = getWaterTableAltitude(T, wc, GRID, PARA);
 
 		%------- update threshold variables if no lateral exchange processes occur, otherwise updated at sync time
 		if ~PARA.modules.lateral
@@ -331,7 +333,6 @@ spmd
         % snowfall
         BALANCE.water.dp_snow = BALANCE.water.dp_snow + FORCING.i.snowfall.*timestep;   %sum up snowfall in [mm] SWE per output interval     
 
-        
         %------- lateral exchange module --------------------------------------
       	% all functions called in this block should go into
         % /modules/cryoGridLateral
@@ -340,7 +341,7 @@ spmd
 		    if t==TEMPORARY.syncTime %communication between workers
 		        disp('CryoGridLateral: sync - start'); 
 				labBarrier(); %common start
-				updateAuxiliaryVariablesAndCommonThresholds() ;        
+				PARA = updateAuxiliaryVariablesAndCommonThresholds(T, wc, GRID, PARA) ;        
 				
 				% heat exchange module
 				if PARA.modules.exchange_heat
@@ -376,13 +377,13 @@ spmd
 				if PARA.modules.exchange_water
 					labBarrier();
 					% check preconditions
-					precondition_waterExchage = checkPreconditionsWaterExchange( T, GRID )
+					precondition_waterExchange = checkPreconditionWaterExchange( T, GRID );
 					if precondition_waterExchange
 						% WRAPPER
 						disp('sync - exchanging water');
 						% calculate lateral water fluxes
 		                water_fluxes = nan( number_of_realizations, 1 ); % in [m/s]
-		                PACKAGE_waterExchange.water_table_altitude = PARA.ensemble.water_table(index);
+		                PACKAGE_waterExchange.water_table_altitude = PARA.ensemble.water_table_altitude(index);
 		                PACKAGE_waterExchange.active_layer_depth_altitude = PARA.ensemble.active_layer_depth_altitude(index);
 		                PACKAGE_waterExchange.infiltration_condition = T(GRID.soil.cT_domain_ub)>0 && isempty(GRID.snow.cT_domain_ub);
 			            for j=1:number_of_realizations
@@ -408,7 +409,7 @@ spmd
 				if PARA.modules.exchange_snow
 					labBarrier();
 					% check preconditions
-					precondition_snowExchange = checkPreconditionsSnowExchnge( GRID, PARA )
+					precondition_snowExchange = checkPreconditionSnowExchange( GRID, PARA );
 					if precondition_snowExchange
 			            disp('sync - exchanging snow');
 		                % calculate terrain index with updated surface_altitudes
@@ -460,7 +461,7 @@ spmd
 				end
 		        
 				labBarrier();
-				updateAuxiliaryVariablesAndCommonThresholds() ;        
+				PARA = updateAuxiliaryVariablesAndCommonThresholds(T, wc, GRID, PARA) ;        
 
 		        TEMPORARY.syncTime=round((TEMPORARY.syncTime + PARA.technical.syncTimeStep)./PARA.technical.syncTimeStep).*PARA.technical.syncTimeStep;
 		        disp('sync - done');

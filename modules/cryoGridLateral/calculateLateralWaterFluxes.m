@@ -22,7 +22,7 @@ if PARA.ensemble.hydraulic_contact_length(index,j)>0
     
     if infiltration_condition_index && infiltration_condition_j
         
-        wt_index = PARA.ensemble.water_table(index);
+        wt_index = PARA.ensemble.water_table_altitude(index);
         wt_j     = PACKAGE_waterExchange_j.water_table_altitude;
         ald_index = PARA.ensemble.active_layer_depth_altitude(index);
         ald_j     = PACKAGE_waterExchange_j.active_layer_depth_altitude;
@@ -33,7 +33,7 @@ if PARA.ensemble.hydraulic_contact_length(index,j)>0
         [waterpotWj, hasWater_j]         = nanmax([wt_j,     ald_j     ] );
         
      
-        if (waterpotWj > waterpotWindex && hasWater_j==1);% Current worker is gaining water
+        if (waterpotWj > waterpotWindex && hasWater_j==1)% Current worker is gaining water
 
             % Calculate the maximum exchanged water volume
             DeltaH = waterpotWj - waterpotWindex;
@@ -74,7 +74,7 @@ if PARA.ensemble.hydraulic_contact_length(index,j)>0
 %             PARA.ensemble.lateralFlux_inWaterHeight(index,j)=(PARA.ensemble.weight(j)/PARA.ensemble.weight(index)).*lateralFlux_inWaterHeight;
 %             
             water_flux_j=DarcyFlux;
-        elseif (waterpotWindex > waterpotWj  && hasWater_index==1); % Current worker is loosing water
+        elseif (waterpotWindex > waterpotWj  && hasWater_index==1) % Current worker is loosing water
 
             % Calculate maximum of the exchange water volume
             DeltaH= waterpotWindex - waterpotWj;

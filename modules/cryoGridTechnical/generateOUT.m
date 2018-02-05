@@ -30,11 +30,11 @@ function OUT = generateOUT()
     OUT.snow.botPosition=[];    % relative to initial altitude
     
     % derived characteristics and related to geometry
-    OUT.loaction.area = [];
+    OUT.location.area = [];
     OUT.location.altitude=[];
     OUT.location.surface_altitude=[];
     OUT.location.active_layer_depth_altitude = [];
-    OUT.location.water_table=[];
+    OUT.location.water_table_altitude=[];
 
     % lateral fluxes
     OUT.lateral.terrain_index_snow=[];

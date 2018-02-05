@@ -10,7 +10,7 @@ fieldCapacity = zeros(size(soilType));
 residualWaterContent = zeros(size(soilType));
 for i=1:size(PARA.soil.soilTypes,1)
 	fieldCapacity(soilType==i) = PARA.soil.soilTypes( i, 2 );
-	residualWaterContent(soilType==1) = PARA.soil.soilType( i, 1 );
+	residualWaterContent(soilType==1) = PARA.soil.soilTypes( i, 1 );
 end
 
 lacking_water=0;
@@ -32,6 +32,9 @@ end
 
 excess_water=dwc_dt(i)+external_flux; %add external flux
 
+lacking_water = lacking_water + (excess_water<0)*excess_water;  % this accounts for violations of the water balance
+
+
 i=i-1;
 
 while i>=1 && excess_water>0 
@@ -43,6 +46,5 @@ while i>=1 && excess_water>0
     i=i-1;
 end
 
-lacking_water = lacking_water + (excess_water<0)*excess_water;  % this accounts for violations of the water balance
 
 surface_runoff=(excess_water>0)*excess_water; % surface runoff only if excess_water>0

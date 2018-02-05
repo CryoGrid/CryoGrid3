@@ -1,4 +1,4 @@
-function [PARA] = loadSoilTypes(PARA)
+function [PARA] = loadSoilTypes( PARA )
 
 	% specify one soil type per row: residualWC [%], fieldCapacity [%], alpha [1/m], n
 	PARA.soil.soilTypes = [ [ 0.00, PARA.soil.fieldCapacity, 4.00, 2.0 ]; ...	% sand
