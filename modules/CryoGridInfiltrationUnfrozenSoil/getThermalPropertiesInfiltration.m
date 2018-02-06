@@ -18,6 +18,10 @@ function [c_temp, k_temp, k_eff, lwc_temp] = getThermalPropertiesInfiltration(T,
     k_temp(GRID.soil.cT_domain) = double(T(GRID.soil.cT_domain)<=0).*k_temp(GRID.soil.cT_domain) + double(T(GRID.soil.cT_domain)>0).* conductivityUnfrozen(wc,GRID,PARA);
     lwc_temp(GRID.soil.cT_domain) = double(T(GRID.soil.cT_domain)<=0).*lwc_temp(GRID.soil.cT_domain) + double(T(GRID.soil.cT_domain)>0).* wc;
      
+    %-------- set higher conductivity for free water ----------------------
+    % now done in conductivityUnfrozen
+    
+    
     %------- snow domain --------------------------------------------------
     c_temp(GRID.snow.cT_domain) = cap_snow(GRID.snow.Snow_i(GRID.snow.cT_domain),...
                                            GRID.snow.Snow_w(GRID.snow.cT_domain),...

@@ -57,6 +57,7 @@ if soilGRIDsize ~= sum(GRID.soil.cT_domain)
     GRID.soil.cT_organic = GRID.soil.cT_organic(cT_no_water);
     GRID.soil.cT_soilType = GRID.soil.cT_soilType(cT_no_water);
     GRID.soil.cT_natPor = GRID.soil.cT_natPor(cT_no_water);
+    GRID.soil.cT_actPor = GRID.soil.cT_actPor(cT_no_water);
     GRID.soil.excessGroundIce = GRID.soil.excessGroundIce(cT_no_water);
     GRID.soil.conductivity = GRID.soil.conductivity(cT_no_water, :);
     GRID.soil.capacity = GRID.soil.capacity(cT_no_water, :);
