@@ -27,9 +27,14 @@ rho_w = PARA.constants.rho_w; %1000; %[kg/m???]
 L_si = PARA.constants.L_sl; %334000; % [J/kg]
 deltaT=0.001*ones(size(cT_grid,1),1);
 
-% JAN: modification to assume pure water for mixed air/water cells
+% modification to assume pure water for mixed air/water cells
 cT_water(cT_mineral+cT_organic<=1e-6)=1.;
 
+% % upscale min+org fractions in cells with too low min+org fraction in order to have realistic thermal properties
+% cT_natPor = GRID.soil.cT_natPor;
+% lowMinOrg = cT_mineral+cT_organic < 1-natPor;
+% cT_mineral(lowMinOrg) = cT_mineral(lowMinOrg) .* (1 - natPor(lowMinOrg)) ./ (cT_mineral(lowMinOrg) + cT_organic(lowMinOrg) );
+% cT_organic(lowMinOrg) = cT_organic(lowMinOrg) .* (1 - natPor(lowMinOrg)) ./ (cT_mineral(lowMinOrg) + cT_organic(lowMinOrg) );
 
 %------- capacity part ----------------------------------------------------
 waterMin=0;
