@@ -16,7 +16,7 @@ dbstop if error;
 
 createLogFile=0;
 
-spinupFile = [ './runs/SPINUP-EXICE_197906-201406_stratSamExice_rf1_sf1_maxSnow0.40_snowDens=200_wt0.0_extFlux0.0000_fc0.30_exice0.60_natPor0.40/SPINUP-EXICE_197906-201406_stratSamExice_rf1_sf1_maxSnow0.40_snowDens=200_wt0.0_extFlux0.0000_fc0.30_exice0.60_natPor0.40_finalState2012.mat' ];
+spinupFile = [];%[ './runs/SPINUP-EXICE_197906-201406_stratSamExice_rf1_sf1_maxSnow0.40_snowDens=200_wt0.0_extFlux0.0000_fc0.30_exice0.60_natPor0.40/SPINUP-EXICE_197906-201406_stratSamExice_rf1_sf1_maxSnow0.40_snowDens=200_wt0.0_extFlux0.0000_fc0.30_exice0.60_natPor0.40_finalState2012.mat' ];
 
 if isempty(spinupFile)
 
@@ -26,15 +26,15 @@ if isempty(spinupFile)
     % z     w/i     m       o     type porosity
 
     %default used in publication:
-    PARA.soil.layer_properties=[ 0.0   0.60    0.10    0.15    1   0.75;...  
-                                 0.15  0.65    0.3     0.05    2   0.65;...   
-                                 0.9   0.65    0.3     0.05    1   0.65;...   
-                                 9.0   0.30    0.70    0.00    1   0.30     ];  
+%     PARA.soil.layer_properties=[ 0.0   0.60    0.10    0.15    1   0.75;...  
+%                                  0.15  0.65    0.3     0.05    2   0.65;...   
+%                                  0.9   0.65    0.3     0.05    1   0.65;...   
+%                                  9.0   0.30    0.70    0.00    1   0.30     ];  
 
     %simple stratigraphy with excess ice used to test water balance:
-    % PARA.soil.layer_properties=[ 0.0     0.5    0.5     0.00   1   0.50;... 
-    %                              0.4     0.8    0.2     0.00   1   0.40;...
-    %                              10.0    0.25   0.75    0.00   1   0.25     ]; 
+    PARA.soil.layer_properties=[ 0.0     0.4    0.50    0.00   1   0.50;... 
+                                 0.1     0.8    0.20    0.00   1   0.50;...
+                                 10.0    0.25   0.75    0.00   1   0.25     ]; 
     %very simply stratigraphy without excess ice used to test energy balance
     % soilType = 1;
     % PARA.soil.layer_properties=[ 0.0    0.5    0.5    0.00      soilType  0.5 ;...
@@ -68,7 +68,7 @@ if isempty(spinupFile)
     PARA.soil.externalWaterFlux=2e-3;  %external water flux / drainage in [m/day]
     PARA.soil.convectiveDomain=[];       % soil domain where air convection due to buoyancy is possible -> start and end [m] - if empty no convection is possible
     PARA.soil.mobileWaterDomain=[0 10.0];      % soil domain where water from excess ice melt is mobile -> start and end [m] - if empty water is not mobile
-    PARA.soil.waterTable=0.;              % depth at which a water table will form [m] - above excess water is removed, below it pools up  
+    PARA.soil.waterTable=10.;              % depth at which a water table will form [m] - above excess water is removed, below it pools up  
 
     % parameters related to snow
     PARA.snow.max_albedo=0.85;      % albedo of fresh snow
@@ -101,8 +101,8 @@ if isempty(spinupFile)
     PARA.technical.SWEperCell=0.005;            % SWE per grid cell in [m] - determines size of snow grid cells
     PARA.technical.maxSWE=0.4;                  % in [m] SWE
     PARA.technical.arraySizeT=5002;             % number of values in the look-up tables for conductivity and capacity
-    PARA.technical.starttime=datenum(1979, 6, 1);       % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum(1979, 6, 15);         % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.starttime=datenum(1979, 7, 1);       % starttime of the simulation - if empty start from first value of time series
+    PARA.technical.endtime=datenum(1979, 8, 1);         % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;   % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;   % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;            % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
@@ -133,8 +133,8 @@ if isempty(spinupFile)
 
     %FORCING data mat-file
     PARA.forcing.filename='samoylov_ERA_obs_fitted_1979_2014_spinup.mat';  %must be in subfolder "forcing" and follow the conventions for CryoGrid 3 forcing files
-    PARA.forcing.rain_fraction=1;
-    PARA.forcing.snow_fraction=1;
+    PARA.forcing.rain_fraction=0;
+    PARA.forcing.snow_fraction=0;
 
     % switches for modules
     PARA.modules.infiltration=1;   % true if infiltration into unfrozen ground occurs
@@ -328,6 +328,8 @@ while t<PARA.technical.endtime
         [GRID, PARA, wc, meltwaterGroundIce] = excessGroundIceInfiltration(T, wc, GRID, PARA);
         GRID = updateGRID_excessiceInfiltration2(meltwaterGroundIce, GRID);
     end
+    
+    assert( sum( abs( 1 - GRID.soil.cT_actPor - GRID.soil.cT_mineral - GRID.soil.cT_organic )>1e-6 ) == 0, 'CryoGrid3 - actPor has wrong entries' );
     
     assert( sum( sum( GRID.soil.capacity < 0 ) ) == 0, 'CryoGrid3 - negative entry in capacity LUT');
     

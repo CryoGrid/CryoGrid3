@@ -2,7 +2,7 @@ function [wc, surface_runoff, lacking_water]=bucketScheme(T, wc, dwc_dt, GRID, P
 
 T=T(GRID.soil.cT_domain);
 K_delta=GRID.general.K_delta(GRID.soil.cT_domain);  %in m
-porosity=1-GRID.soil.cT_mineral-GRID.soil.cT_organic;  
+porosity=1-GRID.soil.cT_mineral-GRID.soil.cT_organic; 
 
 % A=sum(K_delta(1:30).*wc(1:30)+dwc_dt(1:30))
 lacking_water=0;

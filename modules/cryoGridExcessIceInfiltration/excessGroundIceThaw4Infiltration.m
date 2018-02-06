@@ -10,6 +10,7 @@ waterLevel=PARA.soil.waterTable;     %remove supersaturation only when there is 
 mineral=GRID.general.K_delta(GRID.soil.cT_domain).*GRID.soil.cT_mineral;  
 organic=GRID.general.K_delta(GRID.soil.cT_domain).*GRID.soil.cT_organic;
 natPor=GRID.general.K_delta(GRID.soil.cT_domain).*GRID.soil.cT_natPor;
+actPor=GRID.general.K_delta(GRID.soil.cT_domain).*GRID.soil.cT_actPor;
 
 % modification for infiltration
 %water=GRID.general.K_delta(GRID.soil.cT_domain).*GRID.soil.cT_water;
@@ -38,19 +39,18 @@ for i=startCell:-1:1
 end
 
 %adjust the natural porosity
-natPor(1:startCell)=K_delta(1:startCell)-mineral(1:startCell)-organic(1:startCell);
+actPor(1:startCell)=K_delta(1:startCell)-mineral(1:startCell)-organic(1:startCell);
 
 %move water up
 mobileWater=0;
 for i=startCell:-1:1
     totalWater=water(i)+mobileWater;
-    mobileWater=totalWater-natPor(i);
+    mobileWater=totalWater-actPor(i);
     mobileWater=max(0,mobileWater);
     water(i)=totalWater-mobileWater;
 end
 
 %clean up grid cells with non-zero+non-unity water content in domains without soil matrix 
-% JAN: these loops thould be removed to increase performance, possible?
 mobileWater=0;
 for i=1:startCell
     if mineral(i)+organic(i)==0
@@ -82,6 +82,7 @@ wc=water./K_delta;
 GRID.soil.cT_mineral=mineral./K_delta;
 GRID.soil.cT_organic=organic./K_delta;
 GRID.soil.cT_natPor=natPor./K_delta;
+GRID.soil.cT_actPor=actPor./K_delta;
 GRID.soil.cT_soilType( (GRID.soil.cT_mineral+GRID.soil.cT_organic)<=1e-6 )=1;  %sets sand freeze curve for all water grid cells     %wc(:,1)==1,1
 
 
@@ -137,6 +138,7 @@ while GRID.soil.cT_mineral(1)+GRID.soil.cT_organic(1)+wc(1)<=0 || ...           
     
     GRID.soil.cT_organic(1)=[];
     GRID.soil.cT_natPor(1)=[];
+    GRID.soil.cT_actPor(1)=[];
     GRID.soil.cT_mineral(1)=[];
     GRID.soil.cT_soilType(1)=[];
     % K fields are not used currently

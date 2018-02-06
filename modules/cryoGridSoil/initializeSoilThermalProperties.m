@@ -8,32 +8,47 @@ cT_water = GRID.soil.cT_water;
 cT_mineral = GRID.soil.cT_mineral;
 cT_organic = GRID.soil.cT_organic;
 cT_soilType = GRID.soil.cT_soilType;
-K_water = GRID.soil.K_water;
-K_mineral = GRID.soil.K_mineral;
-K_organic = GRID.soil.K_organic;
-K_soilType = GRID.soil.K_soilType;
+% K_water = GRID.soil.K_water;
+% K_mineral = GRID.soil.K_mineral;
+% K_organic = GRID.soil.K_organic;
+% K_soilType = GRID.soil.K_soilType;
 arraySize = PARA.technical.arraySizeT;
 cT_grid = GRID.general.cT_grid(GRID.soil.cT_domain);
 kh_bedrock = PARA.soil.kh_bedrock;
 
 
-c_w = PARA.constants.c_w; %4.2*10^6; %[J/m�K]
-c_o = PARA.constants.c_o; %2.5*10^6; %[J/m�K]
-c_m = PARA.constants.c_m; %2*10^6; %[J/m�K]
-c_a = PARA.constants.c_a; %0.00125*10^6;%[J/m�K]
-c_i = PARA.constants.c_i; %1.9*10^6;%[J/m�K]
+c_w = PARA.constants.c_w; %4.2*10^6; %[J/m???K]
+c_o = PARA.constants.c_o; %2.5*10^6; %[J/m???K]
+c_m = PARA.constants.c_m; %2*10^6; %[J/m???K]
+c_a = PARA.constants.c_a; %0.00125*10^6;%[J/m???K]
+c_i = PARA.constants.c_i; %1.9*10^6;%[J/m???K]
 
 %density of water
-rho_w = PARA.constants.rho_w; %1000; %[kg/m�]
+rho_w = PARA.constants.rho_w; %1000; %[kg/m???]
 %rho_i=900;
 %latent heat of freezing
 L_si = PARA.constants.L_sl; %334000; % [J/kg]
 deltaT=0.001*ones(size(cT_grid,1),1);
 
-% JAN: modification to assume pure water for mixed air/water cells
-cT_water(cT_mineral+cT_organic<=1e-6)=1.;
 
 
+% temporary upscaling of min+org fractions in cells with too low min+org fraction in order to have realistic thermal properties
+cT_natPor = GRID.soil.cT_natPor;
+cT_actPor = GRID.soil.cT_actPor;
+
+lowMinOrg_domain = cT_mineral+cT_organic>=1e-6 & ~GRID.soil.excessGroundIce & (cT_actPor > cT_natPor ); % cells with lower soil matrix material than 1-natPor
+
+if sum(lowMinOrg_domain)>0
+    warning('cells with low matrix material exist - upscaling of matrix fraction to ensure correct thermal properties');
+    cT_matrix = cT_mineral + cT_organic;
+    cT_mineral(lowMinOrg_domain) = cT_mineral(lowMinOrg_domain) ./ cT_matrix(lowMinOrg_domain) .* (1 - cT_natPor(lowMinOrg_domain)) ;
+    cT_organic(lowMinOrg_domain) = cT_organic(lowMinOrg_domain) ./ cT_matrix(lowMinOrg_domain) .* (1 - cT_natPor(lowMinOrg_domain)) ;
+    cT_water(lowMinOrg_domain) = min( cT_water(lowMinOrg_domain), cT_natPor(lowMinOrg_domain) ) ;
+end
+
+% temporary upscaling of pure water for mixed air/water cells
+freeWater_domain = cT_mineral+cT_organic<1e-6; % cells without soil matrix material
+cT_water(freeWater_domain)=1.;
 
 %------- capacity part ----------------------------------------------------
 waterMin=0;
@@ -104,8 +119,8 @@ liquidWaterContent = [water_c water]; % water content
 % organic=cT_organic;
 % a=cT_soilType;
 % 
-% K_frozen=cT_frozen;
-% K_thawed=cT_thawed;
+K_frozen=cT_frozen;
+K_thawed=cT_thawed;
 % 
 % %preallocate variables
 % water_c2=ones(length(a),length(1:arraySize-2)+1);

@@ -7,7 +7,8 @@
 close all
 
  dirname = '../runs/';
- runname = 'SPINUP-EXICE_197906-201406_stratSamExice_rf1_sf1_maxSnow0.40_snowDens=200_wt0.0_extFlux0.0000_fc0.30_exice0.60_natPor0.40';
+ runname = 'SPINUP-EXICE_197906-201406_stratSamExice_rf1_sf1_maxSnow0.40_snowDens=200_wt0.0_extFlux0.0000_fc0.30_exice0.90_natPor0.40';
+ year = 1982;
  number_of_realizations = 1;
 % 
 
@@ -15,7 +16,7 @@ close all
 
 
     dir = dirname;%'/home/jnitzbon/gls1/CryoGrid/CryoGrid3_infiltration_xice_mpi_DEV/';
-    %cm=load( [ './analysis/cm_blueautumn.mat' ] );
+    cm=load( [ './cm_blueautumn.mat' ] );
 
     infil=0;
     xice=0;
@@ -30,7 +31,7 @@ close all
         if number_of_realizations>1
             run = [ run num2str(i) ];
         end
-        outputfile = [dir run  '/' run '_output2012.mat'];
+        outputfile = [dir run  '/' run '_output' num2str(year) '.mat'];
         configfile = [dir run  '/' run '_settings.mat'];
 
         load(outputfile);
@@ -66,7 +67,7 @@ close all
     %lakeFloor = [ NaN(length(soilTop)-length(lakeFloor),1); lakeFloor ];
 
     % limits
-    minz = min(OUTS{1}.PARA.location.altitude - 1);
+    minz = min(OUTS{1}.PARA.location.altitude - 10);
     maxz = max(OUTS{1}.PARA.location.altitude + 0.5);
 
     mint = min(ts);
