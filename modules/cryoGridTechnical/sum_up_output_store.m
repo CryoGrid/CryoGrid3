@@ -91,8 +91,6 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
         end
         OUT.snow.topPosition=[OUT.snow.topPosition; TEMPORARY.topPosition];
         OUT.snow.botPosition=[OUT.snow.botPosition; TEMPORARY.botPosition];
-
-
     
         % derived characteristics and related to geometry
         OUT.location.area = [OUT.location.area; PARA.location.area];
@@ -103,9 +101,9 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
 
         % lateral fluxes
         OUT.lateral.terrain_index_snow=[ OUT.lateral.terrain_index_snow; PARA.ensemble.terrain_index_snow ];
-        OUT.lateral.water_fluxes = [ OUT.lateral.water_fluxes; water_fluxes' ];     % vector containing water fluxes in [m/s] to the current worker
-        OUT.lateral.snow_fluxes = [ OUT.lateral.snow_fluxes; snow_fluxes' ];      % vector containing snow fluxes in [m SWE / s] to the current worker
-        OUT.lateral.heat_fluxes = [ OUT.lateral.heat_fluxes; heat_fluxes' ];      % vector containing depth-integrated heat fluxes in [J/m^2 s ] to the current worker
+        OUT.lateral.water_fluxes = [ OUT.lateral.water_fluxes; water_fluxes ];     % vector containing water fluxes in [m/s] to the current worker
+        OUT.lateral.snow_fluxes = [ OUT.lateral.snow_fluxes; snow_fluxes ];                      % vector containing snow fluxes in [m SWE / s] to the current worker
+        OUT.lateral.heat_fluxes = [ OUT.lateral.heat_fluxes; heat_fluxes ];                      % vector containing depth-integrated heat fluxes in [W/m^2] to the current worker
 
 		% water balance (WB)
         % all flows are defined as positive when they go into the soil/snow column

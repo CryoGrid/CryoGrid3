@@ -21,6 +21,7 @@ function PARA = get_parallel_variables(PARA)
     PARA.ensemble.thermal_contact_length = perimeter .* ( ones(numlabs) - eye(numlabs ) ); % [ 0, 1, 0 ; 1, 0, 1 ; 0, 1, 0 ]; %
     
     % parameters related to water exchange
+    PARA.ensemble.water_fluxes = zeros( 1, numlabs ); % total water flux in [m] per output interval from each worker to worker index
     PARA.ensemble.external_water_flux=[0, 0 ] ; % 0];   %in m/day
     PARA.ensemble.hydraulic_conductivity= PARA.soil.hydraulic_conductivity * ( ones(numlabs) - eye(numlabs ) );%[ 0, 1, 0 ; 1, 0, 1 ; 0, 1, 0 ]; %in m/sec % [Roth: 1e-5 for saturated silt, 		2.2e-5 for saturated sand]
     PARA.ensemble.water_table_altitude = PARA.ensemble.altitude;  %initialize somehow;    
@@ -33,6 +34,7 @@ function PARA = get_parallel_variables(PARA)
     % parameters related to snow exchange
     %PARA.ensemble.snow_diffusivity = PARA.snow.diffusivity;
     %PARA.ensemble.relative_max_snow_height = 0.2;
+    PARA.ensemble.snow_fluxes = zeros( 1, numlabs );            % total snow flux in [m SWE] per output interval from each worker to worker index
     PARA.ensemble.immobile_snow_height = [0.1, 0.1 ]; %, 0.2 ];  %in m %this replaces PARA.snow.maxSnow ?
     PARA.ensemble.terrain_index_snow = calculateTerrainIndexSnow(PARA.ensemble.altitude, PARA.ensemble.weight);
     PARA.ensemble.snow_contact_length = perimeter .* ( ones(numlabs) - eye(numlabs ) );

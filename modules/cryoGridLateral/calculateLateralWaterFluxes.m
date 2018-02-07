@@ -19,7 +19,6 @@ if PARA.ensemble.hydraulic_contact_length(index,j)>0
     infiltration_condition_index = isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0;
     infiltration_condition_j = PACKAGE_waterExchange_j.infiltration_condition;
     
-    
     if infiltration_condition_index && infiltration_condition_j
         
         wt_index = PARA.ensemble.water_table_altitude(index);
