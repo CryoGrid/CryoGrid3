@@ -25,27 +25,23 @@ function [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, 
 
         GRID.soil.cT_organic(1)=[];
         GRID.soil.cT_natPor(1)=[];
+        GRID.soil.cT_actPor(1)=[];
         GRID.soil.cT_mineral(1)=[];
         GRID.soil.cT_soilType(1)=[];
-        % K fields are not used currently
-%                 GRID.soil.K_water(1)=[];
-%                 GRID.soil.K_organic(1)=[];
-%                 GRID.soil.K_mineral(1)=[];
-%                 GRID.soil.K_soilType(1)=[];
+
         GRID.soil.excessGroundIce(1)=[];
 
     end
 
     %%% step 2b) ponding of surface runoff below water table
     while surface_runoff>1e-6 && ...                                % not >0 as sometimes numerical errors occur during calculation of surface_runoff
-            GRID.general.K_grid(GRID.soil.K_domain_ub)>PARA.soil.waterTable %&& ...
+            PARA.location.initial_altitude-GRID.general.K_grid(GRID.soil.cT_domain_ub)<PARA.location.absolute_maxWater_altitude
             %wc(1)>=1   % this prevents a bug for very small
             %surface_runoff when upper cell not filled // but this
             %does not allow ponding on top of actual soil
         disp('infiltration - update GRID - ponding of water below water table')
 
-        h = GRID.general.K_grid(GRID.soil.K_domain_ub)-PARA.soil.waterTable;    % this is guruanteed to be >0
-
+        h = PARA.location.absolute_maxWater_altitude - ( PARA.location.initial_altitude - GRID.general.K_grid(GRID.soil.cT_domain_ub) ) ;   % this is guruanteed to be >0
 
         % create new water cell / change GRID domains
         GRID.soil.cT_domain(GRID.air.cT_domain_lb)=1;
@@ -58,7 +54,6 @@ function [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, 
         GRID.air.K_domain_lb=GRID.air.K_domain_lb-1;
 
         % fill new water cell
-        %cellSize = GRID.general.K_delta(GRID.soil.cT_domain_ub);
         cellSize = PARA.technical.waterCellSize;
         waterAdded = min( [surface_runoff, cellSize, h] ); % add water until water table is reached or surface_runoff "empty"
         wc = [ waterAdded./cellSize ; wc ];
@@ -67,13 +62,10 @@ function [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, 
         % update remaining soil fields with exception of cT_water
         GRID.soil.cT_organic =  [ 0 ; GRID.soil.cT_organic ];
         GRID.soil.cT_natPor =   [ GRID.soil.cT_natPor(1); GRID.soil.cT_natPor ];    % take natPor of cell below
+        GRID.soil.cT_natPor =   [ 1; GRID.soil.cT_natPor ];                         % set actual porosity to 1
         GRID.soil.cT_mineral =  [ 0 ; GRID.soil.cT_mineral ];
         GRID.soil.cT_soilType = [ 1; GRID.soil.cT_soilType];                        % assume sand as soil type for water cell
-        % K fields are not used currently
-        %GRID.soil.K_water = [ wc(1); GRID.soil.K_water ];
-        %GRID.soil.K_organic = [ 0 ; GRID.soil.K_organic ];
-        %GRID.soil.K_mineral = [ 0 ; GRID.soil.K_mineral ];
-        %GRID.soil.K_soilType = [ GRID.soil.K_soilType(1); GRID.soil.K_soilType];
+
         GRID.soil.excessGroundIce = [ 0 ; GRID.soil.excessGroundIce ];
 
         % update GRID spacings

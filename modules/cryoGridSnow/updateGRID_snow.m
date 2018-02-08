@@ -20,7 +20,7 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
             % ------- update SWE grid -------------------------------------
             GRID.snow.Snow_i(GRID.snow.cT_domain_ub) = GRID.snow.SWEinitial;
             GRID.snow.Snow_w(GRID.snow.cT_domain_ub) = 0;
-            GRID.snow.Snow_a(GRID.snow.cT_domain_ub) = (GRID.snow.SWEinitial./(PARA.snow.rho_snow./1000) - GRID.snow.SWEinitial);      
+            GRID.snow.Snow_a(GRID.snow.cT_domain_ub) = (GRID.snow.SWEinitial./(PARA.snow.rho_snow./PARA.constants.rho_w) - GRID.snow.SWEinitial);      
             GRID.snow.SWEinitial=0;       
 
             % -------- update K grid -------------------------------------

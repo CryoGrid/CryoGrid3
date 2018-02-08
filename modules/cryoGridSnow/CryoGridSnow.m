@@ -1,6 +1,5 @@
 function [T, GRID, PARA, SEB, BALANCE] = CryoGridSnow(T, GRID, FORCING, SEB, PARA, c_temp, timestep, BALANCE)
-%L=3.34e5;
-%L_lv=2.8e6;  %also worng here. JAN: yes, should be smaller
+
 
 if ~isempty(GRID.snow.cT_domain_ub) %snow cover already exitis
     
@@ -25,7 +24,6 @@ if ~isempty(GRID.snow.cT_domain_ub) %snow cover already exitis
         - ( SEB.Qe.*timestep.*24.*3600./PARA.constants.L_sg./PARA.constants.rho_i./nonAirFractionUppermostGridCell ...% - ( SEB.Qe.*timestep.*24.*3600./(L+L_lv)./1000./nonAirFractionUppermostGridCell ...
         -  SEB.Qe.*timestep.*24.*3600./PARA.constants.L_sg./PARA.constants.rho_i); %-  SEB.Qe.*timestep.*24.*3600./(L+L_lv)./1000);
     
-    %SEB.sublim=SEB.sublim+SEB.Qe.*timestep.*24.*3600./(L+L_lv)./1000;
     BALANCE.water.ds = BALANCE.water.ds - SEB.Qe.*timestep.*24.*3600./PARA.constants.L_sg./PARA.constants.rho_i*1000; % sublimation in [mm]
     
     %---------- melt and infiltration -------------------------------------
@@ -44,27 +42,27 @@ if ~isempty(GRID.snow.cT_domain_ub) %snow cover already exitis
             c_temp(GRID.snow.cT_domain),...
             PARA);
         
-        %SEB.meltwater=SEB.meltwater+newMelt;
         BALANCE.water.dr_snowmelt = BALANCE.water.dr_snowmelt + (-newMelt.*1000);    % in [mm]
     end
     
     %-------- add the new snow to the upper most snow cell in the case of a exisiting snow cover -------------------
-    if isempty(PARA.snow.maxSnow)
+    if isempty( PARA.location.absolute_maxSnow_altitude )
         deltaSnow_i = max(0, FORCING.i.snowfall.*timestep./1000);
     else
         snowHeight = abs( GRID.general.K_grid(GRID.snow.cT_domain_ub) - GRID.general.K_grid(GRID.snow.cT_domain_lb+1) );
+        maxSnowHeight = PARA.location.absolute_maxSnow_altitude - getAltitude( PARA, GRID );
         deltaSnow_i = max( [ 0, ...
-            min( [ FORCING.i.snowfall.*timestep./1000, ...
-            (PARA.snow.maxSnow - snowHeight ) .* PARA.snow.rho_snow ./ PARA.constants.rho_w ] ) ] ); %ensures that no more than maxSnow can accumulate
+                             min( [ FORCING.i.snowfall.*timestep./1000, ...
+                                    (maxSnowHeight - snowHeight ) .* PARA.snow.rho_snow ./ PARA.constants.rho_w ] ) ] ); %ensures that no more than maxSnow can accumulate
         %account for excess snow in water balance
         BALANCE.water.dr_excessSnow = BALANCE.water.dr_excessSnow -( FORCING.i.snowfall.*timestep - deltaSnow_i*1000 ); %defined as negative when snow is removed
     end
     
     GRID.snow.Snow_i(GRID.snow.cT_domain_ub) = GRID.snow.Snow_i(GRID.snow.cT_domain_ub) ...
-        + deltaSnow_i;
+                                                + deltaSnow_i;
     
     GRID.snow.Snow_a(GRID.snow.cT_domain_ub) = GRID.snow.Snow_a(GRID.snow.cT_domain_ub) ...
-        + ( deltaSnow_i./(PARA.snow.rho_snow./ PARA.constants.rho_w) - deltaSnow_i);
+                                                + ( deltaSnow_i./(PARA.snow.rho_snow./ PARA.constants.rho_w) - deltaSnow_i);
     
 else %no snow cover
     
@@ -87,4 +85,5 @@ if SEB.newSnow>= PARA.technical.SWEperCell/2
     PARA.snow.albedo=PARA.snow.max_albedo;
     SEB.newSnow=0;
 end
+
 end
