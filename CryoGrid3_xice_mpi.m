@@ -101,7 +101,7 @@ spmd
     PARA.technical.maxSWE=0.4;                  % in [m] SWE
     PARA.technical.arraySizeT=5002;             % number of values in the look-up tables for conductivity and capacity
     PARA.technical.starttime=datenum(1979, 7, 1);       % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum(1980, 7, 10);         % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.endtime=datenum(1980, 8, 1);         % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;   % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;   % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;            % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
@@ -322,10 +322,10 @@ spmd
         %------- update threshold variables if no lateral exchange processes occur, otherwise updated at sync time
         if ~PARA.modules.lateral
             PARA.location.absolute_maxWater_altitude = PARA.location.altitude + PARA.soil.relative_maxWater;
-            if isempty( PARA.snow.maxSnow )
+            if isempty( PARA.snow.relative_maxSnow )
                 PARA.location.absolute_maxSnow_altitude = [];
             else
-                PARA.location.absolute_maxSnow_altitude = [ PARA.ensemble.altitude + PARA.snow.relative_maxSnow ];
+                PARA.location.absolute_maxSnow_altitude = [ PARA.location.altitude + PARA.snow.relative_maxSnow ];
             end
         end
         
