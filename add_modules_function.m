@@ -1,5 +1,5 @@
-% %clear all
-clearvars -except startYear endYear rainFrac snowFrac waterTable maxSnow extFlux fieldCapacity snowDens
+clear all
+%clearvars -except startYear endYear rainFrac snowFrac waterTable maxSnow extFlux fieldCapacity snowDens
 
 close all
 profile off

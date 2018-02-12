@@ -7,18 +7,20 @@ startDate=datenum( 1979, 6, 1);
 endDate=datenum( 2014, 6, 1);
 
 rainFrac=1;
+rainFracs=[1,2];
 snowFrac=1;
-waterTable = 0;
-waterTables = [ 0.0, 10.0 ];
-maxSnow = 0.4;
+maxSnow = 1.0;
 maxSnows = [ 0.2, 0.4 ];
 snowDens = 200;
 snowDensities = [ 200, 250 ];
 extFlux = 0;
-externalFluxes = [ -2e-3, 0, 2e-3 ];
-fieldCapacity = 0.3;
+externalFluxes = [  0, 2e-3 ];
+fieldCapacity = 0.4;
+fieldCapacities = [0.3, 0.5];
 exices = [ 0.9, 0.8, 0.7, 0.6, 0.5, 0.4];
 natPor = 0.4;
+maxWater = 0.;
+maxWaters = [ 0.5 ];
 
 
 % combinations = {};
@@ -36,10 +38,14 @@ natPor = 0.4;
 combinations = {};
 
 i=1;
-for ex=exices
-    for wt=waterTables
-        combinations{i}= [ex,wt];
-        i=i+1;
+for rf=rainFracs
+    for mw=maxWaters
+        for fc=fieldCapacities
+            for ex=externalFluxes
+                combinations{i}= [mw,fc,ex,rf];
+                i=i+1;
+            end
+        end
     end
 end
 
@@ -47,7 +53,7 @@ end
 
 numTasks = length( combinations );
 
-jobName = 'SPINUP-EXICE';
+jobName = 'TESTRUN';
 
 parallel.defaultClusterProfile('local');
 c = parcluster();
@@ -56,37 +62,38 @@ job = createJob( c, 'Name', jobName );
 disp( [datestr(now) ': created job ' jobName ] );
 
 tasks = {};
-% for i=1:numTasks
-%     maxSnow=combinations{i}(1);
-%     snowDens=combinations{i}(2);
-%     extFlux = combinations{i}(3);
-%     
-%     taskName = sprintf(  [ jobName '_' datestr( startDate, 'yyyymm' ) '-' datestr( endDate, 'yyyymm' ) '_stratSam_rf%d_sf%d_maxSnow%0.1f_snowDens=%0.1f_wt%0.1f_extFlux%0.4f_fc%0.2f' ], ...
-%                   [ rainFrac, snowFrac, maxSnow, snowDens, ...
-%                     waterTable, extFlux, fieldCapacity ] );
-%     tasks{i} = createTask( job , @CryoGrid3_function_spinup, 0 , { taskName, startDate, endDate, rainFrac, snowFrac, waterTable, maxSnow, snowDens, extFlux, fieldCapacity }, 'CaptureDiary', true, 'Name', taskName );
-%     disp( [ datestr(now) ': created task ' taskName ] );
-% end
-
 for i=1:numTasks
-    exice=combinations{i}(1);
-    waterTable=combinations{i}(2);
+    maxWater=combinations{i}(1);
+    fieldCapacity=combinations{i}(2);
+    extFlux = combinations{i}(3);
+    rainFrac = combinations{i}(4);
     
-    taskName = sprintf(  [ jobName '_' datestr( startDate, 'yyyymm' ) '-' datestr( endDate, 'yyyymm' ) '_stratSamExice_rf%d_sf%d_maxSnow%0.2f_snowDens=%d_wt%0.1f_extFlux%0.4f_fc%0.2f_exice%0.2f_natPor%0.2f' ], ...
-                   [ rainFrac, snowFrac, maxSnow, snowDens, waterTable, extFlux, fieldCapacity, exice, natPor ] );
-
-    tasks{i} = createTask( job, @CryoGrid3_function_variableExice, 0, ...
-                            { taskName, startDate, endDate, rainFrac, snowFrac, waterTable, maxSnow, snowDens, extFlux, fieldCapacity, exice, natPor }, ...
-                            'CaptureDiary', true, 'Name', taskName);
-    disp( [ datestr(now) ': created task ' taskName ] );    
+    taskName = sprintf(  [ jobName '_' datestr( startDate, 'yyyymm' ) '-' datestr( endDate, 'yyyymm' ) '_stratSam_rf%d_sf%d_maxSnow%0.1f_snowDens=%0.1f_maxWater%0.1f_extFlux%0.4f_fc%0.2f' ], ...
+                  [ rainFrac, snowFrac, maxSnow, snowDens, ...
+                    maxWater, extFlux, fieldCapacity ] );
+    tasks{i} = createTask( job , @CryoGrid3_function, 0 , { taskName, startDate, endDate, rainFrac, snowFrac, maxWater, maxSnow, snowDens, extFlux, fieldCapacity }, 'CaptureDiary', true, 'Name', taskName );
+    disp( [ datestr(now) ': created task ' taskName ] );
 end
+
+% for i=1:numTasks
+%     exice=combinations{i}(1);
+%     waterTable=combinations{i}(2);
+%     
+%     taskName = sprintf(  [ jobName '_' datestr( startDate, 'yyyymm' ) '-' datestr( endDate, 'yyyymm' ) '_stratSamExice_rf%d_sf%d_maxSnow%0.2f_snowDens=%d_wt%0.1f_extFlux%0.4f_fc%0.2f_exice%0.2f_natPor%0.2f' ], ...
+%                    [ rainFrac, snowFrac, maxSnow, snowDens, waterTable, extFlux, fieldCapacity, exice, natPor ] );
+% 
+%     tasks{i} = createTask( job, @CryoGrid3_function_variableExice, 0, ...
+%                             { taskName, startDate, endDate, rainFrac, snowFrac, waterTable, maxSnow, snowDens, extFlux, fieldCapacity, exice, natPor }, ...
+%                             'CaptureDiary', true, 'Name', taskName);
+%     disp( [ datestr(now) ': created task ' taskName ] );    
+% end
 
 submit(job);
 disp( [ datestr(now) ': submitted job ' jobName ] );
 
 
-wait(job);
-disp( [ datestr(now) ': finished job ' jobName ] );
+%wait(job);
+%disp( [ datestr(now) ': finished job ' jobName ] );
 % 
 % for i=1:numTasks
 %     diary( [ './runs/' tasks{i}.Name '/' tasks{i}.Name '_diary.txt' ] );

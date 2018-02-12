@@ -42,6 +42,7 @@ if ~isempty(GRID.snow.cT_domain_ub) %snow cover already exitis
             c_temp(GRID.snow.cT_domain),...
             PARA);
         
+        GRID.lake.residualWater = GRID.lake.residualWater + newMelt;
         BALANCE.water.dr_snowmelt = BALANCE.water.dr_snowmelt + (-newMelt.*1000);    % in [mm]
     end
     
@@ -69,10 +70,12 @@ else %no snow cover
     %---------- add the new snow into initial SWE variable in case of no snow cover------------------
     
     GRID.snow.SWEinitial = GRID.snow.SWEinitial + FORCING.i.snowfall.*timestep./1000 - GRID.snow.SWEinitial.*0.1.*timestep;
+    GRID.lake.residualWater = GRID.lake.residualWater + GRID.snow.SWEinitial.*0.1.*timestep;
     BALANCE.water.dr_snowmelt = BALANCE.water.dr_snowmelt - GRID.snow.SWEinitial.*0.1.*timestep*1000; %SWEinitial decreasing counted as surface runoff
     
     %----- add the rainfall as runoff in case of no infiltration into frozen ground
     if ~PARA.modules.infiltration || (PARA.modules.infiltration && T(GRID.soil.cT_domain_ub)<=0 )%no infiltration scheme or uppermost soil cell frozen
+        GRID.lake.residualWater = GRID.lake.residualWater + FORCING.i.rainfall.*timestep./1000;
         BALANCE.water.dr_rain = BALANCE.water.dr_rain - FORCING.i.rainfall.*timestep;
     end
     

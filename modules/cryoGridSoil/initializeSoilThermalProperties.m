@@ -31,7 +31,7 @@ deltaT=0.001*ones(size(cT_grid,1),1);
 cT_natPor = GRID.soil.cT_natPor;
 cT_actPor = GRID.soil.cT_actPor;
 
-lowMinOrg_domain = cT_mineral+cT_organic>=1e-6 & ~GRID.soil.excessGroundIce & (cT_actPor > cT_natPor ); % cells with lower soil matrix material than 1-natPor
+lowMinOrg_domain = cT_mineral+cT_organic>=1e-6 & ~GRID.soil.excessGroundIce & (cT_actPor > cT_natPor+1e-6 ); % cells with lower soil matrix material than 1-natPor
 
 if sum(lowMinOrg_domain)>0
     disp('initializeSoilThermalProperties - cells with low matrix material exist --> upscaling of matrix fraction to ensure realistic thermal properties');

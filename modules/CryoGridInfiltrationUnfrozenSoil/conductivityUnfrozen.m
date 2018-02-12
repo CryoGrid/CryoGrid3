@@ -11,9 +11,9 @@ air=1-wc-GRID.soil.cT_mineral-GRID.soil.cT_organic;
 
 k_temp = (wc.* kw.^0.5 + GRID.soil.cT_mineral.* km.^0.5 + GRID.soil.cT_organic.* ko.^0.5 + air.* ka.^0.5).^2 ;
 
-% adjust for free water
-freeWater_domain = GRID.soil.cT_mineral+GRID.soil.cT_organic<1e-6; % cells without soil matrix material
-k_temp(freeWater_domain) = k_freeWater; % assume pure water for cells which consist partly of air and water
+% adjust for free water --> not necessary because mixing applied
+% freeWater_domain = GRID.soil.cT_mineral+GRID.soil.cT_organic<1e-6; % cells without soil matrix material
+% k_temp(freeWater_domain) = k_freeWater; % assume pure water for cells which consist partly of air and water
 
 % adjust for low soil matrix
 lowMinOrg_domain = GRID.soil.cT_mineral+GRID.soil.cT_organic>=1e-6 & ~GRID.soil.excessGroundIce & ( GRID.soil.cT_actPor > GRID.soil.cT_natPor );   % cells with lower soil matrix material than 1-natPor

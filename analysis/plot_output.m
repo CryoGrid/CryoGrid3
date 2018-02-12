@@ -1,14 +1,14 @@
 % Plotting script for temperature and water content fields
 % Author: Jan Nitzbon
 % 
-%function plot_output(dirname, runname, number_of_realizations)
+% function plot_output(dirname, runname, number_of_realizations)
 
 %clear all
 close all
 
  dirname = '../runs/';
- runname = 'SPINUP-EXICE_197906-201406_stratSamExice_rf1_sf1_maxSnow0.40_snowDens=200_wt0.0_extFlux0.0000_fc0.30_exice0.90_natPor0.40';
- year = 1982;
+ runname = 'TESTRUN_198212-198312_stratSam_rf2_sf1_maxSnow1.0_snowDens=200.0_maxWater0.5_extFlux0.0020_fc0.30';
+ year = 1983;
  number_of_realizations = 1;
 % 
 
@@ -67,8 +67,8 @@ close all
     %lakeFloor = [ NaN(length(soilTop)-length(lakeFloor),1); lakeFloor ];
 
     % limits
-    minz = min(OUTS{1}.PARA.location.altitude - 10);
-    maxz = max(OUTS{1}.PARA.location.altitude + 0.5);
+    minz = min(OUTS{1}.PARA.location.altitude - 2);
+    maxz = max(OUTS{1}.PARA.location.altitude + 2);
 
     mint = min(ts);
     maxt = max(ts);
@@ -196,30 +196,30 @@ close all
     title(currentFigure.Children(end), runname);    
     
     
-    %% plot soil moisture and temperature of requested depth
-    
-    % request time series for a certain depths
-    requestedDepth =  0.3 ;
-    
-    % get the altitude of the uppermost soil cell (which indeed contains
-    % mineral or organic material, i.e. excluding a potential waterbody)
-    soil_surface_altitude = OUTS{1}.PARA.location.altitude + min( OUTS{1}.OUT.soil.topPosition, OUTS{1}.OUT.soil.lakeFloor );
-    
-    % the static altitude grid
-    altitude_grid = zs{1};
-    
-    % compute the index of the requested cell for each timestep
-    A = zeros( length(altitude_grid), length(soil_surface_altitude) );   % matrix to serach in
-    for j=1:size(A,2)   %loop over all timesteps       
-        A(:,j) = soil_surface_altitude(j)- altitude_grid;      % distance of each grid cell (first dim) to the surface for each timestep (second dim)
-    end   
-    [~, indexes] = min( abs( A - requestedDepth ) );    % determine index of closest cell to the requested depth
-    
-    % transform column-wise index to linear index of whole matrix
-    linindexes = sub2ind( [length(altitude_grid),length(ts)], indexes, [1:1:length(ts)] );
-
-    figure;
-    plot( ts, LWCs{i}(linindexes) );
-
-    figure;
-    plot( ts, Ts{i}(linindexes) );
+%     %% plot soil moisture and temperature of requested depth
+%     
+%     % request time series for a certain depths
+%     requestedDepth =  0.3 ;
+%     
+%     % get the altitude of the uppermost soil cell (which indeed contains
+%     % mineral or organic material, i.e. excluding a potential waterbody)
+%     soil_surface_altitude = OUTS{1}.PARA.location.altitude + min( OUTS{1}.OUT.soil.topPosition, OUTS{1}.OUT.soil.lakeFloor );
+%     
+%     % the static altitude grid
+%     altitude_grid = zs{1};
+%     
+%     % compute the index of the requested cell for each timestep
+%     A = zeros( length(altitude_grid), length(soil_surface_altitude) );   % matrix to serach in
+%     for j=1:size(A,2)   %loop over all timesteps       
+%         A(:,j) = soil_surface_altitude(j)- altitude_grid;      % distance of each grid cell (first dim) to the surface for each timestep (second dim)
+%     end   
+%     [~, indexes] = min( abs( A - requestedDepth ) );    % determine index of closest cell to the requested depth
+%     
+%     % transform column-wise index to linear index of whole matrix
+%     linindexes = sub2ind( [length(altitude_grid),length(ts)], indexes, [1:1:length(ts)] );
+% 
+%     figure;
+%     plot( ts, LWCs{i}(linindexes) );
+% 
+%     figure;
+%     plot( ts, Ts{i}(linindexes) );
