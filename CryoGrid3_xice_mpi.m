@@ -64,7 +64,8 @@ spmd
     PARA.soil.wiltingPoint=0.2;     %point at which transpiration shuts off 
     PARA.soil.residualWC=0.05;      %water always remaining in the soil, not accessible to evaporation
     PARA.soil.ratioET=0.5;          % 1: only transpiration; 0: only evaporation, values in between must be made dependent on LAI, etc.
-    PARA.soil.externalWaterFlux=2e-3;  %external water flux / drainage in [m/day]
+    %tsvd PARA.soil.externalWaterFlux=2e-3;  %external water flux / drainage in [m/day]
+    PARA.soil.externalWaterFlux=0.;  %external water flux / drainage in [m/day]
     PARA.soil.convectiveDomain=[];       % soil domain where air convection due to buoyancy is possible -> start and end [m] - if empty no convection is possible
     PARA.soil.mobileWaterDomain=[0 10.0];      % soil domain where water from excess ice melt is mobile -> start and end [m] - if empty water is not mobile
     PARA.soil.relative_maxWater=0.;              % depth at which a water table will form [m] - above excess water is removed, below it pools up  
@@ -87,10 +88,11 @@ spmd
 % parameters related to lake
     PARA.water.albedo=0.05;     % albedo water (parameterization after Wayne and Burt (1954) in surfaceCondition.m) 
     PARA.water.epsilon=0.99;    % surface emissivity water
-PARA.water.rs=0.;           % surface resistance -> should be 0 for water
+PARA.water.rs=0.;            % surface resistance -> should be 0 for water
 %tsvd
-PARA.water.z0=1e-4;         % roughness length surface [m] - gets overridden by value calculated by function flake_roughnessLength.m
-PARA.water.extinction=1.2;  % light extinction coefficient of water
+PARA.water.z0=1e-3;          % roughness length surface [m] % JAN: value for summer / vegetation
+%PARA.water.z0=1e-4;         % roughness length surface [m] - gets overridden by value calculated by function flake_roughnessLength.m version Flake
+PARA.water.extinction=1.2;   % light extinction coefficient of water
 PARA.water.depth=1.;
 PARA.water.fetch=20;
 
@@ -296,7 +298,7 @@ PARA.water.fetch=20;
     if max((T<-100))==1; disp('dwd'); end
 
         %------- water body module --------------------------------------------
-        T = mixingWaterBody(T, GRID);
+        T = mixingWaterBody(T, GRID);  % zzz ok to keep?
 
         %------- snow cover module --------------------------------------------
         [T, GRID, PARA, SEB, BALANCE] = CryoGridSnow(T, GRID, FORCING, SEB, PARA, c_cTgrid, timestep, BALANCE);
@@ -332,15 +334,18 @@ PARA.water.fetch=20;
     % in order to make the module "work"
         %------- excess ice module --------------------------------------------
         if PARA.modules.xice && ~PARA.modules.infiltration
-            warning( 'energy and water balances are not correct for this combination of modules');
+            warning( 'energy and water balances are not correct for this combination of modules');  % zzz ...
             [GRID, PARA] = excessGroundIce(T, GRID, PARA);
+%tsvd version Flake [GRID, PARA, wc] = excessGroundIce(T, GRID, PARA);
             % assure wc has correct length
             wc = wc( end-sum(GRID.soil.cT_domain)+1 : end );
+%tsvd       wc( end-sum(GRID.soil.cT_domain)+1 : end ); %tsvd make vector dims consistent
         elseif PARA.modules.xice && PARA.modules.infiltration
             [GRID, PARA, wc, meltwaterGroundIce] = excessGroundIceInfiltration(T, wc, GRID, PARA);
+%tsvd       [GRID, PARA, wc] = excessGroundIceInfiltration(T, wc, GRID, PARA);
             GRID = updateGRID_excessiceInfiltration2(meltwaterGroundIce, GRID);
         end
-
+        
         %------- update Lstar for next time step ------------------------------
         SEB = L_star(FORCING, PARA, SEB);
 
