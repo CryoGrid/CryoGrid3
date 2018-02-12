@@ -22,8 +22,11 @@ while  T(i)>0 && i<=i_max
     
     actual_water= max( min_water,  wc(i).*K_delta(i)+dwc_dt(i) );       % should be dwc (already multiplied with timestep) %JAN: this violates the WB
     
-    lacking_water = lacking_water + (wc(i).*K_delta(i)+dwc_dt(i)-actual_water);
-    
+    lacking_water = lacking_water + (actual_water - (wc(i).*K_delta(i)+dwc_dt(i) ) );
+%     if abs(lacking_water)>1e-8
+%         warning('bucketScheme - lacking water');
+%     end
+
     dwc_dt(i+1)=dwc_dt(i+1) + max(0, actual_water-max_water);  %when excess water, move it to next grid cell
     wc(i)=min(max_water, actual_water)./K_delta(i);
        
@@ -45,6 +48,4 @@ while i>=1 && excess_water>0
     i=i-1;
 end
 
-
 surface_runoff=(excess_water>0)*excess_water; % surface runoff only if excess_water>0
-

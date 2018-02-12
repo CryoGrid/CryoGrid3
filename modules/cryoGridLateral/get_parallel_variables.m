@@ -16,7 +16,7 @@ function PARA = get_parallel_variables(PARA)
     PARA.ensemble.initial_altitude = [20.0, 20.5]; %[20.0, 21.0, 20.5];                            %in m a.s.l., this is the reference for the "zero" position of the grids
     PARA.ensemble.altitude = PARA.ensemble.initial_altitude;  
     PARA.ensemble.surface_altitude = PARA.ensemble.initial_altitude;
-
+    PARA.ensemble.soil_altitude = PARA.ensemble.initial_altitude;
     % parameters related to heat exchange
     PARA.ensemble.thermal_contact_length = perimeter .* ( ones(numlabs) - eye(numlabs ) ); % [ 0, 1, 0 ; 1, 0, 1 ; 0, 1, 0 ]; %
     

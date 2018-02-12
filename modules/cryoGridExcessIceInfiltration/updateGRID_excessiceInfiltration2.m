@@ -1,7 +1,7 @@
 function [GRID] = updateGRID_excessiceInfiltration2(meltwaterGroundIce, GRID)
 
     % pass excess meltwater to storage variable
-    GRID.lake.residualWater = meltwaterGroundIce;
+    GRID.lake.residualWater = GRID.lake.residualWater + meltwaterGroundIce;
 
     % update GRID domains of water body
     if GRID.soil.cT_organic(1)+GRID.soil.cT_mineral(1)<=1e-6    % upper soil cell pure air/water
@@ -22,13 +22,22 @@ function [GRID] = updateGRID_excessiceInfiltration2(meltwaterGroundIce, GRID)
 %         [GRID.lake.water.cT_domain_lb, GRID.lake.water.cT_domain_ub] = LayerIndex(GRID.lake.water.cT_domain);
 %         GRID.lake.ice.cT_domain = GRID.lake.cT_domain & T<=0;
 %         [GRID.lake.ice.cT_domain_lb, GRID.lake.ice.cT_domain_ub] = LayerIndex(GRID.lake.ice.cT_domain); %these might be two domains
-%         % K domains not implemented so far
-          
+          % K domains not implemented so far
     else
         GRID.lake.cT_domain = false(size(GRID.general.cT_grid));
         GRID.lake.K_domain = false(size(GRID.general.K_grid));
         [GRID.lake.cT_domain_lb, GRID.lake.cT_domain_ub] = LayerIndex(GRID.lake.cT_domain);
         [GRID.lake.K_domain_lb, GRID.lake.K_domain_ub] = LayerIndex(GRID.lake.K_domain);
     end
+
+
+
+
+
+
+
+
+
+
 
 end
