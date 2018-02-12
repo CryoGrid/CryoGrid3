@@ -31,8 +31,9 @@ while  T(i)>0 && i<=i_max
 end
 
 excess_water=dwc_dt(i)+external_flux; %add external flux
-lacking_water = lacking_water + (excess_water<0)*excess_water;  % this accounts for violations of the water balance
+excess_water=excess_water - lacking_water; % remove potential mismatches (e.g. when evaporation in cell with low water content)
 
+lacking_water = -(excess_water<0)*excess_water;  % this accounts for violations of the water balance
 i=i-1;
 
 while i>=1 && excess_water>0 
