@@ -10,7 +10,7 @@ fieldCapacity = zeros(size(soilType));
 residualWaterContent = zeros(size(soilType));
 for i=1:size(PARA.soil.soilTypes,1)
 	fieldCapacity(soilType==i) = PARA.soil.soilTypes( i, 2 );
-	residualWaterContent(soilType==1) = PARA.soil.soilTypes( i, 1 );
+	residualWaterContent(soilType==i) = PARA.soil.soilTypes( i, 1 );
 end
 
 lacking_water=0;
