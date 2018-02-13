@@ -1,3 +1,5 @@
+function [] = CryoGrid3_function( runName, startDate, endDate, rainFrac, snowFrac, maxWater, maxSnow, snowDens, extFlux, fieldCapacity )
+
 % -------------------------------------------------------------------------
 % CryoGRID3
 % main script for running the model
@@ -8,16 +10,14 @@
 
 paraFromFile = exist('configFile');     % check if config file passed
 
-add_modules;  %adds required modules
+%add_modules;  %adds required modules
 
 %addpath('./nansuite/')
 
-dbstop if error;
-profile on;
 
 createLogFile=0;
 
-spinupFile = [ './runs/TESTRUN_197906-201406_stratSam_rf2_sf1_maxSnow1.0_snowDens=200.0_maxWater0.5_extFlux0.0020_fc0.30/TESTRUN_197906-201406_stratSam_rf2_sf1_maxSnow1.0_snowDens=200.0_maxWater0.5_extFlux0.0020_fc0.30_finalState1982.mat' ] ;
+spinupFile = [];%[ './runs/SPINUP-EXICE_197906-201406_stratSamExice_rf1_sf1_maxSnow0.40_snowDens=200_wt0.0_extFlux0.0000_fc0.30_exice0.60_natPor0.40/SPINUP-EXICE_197906-201406_stratSamExice_rf1_sf1_maxSnow0.40_snowDens=200_wt0.0_extFlux0.0000_fc0.30_exice0.60_natPor0.40_finalState2012.mat' ];
 
 if isempty(spinupFile)
 
@@ -33,9 +33,9 @@ if isempty(spinupFile)
                                  9.0   0.30    0.70    0.00    1   0.30     ];  
 
     %simple stratigraphy with excess ice used to test water balance:
-%     PARA.soil.layer_properties=[ 0.0     0.4    0.50    0.00   1   0.50;... 
-%                                  0.4     0.8    0.20    0.00   1   0.50;...
-%                                  10.0    0.25   0.75    0.00   1   0.25     ]; 
+    %PARA.soil.layer_properties=[ 0.0     0.4    0.50    0.00   1   0.50;... 
+    %                             0.4     0.8    0.20    0.00   1   0.50;...
+    %                             10.0    0.25   0.75    0.00   1   0.25     ]; 
     %very simply stratigraphy without excess ice used to test energy balance
     % soilType = 1;
     % PARA.soil.layer_properties=[ 0.0    0.5    0.5    0.00      soilType  0.5 ;...
@@ -60,16 +60,16 @@ if isempty(spinupFile)
     PARA.soil.kh_bedrock=3.0;   % thermal conductivity of the mineral soil fraction [W/mK]
 
     % parameters related to hydrology scheme
-    PARA.soil.fieldCapacity=0.4;    %water holding capacity of the soil - this must be adapted to fit the upperlost layers!!
+    PARA.soil.fieldCapacity=fieldCapacity;    %water holding capacity of the soil - this must be adapted to fit the upperlost layers!!
     PARA.soil.evaporationDepth=0.1; %depth to which evaporation occurs - place on grid cell boundaries
     PARA.soil.rootDepth=0.2;        %depth affected by transpiration - place on grid cell boundaries
     PARA.soil.wiltingPoint=0.2;     %point at which transpiration shuts off 
     PARA.soil.residualWC=0.05;      %water always remaining in the soil, not accessible to evaporation
     PARA.soil.ratioET=0.5;          % 1: only transpiration; 0: only evaporation, values in between must be made dependent on LAI, etc.
-    PARA.soil.externalWaterFlux=0;  %external water flux / drainage in [m/day]
+    PARA.soil.externalWaterFlux=extFlux;  %external water flux / drainage in [m/day]
     PARA.soil.convectiveDomain=[];       % soil domain where air convection due to buoyancy is possible -> start and end [m] - if empty no convection is possible
     PARA.soil.mobileWaterDomain=[0 10.0];      % soil domain where water from excess ice melt is mobile -> start and end [m] - if empty water is not mobile
-    PARA.soil.relative_maxWater=0.5;              % height relative to surface at which a water table will form [m] - above excess water is removed, below it pools up
+    PARA.soil.relative_maxWater=[ maxWater ];              % depth at which a water table will form [m] - above excess water is removed, below it pools up
     PARA = loadSoilTypes( PARA );
 
     % parameters related to snow
@@ -78,11 +78,11 @@ if isempty(spinupFile)
     PARA.snow.epsilon=0.99;         % surface emissivity snow
     PARA.snow.z0=5e-4;              % roughness length surface [m]
     PARA.snow.rs=0.0;               % surface resistance -> should be 0 for snow
-    PARA.snow.rho_snow=200.0;       % density in [kg/m3]
+    PARA.snow.rho_snow=snowDens;       % density in [kg/m3]
     PARA.snow.tau_1=86400.0;        % time constants of snow albedo change (according to ECMWF reanalysis) [sec]
     PARA.snow.tau_a=0.008;          % [per day]
     PARA.snow.tau_f=0.24;           % [per day]
-    PARA.snow.relative_maxSnow= [1.0]; 	% maximum snow depth that can be reached [m] - excess snow is removed in the model - if empty, no snow threshold
+    PARA.snow.relative_maxSnow= [ maxSnow ]; 	% maximum snow depth that can be reached [m] - excess snow is removed in the model - if empty, no snow threshold
     PARA.snow.extinction=25.0;      % light extinction coefficient of snow
 
     % parameters related to water body on top of soil domain
@@ -101,8 +101,8 @@ if isempty(spinupFile)
     PARA.technical.SWEperCell=0.005;            % SWE per grid cell in [m] - determines size of snow grid cells
     PARA.technical.maxSWE=0.4;                  % in [m] SWE
     PARA.technical.arraySizeT=5002;             % number of values in the look-up tables for conductivity and capacity
-    PARA.technical.starttime=datenum(1979, 4, 1);       % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum(1979, 8, 1);         % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.starttime=startDate;       % starttime of the simulation - if empty start from first value of time series
+    PARA.technical.endtime=endDate;         % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;   % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;   % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;            % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
@@ -119,12 +119,11 @@ if isempty(spinupFile)
     PARA.location.initial_altitude=20.0;
     % JAN: the following quantities are dynamic and should hence be moved to another struct, e.g. "STATE"
     PARA.location.altitude = PARA.location.initial_altitude; 	% used to generate pressure forcing based on barometric altitude formula, if pressure forcing is not given; excluding snow domain
-    PARA.location.soil_altitude=PARA.location.initial_altitude;
     PARA.location.surface_altitude=PARA.location.initial_altitude;		% this is dynamic and refers to the surface including snow
     PARA.location.active_layer_depth_altitude = nan; % defined at runtime
     PARA.location.water_table_altitude = nan; % defined at runtime
     % thresholds
-    PARA.location.absolute_maxWater_altitude = PARA.location.soil_altitude + PARA.soil.relative_maxWater;
+    PARA.location.absolute_maxWater_altitude = PARA.location.altitude + PARA.soil.relative_maxWater;
     if isempty( PARA.snow.relative_maxSnow )
         PARA.location.absolute_maxSnow_altitude = [];
     else
@@ -146,8 +145,8 @@ if isempty(spinupFile)
 
     %FORCING data mat-file
     PARA.forcing.filename='samoylov_ERA_obs_fitted_1979_2014_spinup.mat';  %must be in subfolder "forcing" and follow the conventions for CryoGrid 3 forcing files
-    PARA.forcing.rain_fraction=1;
-    PARA.forcing.snow_fraction=2;
+    PARA.forcing.rain_fraction=rainFrac;
+    PARA.forcing.snow_fraction=snowFrac;
 
     % switches for modules
     PARA.modules.infiltration=1;   % true if infiltration into unfrozen ground occurs
@@ -160,10 +159,10 @@ if isempty(spinupFile)
         run(configFile);
     end
 
-
-    run_number = sprintf( [ 'TESTRUN_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' ) '_stratSam_rf%d_sf%d_maxSnow%0.1f_snowDens=%0.1f_maxWater%0.1f_extFlux%0.4f_fc%0.2f' ], ...
-                          [ PARA.forcing.rain_fraction, PARA.forcing.snow_fraction, PARA.snow.relative_maxSnow, PARA.snow.rho_snow, ...
-                          PARA.soil.relative_maxWater, PARA.soil.externalWaterFlux, PARA.soil.fieldCapacity ] );
+    run_number = runName;
+%     run_number = sprintf( [ 'TESTRUN_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' ) '_stratSam_rf%d_sf%d_maxSnow%0.1f_snowDens=%0.1f_wt%0.1f_extFlux%0.4f_fc%0.2f' ], ...
+%                           [ PARA.forcing.rain_fraction, PARA.forcing.snow_fraction, PARA.snow.relative_maxSnow, PARA.snow.rho_snow, ...
+%                           PARA.soil.relative_maxWater, PARA.soil.externalWaterFlux, PARA.soil.fieldCapacity ] );
 
     % ------make output directory (name depends on parameters) ----------------
     mkdir(['./runs/' run_number])
@@ -230,9 +229,9 @@ if isempty(spinupFile)
     
 else %take setting from spinup file
     load(spinupFile); % this loads T, wc, PARA, GRID, SEB from final state of spinup run
-    %wc(wc<PARA.soil.residualWC)=PARA.soil.residualWC;
-    %GRID.soil.cT_water = wc;
-    %GRID = initializeSoilThermalProperties(GRID, PARA);
+    wc(wc<PARA.soil.residualWC)=PARA.soil.residualWC;
+    GRID.soil.cT_water = wc;
+    GRID = initializeSoilThermalProperties(GRID, PARA);
 
     
     % here one could optionally change the forcing settings
@@ -243,15 +242,14 @@ else %take setting from spinup file
     end
     clear success
       
-    PARA.technical.starttime = t;  %take the end time from the spinup run as start time
-    PARA.technical.endtime = t+365;
+    PARA.technical.starttime = datenum(2013, 1, 1);  %take the end time from the spinup run as start time
+    PARA.technical.endtime = datenum(2014, 6, 1);
     
-    PARA.location.soil_altitude=getSoilAltitude( PARA, GRID );
+    run_number = sprintf( [ 'SPINUP-EXICE_' datestr( PARA.technical.starttime, 'yyyymmdd' ) '-' datestr(PARA.technical.endtime, 'yyyymmdd' ) '_stratSamExice_rf%d_sf%d_maxSnow%0.1f_snowDens=%0.1f_wt%0.1f_extFlux%0.4f_fc%0.2f_exice%0.2f_natPor%0.2f' ], ...
+                          [ PARA.forcing.rain_fraction, PARA.forcing.snow_fraction, PARA.snow.maxSnow, PARA.snow.rho_snow, ...
+                          PARA.soil.waterTable, PARA.soil.externalWaterFlux, PARA.soil.fieldCapacity , ...
+                          PARA.soil.layer_properties(3,2), PARA.soil.layer_properties(3,6) ] );
     
-    run_number = sprintf( [ 'TESTRUN_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' ) '_stratSam_rf%d_sf%d_maxSnow%0.1f_snowDens=%0.1f_maxWater%0.1f_extFlux%0.4f_fc%0.2f' ], ...
-                          [ PARA.forcing.rain_fraction, PARA.forcing.snow_fraction, PARA.snow.relative_maxSnow, PARA.snow.rho_snow, ...
-                          PARA.soil.relative_maxWater, PARA.soil.externalWaterFlux, PARA.soil.fieldCapacity ] );
-
     % ------make output directory (name depends on parameters) ----------------
     mkdir(['./runs/' run_number])
     % necessary initializations
@@ -264,6 +262,10 @@ else %take setting from spinup file
     OUT = generateOUT();
     disp('initialization from spinup successful');
     iSaveSettings( [ './runs/' run_number '/' run_number '_settings.mat'] , FORCING, PARA, GRID)
+    
+    
+
+
 
 end
 %% ________________________________________________________________________
@@ -300,15 +302,16 @@ while t<PARA.technical.endtime
     % energy change due to advection of heat through water fluxes is still excluded.
     % timestep in [days]
     timestep = min( [ max( [ min( [ 0.5 * nanmin( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain ) ) ./ (24.*3600), ...
-                                    PARA.technical.targetDeltaE .* nanmin( abs(GRID.general.K_delta ./ SEB.dE_dt ./ double(T<0.1) ) ) ./ (24.*3600), ...
+                                    PARA.technical.targetDeltaE .* nanmin( abs(GRID.general.K_delta ./ SEB.dE_dt ) ) ./ (24.*3600), ...
                                     PARA.technical.maxTimestep ] ), ...
                              PARA.technical.minTimestep ] ), ...
                       TEMPORARY.outputTime-t ] );
+
     
     % give a warning when timestep required by CFT criterion is below the minimum timestep specified
-    if timestep > 0.5 * min( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain) ) ./ (24.*3600)
-        warning( 'numerical stability not guaranteed' );
-    end
+%     if timestep > 0.5 * min( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain) ) ./ (24.*3600)
+%         warning( 'numerical stability not guaranteed' );
+%     end
     
     %------ update T array ------------------------------------------------
     T = T + SEB.dE_dt./c_cTgrid./GRID.general.K_delta.*timestep.*24.*3600;
@@ -337,24 +340,24 @@ while t<PARA.technical.endtime
         [GRID, PARA, wc, meltwaterGroundIce] = excessGroundIceInfiltration(T, wc, GRID, PARA);
         GRID = updateGRID_excessiceInfiltration2(meltwaterGroundIce, GRID);
     end
-    
-    % some checks ...
+%     
+%     % some checks ...
 %     assert( sum( abs( 1 - GRID.soil.cT_actPor - GRID.soil.cT_mineral - GRID.soil.cT_organic )>1e-6 ) == 0, 'CryoGrid3 - actPor has wrong entries' );
 %     assert( sum( sum( GRID.soil.capacity < 0 ) ) == 0, 'CryoGrid3 - negative entry in capacity LUT');
 %     assert( sum( sum( GRID.soil.conductivity < 0 ) ) == 0, 'CryoGrid3 - negative entry in conductivity LUT');
- 
+%     
+%     
     %------- update Lstar for next time step ------------------------------
     SEB = L_star(FORCING, PARA, SEB);
     
-    PARA.location.altitude = getAltitude( PARA, GRID );
-    PARA.location.surface_altitude = getSurfaceAltitude( PARA, GRID );
-    PARA.location.soil_altitude = getSoilAltitude( PARA, GRID );
-    PARA.location.active_layer_depth_altitude = getActiveLayerDepthAltitude( PARA, GRID, T );
-    PARA.location.water_table_altitude = getWaterTableAltitude(T, wc, GRID, PARA);  
     
     %------- update auxiliary state variables
+    PARA.location.altitude = getAltitude( PARA, GRID );
+    PARA.location.surface_altitude = getSurfaceAltitude( PARA, GRID );
+    PARA.location.active_layer_depth_altitude = getActiveLayerDepthAltitude( PARA, GRID, T );
+    PARA.location.water_table_altitude = getWaterTableAltitude(T, wc, GRID, PARA);
     %------- update threshold variables
-    PARA.location.absolute_maxWater_altitude = PARA.location.soil_altitude + PARA.soil.relative_maxWater;
+    PARA.location.absolute_maxWater_altitude = PARA.location.altitude + PARA.soil.relative_maxWater;
     if isempty( PARA.snow.relative_maxSnow )
         PARA.location.absolute_maxSnow_altitude = [];
     else
@@ -377,6 +380,7 @@ end
 % save final state and output at t=endtime
 iSaveOUT(['./runs/' run_number '/' run_number '_output' datestr(t,'yyyy') '.mat'], OUT)
 iSaveState(['./runs/' run_number '/' run_number '_finalState' datestr(t,'yyyy') '.mat'], T, wc, t, SEB, PARA, GRID)
+
 
 disp('Done.');
 if createLogFile

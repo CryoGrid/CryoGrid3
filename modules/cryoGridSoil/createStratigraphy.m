@@ -18,9 +18,4 @@ GRID.soil.cT_mineral = interp1(soilParam(:,1),soilParam(:,3),GRID.general.cT_gri
 GRID.soil.cT_organic = interp1(soilParam(:,1),soilParam(:,4),GRID.general.cT_grid(GRID.soil.cT_domain),'linear');
 GRID.soil.cT_soilType = interp1(soilParam(:,1),soilParam(:,5),GRID.general.cT_grid(GRID.soil.cT_domain),'nearest');
 GRID.soil.cT_natPor = interp1(soilParam(:,1),soilParam(:,6),GRID.general.cT_grid(GRID.soil.cT_domain),'linear');
-
-GRID.soil.K_water = interp1(soilParam(:,1),soilParam(:,2),GRID.general.K_grid(GRID.soil.K_domain),'linear');
-GRID.soil.K_mineral = interp1(soilParam(:,1),soilParam(:,3),GRID.general.K_grid(GRID.soil.K_domain),'linear');
-GRID.soil.K_organic = interp1(soilParam(:,1),soilParam(:,4),GRID.general.K_grid(GRID.soil.K_domain),'linear');
-GRID.soil.K_soilType = interp1(soilParam(:,1),soilParam(:,5),GRID.general.K_grid(GRID.soil.K_domain),'nearest');
-
+GRID.soil.cT_actPor = 1. - GRID.soil.cT_mineral - GRID.soil.cT_organic;
