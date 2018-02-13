@@ -7,8 +7,8 @@
 close all
 
  dirname = '../runs/';
- runname = 'TESTRUN_198212-198312_stratSam_rf2_sf1_maxSnow1.0_snowDens=200.0_maxWater0.5_extFlux0.0020_fc0.30';
- year = 1983;
+ runname = 'SPINUP-EXICE_197906-201406_stratSamExice_rf1_sf1_maxSnow0.40_snowDens=200_wt10.0_extFlux0.0000_fc0.30_exice0.50_natPor0.40';
+ year = 2010;
  number_of_realizations = 1;
 % 
 
@@ -67,7 +67,7 @@ close all
     %lakeFloor = [ NaN(length(soilTop)-length(lakeFloor),1); lakeFloor ];
 
     % limits
-    minz = min(OUTS{1}.PARA.location.altitude - 2);
+    minz = min(OUTS{1}.PARA.location.altitude - 10);
     maxz = max(OUTS{1}.PARA.location.altitude + 2);
 
     mint = min(ts);

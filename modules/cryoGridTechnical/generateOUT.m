@@ -32,6 +32,7 @@ function OUT = generateOUT()
     % derived characteristics and related to geometry
     OUT.location.area = [];
     OUT.location.altitude=[];
+    OUT.location.soil_altitude=[];
     OUT.location.surface_altitude=[];
     OUT.location.active_layer_depth_altitude = [];
     OUT.location.water_table_altitude=[];
