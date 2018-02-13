@@ -18,6 +18,10 @@ else
     while water(i)<=fieldC && T(i)>0
         waterTable = waterTable - K_delta(i);
         i=i+1;
+%         if i>length(water);
+%            water
+%            T
+%         end
     end
     
     if T(i)<=0;

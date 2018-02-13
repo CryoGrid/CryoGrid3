@@ -107,6 +107,7 @@ spmd
     PARA.technical.saveDate='01.08.';           % date of year when output file is written - no effect if "saveInterval" is empty
     PARA.technical.saveInterval=1;              % interval [years] in which output files are written - if empty the entire time series is written - minimum is 1 year
     PARA.technical.waterCellSize=0.02;          % default size of a newly added water cell when water ponds below water table [m]
+    PARA.technical.nb_real=number_of_realizations;
     
     %default grid used for publications and testing of water balance:
     PARA.technical.subsurfaceGrid = [0:0.05:2 2.1:0.5:8 8.2:0.2:20 21:1:30 35:5:50 60:10:100 200:100:1000]'; % the subsurface K-grid in [m]
@@ -125,7 +126,7 @@ spmd
     if isempty( PARA.snow.relative_maxSnow )
         PARA.location.absolute_maxSnow_altitude = [];
     else
-        PARA.location.absolute_maxSnow_altitude =  PARA.location.altitude + PARA.snow.relative_maxSnow ;
+        PARA.location.absolute_maxSnow_altitude = [ PARA.location.altitude + PARA.snow.relative_maxSnow ];
     end
     
     %initial temperature profile -> first column depth [m] -> second column temperature [degree C]
@@ -274,7 +275,7 @@ spmd
         
         
         % give a warning when timestep required by CFT criterion is below the minimum timestep specified
-        if timestep > 0.5 * min( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain) ) / (24.*3600)
+        if timestep > 0.5 * min( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain) ) ./ (24.*3600)
             warning( 'numerical stability not guaranteed' );
         end
         
@@ -328,7 +329,7 @@ spmd
             if isempty( PARA.snow.maxSnow )
                 PARA.location.absolute_maxSnow_altitude = [];
             else
-                PARA.location.absolute_maxSnow_altitude =  PARA.ensemble.altitude + PARA.snow.relative_maxSnow;
+                PARA.location.absolute_maxSnow_altitude = [ PARA.ensemble.altitude + PARA.snow.relative_maxSnow ];
             end
         end
         
@@ -389,8 +390,7 @@ spmd
                         % WRAPPER
                         disp('sync - exchanging water');
                         % calculate lateral water fluxes
-                        water_fluxes= nan(numlabs,numlabs); % in [m/s]
-                        % water_fluxes = nan( 1, numlabs ); 
+                        water_fluxes = nan( 1, numlabs ); % in [m/s]
                         PACKAGE_waterExchange.water_table_altitude = PARA.ensemble.water_table_altitude(index);
                         PACKAGE_waterExchange.active_layer_depth_altitude = PARA.ensemble.active_layer_depth_altitude(index);
                         PACKAGE_waterExchange.infiltration_condition = T(GRID.soil.cT_domain_ub)>0 && isempty(GRID.snow.cT_domain_ub);
@@ -402,12 +402,11 @@ spmd
                         for j=1:number_of_realizations
                             if j~=index
                                 PACKAGE_waterExchange_j = labReceive(j, 2);
-                                water_fluxes(j) = calculateLateralWaterDarcyFluxes( T, PACKAGE_waterExchange_j, GRID, PARA, j);  % matrix containing all fluxes in [m/s] scaled to row index
+                                % JAN: for now: assume DarcyFlux and distribute over sync time step (no check for available water, missing water tracked in BALANCE.dm_lacking)
+                                water_fluxes(j) = calculateLateralWaterFluxes( T, PACKAGE_waterExchange_j, GRID, PARA, j);  % matrix containing all fluxes in [m/s] scaled to row index
                             end
                         end
-                        % Check for water availability
-                        waterflux = nansum( water_fluxes,2); % Vertical vector in m A REMETTRE DANS LA FONCTION
-                        
+                        waterflux = nansum( water_fluxes.*PARA.technical.syncTimeStep.*24.*3600 ); % in m
                         % apply lateral water flux directly (as bulk subsurface flux)
                         [wc, excess_water, lacking_water] = bucketScheme(T, wc, zeros( size(wc) ), GRID, PARA, waterflux, index);
                         fprintf('Flux : %3.2e \t lacking_water : %3.2e\n',waterflux, lacking_water)

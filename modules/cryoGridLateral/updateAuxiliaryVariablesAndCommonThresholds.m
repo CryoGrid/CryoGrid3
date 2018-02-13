@@ -1,9 +1,9 @@
-function [PARA] = updateAuxiliaryVariablesAndCommonThresholds( T, wc, GRID, PARA)    
+function [PARA] = updateAuxiliaryVariablesAndCommonThresholds( T, wc, GRID, PARA, index)    
 
     PARA.ensemble.surface_altitude(labindex) = getSurfaceAltitude( PARA, GRID );
     PARA.ensemble.altitude(labindex) = getAltitude( PARA, GRID );
     PARA.ensemble.water_table_altitude(labindex) = getWaterTableAltitudeFC(T, wc, GRID, PARA ); %JAN: Leo uses getWaterTabelFC to account for non-saturated cells above fieldCapacity
-    PARA.ensemble.active_layer_depth_altitude(labindex) = getActiveLayerDepthAltitude(PARA, GRID, T);
+    PARA.ensemble.active_layer_depth_altitude(labindex) = getActiveLayerDepthAltitude(PARA, GRID, T, index);
     % sending information from "labindex" to all "j"
     for j=1:numlabs
         if j~=labindex
