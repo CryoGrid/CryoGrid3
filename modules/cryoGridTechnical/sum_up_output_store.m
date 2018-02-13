@@ -95,6 +95,7 @@ if  t==TEMPORARY.outputTime
     % derived characteristics and related to geometry
     OUT.location.area = [OUT.location.area; PARA.location.area];
     OUT.location.altitude=[OUT.location.altitude; PARA.location.altitude];
+    OUT.location.soil_altitude=[OUT.location.soil_altitude; PARA.location.soil_altitude];
     OUT.location.surface_altitude=[OUT.location.surface_altitude; PARA.location.surface_altitude];
     OUT.location.active_layer_depth_altitude = [OUT.location.active_layer_depth_altitude; PARA.location.active_layer_depth_altitude];
     OUT.location.water_table_altitude=[OUT.location.water_table_altitude; PARA.location.water_table_altitude];
@@ -167,7 +168,7 @@ if  t==TEMPORARY.outputTime
     OUT.debugging.dE_dt_SEB = [OUT.debugging.dE_dt_SEB [ TEMPORARY.dE_dt_SEB ] ];
     OUT.debugging.dE_dt_cond = [OUT.debugging.dE_dt_cond [ TEMPORARY.dE_dt_cond ] ];
     OUT.debugging.K_grid = [OUT.debugging.K_grid, GRID.general.K_grid ];
-    OUT.debugging.residualWater =  [ OUT.debugging.residualWater, GRID.lake.residualWater ];
+    OUT.debugging.residualWater =  [ OUT.debugging.residualWater; GRID.lake.residualWater ];
     
     %------------------------------------------------------------------
     disp([datestr(now,'yyyy-mm-dd HH:MM:SS'),':  at ',datestr(t), ',  Average timestep: ',  num2str(TEMPORARY.timestep_out), ' seconds'])
