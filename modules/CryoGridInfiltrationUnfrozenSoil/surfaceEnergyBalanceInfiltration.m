@@ -15,8 +15,10 @@ dwc_dt=wc.*0;
 %______here SW radiation is calculated_____________________________________
 dE_dt=GRID.general.cT_grid.*0;
 Qsolar=GRID.general.cT_grid.*0;
-
-dE_dt(GRID.air.cT_domain_lb+1)=(1-PARA.surf.albedo).*FORCING.i.Sin;
+%tsvd
+    Sin_water=0;
+%tsvd    dE_dt(GRID.air.cT_domain_lb+1)=(1-PARA.surf.albedo).*FORCING.i.Sin;
+    dE_dt(GRID.air.cT_domain_lb+1,1)=(1-PARA.surf.albedo).*FORCING.i.Sin;
 %------ snow surface (solid state green house effect) ---------------------
 if ~isempty(GRID.snow.cT_domain_ub)    
     beta=PARA.snow.extinction;        
@@ -26,6 +28,29 @@ if ~isempty(GRID.snow.cT_domain_ub)
     dE_dt(GRID.snow.cT_domain_lb+1) = Qsolar(GRID.snow.cT_domain_lb+1);    
 end
 
+%tsvd
+%------- ice surface (solid state green house effect) ---------------------
+if ~isempty(GRID.lake.ice.cT_domain_ub)   
+    beta=PARA.ice.extinction;
+%     if GRID.lake.ice.melt_flag
+%         %increse light extinction coeff under melt conditions
+%         beta=PARA.ice.extinction.*2;
+%     end
+    Qsolar(GRID.lake.ice.cT_domain_ub:GRID.lake.ice.cT_domain_lb+1) = dE_dt(GRID.lake.ice.cT_domain_ub) .* exp(-beta.*(GRID.general.K_grid(GRID.lake.ice.cT_domain_ub:GRID.lake.ice.cT_domain_lb+1)-GRID.general.K_grid(GRID.lake.ice.cT_domain_ub)));
+    dE_dt(GRID.lake.ice.cT_domain_ub:GRID.lake.ice.cT_domain_lb) = -Qsolar(GRID.lake.ice.cT_domain_ub+1:GRID.lake.ice.cT_domain_lb+1) + Qsolar(GRID.lake.ice.cT_domain_ub:GRID.lake.ice.cT_domain_lb);
+    %put the rest to cell below ice cover    
+    dE_dt(GRID.lake.ice.cT_domain_lb+1) = Qsolar(GRID.lake.ice.cT_domain_lb+1);
+end
+%------- water domain -----------------------------------------------------
+if  ~isempty(GRID.lake.water.cT_domain_ub)
+    beta=PARA.water.extinction;
+    Qsolar(GRID.lake.water.cT_domain_ub:GRID.lake.water.cT_domain_lb+1) = dE_dt(GRID.lake.water.cT_domain_ub) .* exp(-beta.*(GRID.general.K_grid(GRID.lake.water.cT_domain_ub:GRID.lake.water.cT_domain_lb+1)-GRID.general.K_grid(GRID.lake.water.cT_domain_ub)));
+    dE_dt(GRID.lake.water.cT_domain_ub :GRID.lake.water.cT_domain_lb)   = -Qsolar(GRID.lake.water.cT_domain_ub+1:GRID.lake.water.cT_domain_lb+1) + Qsolar(GRID.lake.water.cT_domain_ub:GRID.lake.water.cT_domain_lb);
+    %put the rest to cell below water body    
+    dE_dt(GRID.lake.water.cT_domain_lb+1) = Qsolar(GRID.lake.water.cT_domain_lb+1);
+    %SW output for FLAKE radiation scheme    
+    Sin_water = Qsolar(GRID.lake.water.cT_domain_ub);    
+end
 %__________________________________________________________________________
 Sout = PARA.surf.albedo*FORCING.i.Sin;
 Lout = PARA.surf.epsilon.*sigma.*(T(GRID.air.cT_domain_lb+1)+273.15).^4 + (1-PARA.surf.epsilon).*FORCING.i.Lin;
@@ -36,8 +61,10 @@ Qnet = FORCING.i.Sin-Sout + FORCING.i.Lin - Lout ;
 %calculate ET
 if PARA.modules.infiltration
     
-    % snow cover or uppermost grid cell frozen --> no ET ; this includes the case of a frozen water body
-    if ~isempty(GRID.snow.cT_domain_ub) || T(GRID.soil.cT_domain_ub)<=0   
+    %snow cover or uppermost grid cell frozen --> no ET
+%tsvd added from version FLAKE
+if PARA.soil.infiltration 
+    if ~isempty(GRID.snow.cT_domain_ub) || T(GRID.soil.cT_domain_ub)<=0  || ~isempty(GRID.lake.water.cT_domain_ub)    % islake ...   %snow cover or uppermost grid cell frozen --> no ET      tsvd: addition case LAKE added
         Qe=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, PARA.surf.rs, FORCING.i.p, PARA));
     % unfrozen water body at surface
     elseif GRID.lake.unfrozenWaterSurface 
@@ -47,7 +74,8 @@ if PARA.modules.infiltration
     % unfrozen soil surface    
     else 
         Qe_pot=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, 0, FORCING.i.p, PARA));  %potential ET 
-        if Qe_pot>0
+%tsvd        if Qe_pot>0
+        if Qe_pot>0 && GRID.soil.cT_domain(GRID.air.cT_domain_lb+1)==1             
             fraction_T=getET_fraction(T(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_ub+GRID.soil.T_lb-1), wc(1:GRID.soil.T_lb), PARA.soil.fieldCapacity, PARA.soil.wiltingPoint);
             fraction_E=getET_fraction(T(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_ub+GRID.soil.E_lb-1), wc(1:GRID.soil.E_lb), PARA.soil.fieldCapacity, PARA.soil.residualWC);
             fraction_ET = fraction_T.*PARA.soil.ratioET;
@@ -92,5 +120,6 @@ SEB.Qe = Qe;
 SEB.Qg = Qg;
 SEB.Sout = Sout;
 SEB.Lout = Lout;
-
-     
+    %tsvd
+    SEB.Sin_water=Sin_water;
+end

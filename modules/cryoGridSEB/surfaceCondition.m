@@ -1,9 +1,9 @@
-function [PARA, GRID] = surfaceCondition(GRID, PARA, T)   
+%tsvd function [PARA, GRID] = surfaceCondition(GRID, PARA, T)    % old implementation
+function [PARA, GRID] = surfaceCondition(GRID, PARA, T, t, FORCING, SEB)   
 
-% set surface parameters (albedo, emissivity, roughnesslength, resistance
-% to evaporation) according to the actual surface conditions
+% set surface parameters (albedo, emissivity, roughnesslength, resistance to evaporation) according to the actual surface conditions
 
-GRID.lake.unfrozenWaterSurface=false;
+GRID.lake.unfrozenWaterSurface=false; % zzz
 
 %default soil surface 
 PARA.surf.albedo  = PARA.soil.albedo;
@@ -37,4 +37,23 @@ elseif GRID.soil.cT_domain(GRID.air.cT_domain_lb+1)==1 ...
         PARA.surf.rs      = PARA.ice.rs;
     end
 end
+%tsvd  check if lake exists
+    if  GRID.lake.water.cT_domain(GRID.air.cT_domain_lb+1)==1 % water surface  
+        %note SolarAzEl.m delivers only an approximation of sun position / t must be in UTC 
    
+        [~, sun_elevation] = SolarAzEl(t,PARA.location.latitude,PARA.location.longitude,PARA.location.altitude);
+        PARA.water.albedo = waterAlbedo(sun_elevation, FORCING.i.wind);
+        PARA.surf.albedo          = PARA.water.albedo;
+        PARA.surf.epsilon         = PARA.water.epsilon; 
+        [PARA.surf.z0, z0t, z0q]  = flake_roughnessLength(PARA.water.fetch, FORCING.i.wind, SEB.u_star, 0);
+        PARA.surf.z0=real(PARA.surf.z0);
+        PARA.surf.rs              = PARA.water.rs;
+    end
+    if GRID.lake.ice.z_ice>0 %GRID.lake.ice.cT_domain(GRID.air.cT_domain_lb+1)==1 % ice surface
+        PARA.surf.albedo          = PARA.ice.albedo;
+        PARA.surf.epsilon         = PARA.ice.epsilon;
+        [PARA.surf.z0, z0t, z0q]  = flake_roughnessLength(PARA.water.fetch, FORCING.i.wind, SEB.u_star, 1);
+        PARA.surf.z0=real(PARA.surf.z0);
+        PARA.surf.rs              = PARA.ice.rs;
+    end
+end
