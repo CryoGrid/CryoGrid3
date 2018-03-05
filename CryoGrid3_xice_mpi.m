@@ -12,7 +12,7 @@ add_modules;  %adds required modules
 
 %dbstop if error;
 
-number_of_realizations=2;
+number_of_realizations=3;
 
 if number_of_realizations>1
     parpool(number_of_realizations);
@@ -50,7 +50,7 @@ spmd
     %------ model parameters --------------------------------------------------
     % parameters related to soil
     PARA.soil.albedo=0.2;       % albedo snow-free surface
-    PARA.soil.albedoPond=0.07;  % albedo of water, used when the uppermost grod cell is 100% water due to modeled thermokarst development
+    %PARA.soil.albedoPond=0.07;  % albedo of water, used when the uppermost grod cell is 100% water due to modeled thermokarst development
     PARA.soil.epsilon=0.97;     % emissvity snow-free surface
     PARA.soil.z0=1e-3;          % roughness length [m] snow-free surface
     PARA.soil.rs=50;            % surface resistance against evapotransiration [m^-1] snow-free surface
@@ -58,7 +58,7 @@ spmd
     PARA.soil.kh_bedrock=3.0;   % thermal conductivity of the mineral soil fraction [W/mK]
     
     % parameters related to hydrology scheme
-    PARA.soil.fieldCapacity=0.3;    %water holding capacity of the soil - this must be adapted to fit the upperlost layers!!
+    PARA.soil.fieldCapacity=0.5;    %water holding capacity of the soil - this must be adapted to fit the upperlost layers!!
     PARA.soil.evaporationDepth=0.1; %depth to which evaporation occurs - place on grid cell boundaries
     PARA.soil.rootDepth=0.2;        %depth affected by transpiration - place on grid cell boundaries
     PARA.soil.wiltingPoint=0.2;     %point at which transpiration shuts off
@@ -81,14 +81,14 @@ spmd
     PARA.snow.tau_1=86400.0;        % time constants of snow albedo change (according to ECMWF reanalysis) [sec]
     PARA.snow.tau_a=0.008;          % [per day]
     PARA.snow.tau_f=0.24;           % [per day]
-    PARA.snow.relative_maxSnow= [0.1]; 	% maximum snow depth that can be reached [m] - excess snow is removed in the model - if empty, no snow threshold
+    PARA.snow.relative_maxSnow= [1.0]; 	% maximum snow depth that can be reached [m] - excess snow is removed in the model - if empty, no snow threshold
     PARA.snow.extinction=25.0;      % light extinction coefficient of snow
     
     % parameters related to water body on top of soil domain
     PARA.water.albedo=0.05;     % albedo water (parameterization after Wayne and Burt (1954) in surfaceCondition.m)
     PARA.water.epsilon=0.99;    % surface emissivity water
     PARA.water.rs=0.0;            % surface resistance -> should be 0 for water
-    PARA.water.z0=1e-3;              % roughness length surface [m] % JAN: value for summer / vegetation
+    PARA.water.z0=5e-4;              % roughness length surface [m] % JAN: value for summer / vegetation
     
     PARA.ice.albedo =0.20;      % albedo ice / Lei et al. (2011) shows a range of 0.1 to 0.35
     PARA.ice.epsilon=0.98;      % surface emissivity snow
@@ -100,8 +100,8 @@ spmd
     PARA.technical.SWEperCell=0.005;            % SWE per grid cell in [m] - determines size of snow grid cells
     PARA.technical.maxSWE=0.4;                  % in [m] SWE
     PARA.technical.arraySizeT=5002;             % number of values in the look-up tables for conductivity and capacity
-    PARA.technical.starttime=datenum(1979, 7, 1);       % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum(1979, 7, 5);         % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.starttime=datenum(2006, 10, 1);       % starttime of the simulation - if empty start from first value of time series
+    PARA.technical.endtime=datenum(2007, 10, 1);         % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;   % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;   % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;            % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
@@ -112,7 +112,7 @@ spmd
     PARA.technical.waterCellSize=0.02;          % default size of a newly added water cell when water ponds below water table [m]
     
     %default grid used for publications and testing of water balance:
-    PARA.technical.subsurfaceGrid = [[0:0.02:2], [2.1:0.1:10], [10.2:0.2:20], [21:1:30], [35:5:50], [60:10:100], [200:100:1000]]'; % the subsurface K-grid in [m]
+    PARA.technical.subsurfaceGrid = [[0:0.02:4], [4.1:0.1:10], [10.2:0.2:20], [21:1:30], [35:5:50], [60:10:100], [200:100:1000]]'; % the subsurface K-grid in [m]
     %PARA.technical.subsurfaceGrid = [[0:0.02:10], [10.1:0.1:20], [20.2:0.2:30], [31:1:40], [45:5:60], [70:10:100], [200:100:1000]]'; % the subsurface K-grid in [m]
     
     PARA.location.area=1.0;
@@ -132,14 +132,22 @@ spmd
     end
     
     %initial temperature profile -> first column depth [m] -> second column temperature [degree C]
-    PARA.Tinitial = [ -2     5   ;...
-        0     0   ;...
-        2    -5   ;...
-        10    -10  ;...
-        25    -9   ;...
-        100    -9   ;...
-        2000    10   ];
-    
+%     PARA.Tinitial = [ -2     5   ;...
+%         0     0   ;...
+%         2    -5   ;...
+%         10    -10  ;...
+%         25    -9   ;...
+%         100    -9   ;...
+%         2000    10   ];
+    PARA.Tinitial = [  -2     5   ;...
+                        0     0   ;...
+                        2    -2   ;...
+                        5    -7   ;...
+                        10    -9  ;...
+                        25    -9   ;...
+                        100    -8   ;...
+                        1100    10.2   ];      % the geothermal gradient for Qgeo=0.05W/m² and K=2.746W/Km is about 18.2 K/km 
+
     PARA = loadConstants( PARA );
     
     %FORCING data mat-file
@@ -164,7 +172,7 @@ spmd
     end
     
     % ------make output directory (name depends on parameters) ----------------
-    run_number= sprintf( 'testrunMPI_xH%d_xW%d_xS%d_infil%d_xice%d_rF%d_sF%d_realization%d' , ...
+    run_number= sprintf( 'testrunMPI_geometryHEX_xH%d_xW%d_xS%d_infil%d_xice%d_rF%d_sF%d_realization%d' , ...
         [ PARA.modules.exchange_heat, PARA.modules.exchange_water, PARA.modules.exchange_snow, ...
         PARA.modules.infiltration, PARA.modules.xice, ...
         PARA.forcing.rain_fraction, PARA.forcing.snow_fraction ,  ...
