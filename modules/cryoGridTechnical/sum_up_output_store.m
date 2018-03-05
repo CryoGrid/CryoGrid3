@@ -1,4 +1,4 @@
-function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, run_number, water_fluxes, snow_fluxes, heat_fluxes) 
+function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, saveDir, run_number, water_fluxes, snow_fluxes, heat_fluxes) 
 
 
     TEMPORARY.timestep_sum=TEMPORARY.timestep_sum+(timestep*24*3600)*timestep;
@@ -185,9 +185,9 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
      
         %write output files      
         if  round((t-TEMPORARY.saveTime).*48)==0   
-            iSaveOUT(['./runs/' run_number '/' run_number '_output' datestr(t,'yyyy')  '.mat'], OUT)
-            iSaveState(['./runs/' run_number '/' run_number '_finalState'  datestr(t,'yyyy') '.mat'], T, wc, t, SEB, PARA, GRID)
-            %iPlotAltitudes( ['./runs/' run_number '/' run_number '_altitudes_vs_time_' datestr(t,'yyyy')  '.png'], OUT, PARA );
+            iSaveOUT([ saveDir '/' run_number '/' run_number '_output' datestr(t,'yyyy')  '.mat'], OUT)
+            iSaveState([ saveDir '/' run_number '/' run_number '_finalState'  datestr(t,'yyyy') '.mat'], T, wc, t, SEB, PARA, GRID)
+            iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_altitudes_vs_time_' datestr(t,'yyyy')  '.png'], OUT, PARA );
             OUT = generateOUT();  
             TEMPORARY.saveTime=datenum(str2num(datestr(t,'yyyy'))+1, str2num(datestr(t,'mm')), str2num(datestr(t,'dd')), str2num(datestr(t,'HH')), str2num(datestr(t,'MM')), 0);
         end            
