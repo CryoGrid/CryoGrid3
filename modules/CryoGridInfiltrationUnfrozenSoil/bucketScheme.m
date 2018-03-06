@@ -1,13 +1,13 @@
-function [wc, surface_runoff, lacking_water]=bucketScheme(T, wc, dwc_dt, GRID, PARA, external_flux,index)
+function [wc, surface_runoff, lacking_water]=bucketScheme(T, wc, dwc_dt, GRID, PARA, external_flux)
 
 T=T(GRID.soil.cT_domain);
 K_delta=GRID.general.K_delta(GRID.soil.cT_domain);  %in m
 porosity=1-GRID.soil.cT_mineral-GRID.soil.cT_organic;
 soilType = GRID.soil.cT_soilType;
 if numlabs < 2;
-    [~,i_max]=min(abs((PARA.location.altitude(index)-GRID.soil.soilGrid)-PARA.soil.alt_infiltration_limit));
+    [~,i_max]=min(abs((PARA.location.altitude(labindex)-GRID.soil.soilGrid)-PARA.soil.alt_infiltration_limit));
 else
-    [~,i_max]=min(abs((PARA.ensemble.altitude(index)-GRID.soil.soilGrid)-PARA.ensemble.alt_infiltration_limit));
+    [~,i_max]=min(abs((PARA.ensemble.altitude(labindex)-GRID.soil.soilGrid)-PARA.ensemble.alt_infiltration_limit));
 end
 
 % to be changed!

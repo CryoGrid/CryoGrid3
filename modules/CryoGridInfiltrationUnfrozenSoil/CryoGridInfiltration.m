@@ -31,7 +31,7 @@ function [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRI
 
         % routing of water    
         [wc, surface_runoff, lacking_water] = bucketScheme(T, wc, dwc_dt, GRID, PARA, (external_flux_rate+lateral_flux_rate).*timestep);
-
+        
         % consistency check
         if sum( wc<0 )~=0
             warning( 'CryoGridInfiltration - negative water content occured after bucket scheme' );
@@ -60,7 +60,7 @@ function [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRI
 
         end
 
-        %%% step 2: update GRID including reomval of excess water above water table and ponding below water table
+        %%% step 2: update GRID including removal of excess water above water table and ponding below water table
         [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, surface_runoff);
 
 
