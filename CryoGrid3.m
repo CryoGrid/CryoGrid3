@@ -17,7 +17,7 @@ profile on;
 
 createLogFile=0;
 
-spinupFile = [ './runs/TESTRUN_197906-201406_stratSam_rf2_sf1_maxSnow1.0_snowDens=200.0_maxWater0.5_extFlux0.0020_fc0.30/TESTRUN_197906-201406_stratSam_rf2_sf1_maxSnow1.0_snowDens=200.0_maxWater0.5_extFlux0.0020_fc0.30_finalState1982.mat' ] ;
+spinupFile = [ './runs/TESTRUN_197906-201406_stratSam_rf1_sf1_maxSnow1.0_snowDens=200.0_maxWater0.5_extFlux0.0000_fc0.30/TESTRUN_197906-201406_stratSam_rf1_sf1_maxSnow1.0_snowDens=200.0_maxWater0.5_extFlux0.0000_fc0.30_finalState1980.mat' ] ;
 
 if isempty(spinupFile)
     
@@ -233,7 +233,7 @@ else %take setting from spinup file
     %wc(wc<PARA.soil.residualWC)=PARA.soil.residualWC;
     %GRID.soil.cT_water = wc;
     %GRID = initializeSoilThermalProperties(GRID, PARA);
-    
+    PARA = loadSoilTypes( PARA ); % load new soil type "3"=water
     
     % here one could optionally change the forcing settings
     
@@ -244,7 +244,7 @@ else %take setting from spinup file
     clear success
     
     PARA.technical.starttime = t;  %take the end time from the spinup run as start time
-    PARA.technical.endtime = t+365;
+    PARA.technical.endtime = t+200;
     
     PARA.location.soil_altitude=getSoilAltitude( PARA, GRID );
     
