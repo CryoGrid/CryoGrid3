@@ -35,11 +35,11 @@ if PARA.ensemble.hydraulic_contact_length(index,j)>0
             contact_height = waterpotWj - nanmax( [ waterpotWindex, ald_j ]);
             Distance=sqrt(DeltaH^2 + PARA.ensemble.hydraulicDistance(j,index)^2);
             section=contact_height .* PARA.ensemble.hydraulic_contact_length(j,index);
-            DarcyFlux=PARA.ensemble.hydraulic_conductivity(j,index) * (DeltaH/Distance) * section;
-            % Attribute watr height changes
-            water_fluxes(j,index) = -1 * (DarcyFlux * PARA.technical.syncTimeStep / PARA.ensemble.area(j));
-            water_fluxes(index,j) = DarcyFlux * PARA.technical.syncTimeStep / PARA.ensemble.area(index);
-            
+            DarcyFlux=PARA.ensemble.hydraulic_conductivity(j,index) * (DeltaH/Distance) * section; % in m3/sec
+            % Attribute water height changes
+            water_fluxes(j,index) = -1 * (DarcyFlux * PARA.technical.syncTimeStep * 3600 * 24 / PARA.ensemble.area(j)); % syncTimeStep in days, Darcy flux in m3/sec
+            water_fluxes(index,j) = DarcyFlux * PARA.technical.syncTimeStep * 3600 * 24 / PARA.ensemble.area(index); % syncTimeStep in days, Darcy flux in m3/sec
+           
 
         elseif (waterpotWindex > waterpotWj  && hasWater_index==1) % Current worker is loosing water
 
@@ -48,10 +48,10 @@ if PARA.ensemble.hydraulic_contact_length(index,j)>0
             contact_height =waterpotWindex - nanmax( [ waterpotWj, ald_index ] );
             Distance=sqrt(DeltaH^2 + PARA.ensemble.hydraulicDistance(j,index)^2);
             section=contact_height .* PARA.ensemble.hydraulic_contact_length(j,index);
-            DarcyFlux=PARA.ensemble.hydraulic_conductivity(j,index) * (DeltaH/Distance) * section;
-            % Attribute watr height changes
-            water_fluxes(j,index) = DarcyFlux * PARA.technical.syncTimeStep / PARA.ensemble.area(j);
-            water_fluxes(index,j) = -1 * (DarcyFlux * PARA.technical.syncTimeStep / PARA.ensemble.area(index));
+            DarcyFlux=PARA.ensemble.hydraulic_conductivity(j,index) * (DeltaH/Distance) * section; % in m3/sec
+            % Attribute water height changes
+            water_fluxes(j,index) = DarcyFlux * PARA.technical.syncTimeStep *24 *3600 / PARA.ensemble.area(j); % syncTimeStep in days, Darcy flux in m3/sec
+            water_fluxes(index,j) = -1 * (DarcyFlux * PARA.technical.syncTimeStep *24 *3600 / PARA.ensemble.area(index)); % syncTimeStep in days, Darcy flux in m3/sec
             
 
         else % same water table, no lateralFlux
