@@ -35,6 +35,9 @@ function OUT = generateOUT()
     OUT.location.surface_altitude=[];
     OUT.location.active_layer_depth_altitude = [];
     OUT.location.water_table_altitude=[];
+    OUT.location.active_layer_depth_altitude_mean = [];
+    OUT.location.water_table_altitude_mean=[];
+    
 
     % lateral fluxes
     OUT.lateral.terrain_index_snow=[];
@@ -62,6 +65,8 @@ function OUT = generateOUT()
     OUT.WB.dr_lateralSnow=[];   % lateral snow flux to other realizations
     OUT.WB.dr_rain=[];          % this is only rain on frozen ground
     OUT.WB.dr_lateral=[];       % lateral water flux to other realizations
+    OUT.WB.dr_DarcyReservoir=[]; % lateral water flux created by the boundary condition "DarcyReservoir"
+    OUT.WB.dr_lateralExcess=[]; % excess water when applying lateral fluxes
     % mismatches (known)
     OUT.WB.dm_lacking =[];      % mismatch term due to lacking water for evapotranspiration 
 

@@ -1,4 +1,4 @@
-function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, run_number, water_fluxes, snow_fluxes, heat_fluxes) 
+function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, run_number, snow_fluxes, heat_fluxes) 
 
 
     TEMPORARY.timestep_sum=TEMPORARY.timestep_sum+(timestep*24*3600)*timestep;
@@ -12,6 +12,9 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
     TEMPORARY.dE_dt_SEB_sum = TEMPORARY.dE_dt_SEB_sum + SEB.dE_dt_SEB * timestep;
     TEMPORARY.dE_dt_cond_sum = TEMPORARY.dE_dt_cond_sum + SEB.dE_dt_cond * timestep;
     
+    TEMPORARY.waterTableElevation_sum = TEMPORARY.waterTableElevation_sum + PARA.location.water_table_altitude * timestep;
+    TEMPORARY.bottomBucketSoilDepth_sum = TEMPORARY.bottomBucketSoilDepth_sum + PARA.location.active_layer_depth_altitude * timestep;
+    
     %----store in output table --------------------------------------------
     if  t==TEMPORARY.outputTime
 	       
@@ -23,7 +26,6 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
         
         TEMPORARY.T_out=TEMPORARY.T_sum./TEMPORARY.dt_out;
 
-        
         TEMPORARY.Qh=TEMPORARY.Qh_sum./TEMPORARY.dt_out;
         TEMPORARY.Qe=TEMPORARY.Qe_sum./TEMPORARY.dt_out;
         TEMPORARY.Qnet=TEMPORARY.Qnet_sum./TEMPORARY.dt_out;
@@ -32,6 +34,9 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
         TEMPORARY.Qsurf = TEMPORARY.Qsurf_sum ./ TEMPORARY.dt_out;          
         TEMPORARY.dE_dt_SEB=TEMPORARY.dE_dt_SEB_sum./TEMPORARY.dt_out;
         TEMPORARY.dE_dt_cond=TEMPORARY.dE_dt_cond_sum./TEMPORARY.dt_out;
+        
+        TEMPORARY.waterTableElevation=TEMPORARY.waterTableElevation_sum ./ TEMPORARY.dt_out; % This is already stored in OUT.location. But is done here to compare if an average is useful
+        TEMPORARY.bottomBucketSoilDepth=TEMPORARY.bottomBucketSoilDepth_sum ./ TEMPORARY.dt_out; % This is already stored in OUT.location. But is done here to compare if an average is useful
 
         
         TEMPORARY.timestep_out=TEMPORARY.timestep_sum./TEMPORARY.dt_out;             
@@ -46,6 +51,9 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
         TEMPORARY.Qsurf_sum = 0;
         TEMPORARY.dE_dt_SEB_sum=0;
         TEMPORARY.dE_dt_cond_sum=0;
+        
+        TEMPORARY.waterTableElevation_sum=0;
+        TEMPORARY.bottomBucketSoilDepth_sum=0;
         
         TEMPORARY.timestep_sum=0;
         
@@ -98,10 +106,13 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
         OUT.location.surface_altitude=[OUT.location.surface_altitude; PARA.location.surface_altitude];
         OUT.location.active_layer_depth_altitude = [OUT.location.active_layer_depth_altitude; PARA.location.active_layer_depth_altitude];
         OUT.location.water_table_altitude=[OUT.location.water_table_altitude; PARA.location.water_table_altitude];
-
+        
+        OUT.location.active_layer_depth_altitude_mean = [OUT.location.active_layer_depth_altitude_mean ; TEMPORARY.bottomBucketSoilDepth];
+        OUT.location.water_table_altitude_mean = [OUT.location.water_table_altitude_mean ; TEMPORARY.waterTableElevation];
+        
         % lateral fluxes
         OUT.lateral.terrain_index_snow=[ OUT.lateral.terrain_index_snow; PARA.ensemble.terrain_index_snow ];
-        OUT.lateral.water_fluxes = [ OUT.lateral.water_fluxes; water_fluxes ];     % vector containing water fluxes in [m/s] to the current worker
+        OUT.lateral.water_fluxes = cat(3,OUT.lateral.water_fluxes, BALANCE.water.dr_water_fluxes_out );     % vector containing water fluxes in [m/s] to the current worker
         OUT.lateral.snow_fluxes = [ OUT.lateral.snow_fluxes; snow_fluxes ];                      % vector containing snow fluxes in [m SWE / s] to the current worker
         OUT.lateral.heat_fluxes = [ OUT.lateral.heat_fluxes; heat_fluxes ];                      % vector containing depth-integrated heat fluxes in [W/m^2] to the current worker
 
@@ -124,7 +135,9 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
         OUT.WB.dr_excessSnow=[ OUT.WB.dr_excessSnow; BALANCE.water.dr_excessSnow ];
    	 	OUT.WB.dr_lateralSnow=[ OUT.WB.dr_lateralSnow; BALANCE.water.dr_lateralSnow ];  % lateral snow flux to other realizations
         OUT.WB.dr_rain = [ OUT.WB.dr_rain; BALANCE.water.dr_rain ];  					% this is only rain on frozen ground
-		OUT.WB.dr_lateral = [OUT.WB.dr_lateral; BALANCE.water.dr_lateral ];				% lateral water flux to other realizations
+		OUT.WB.dr_lateral = [OUT.WB.dr_lateral; BALANCE.water.dr_lateral ];			% lateral water flux to other realizations
+        OUT.WB.dr_DarcyReservoir = [OUT.WB.dr_DarcyReservoir; BALANCE.water.dr_DarcyReservoir ]; % fluxes related to the Darcy Reservoir boundary condition
+        OUT.WB.dr_lateralExcess = [OUT.WB.dr_lateralExcess ; BALANCE.water.dr_lateralExcess ]; % % excess water when applying lateral fluxes
         % mismatch
         OUT.WB.dm_lacking = [OUT.WB.dm_lacking; BALANCE.water.dm_lacking ];
         % set accumulated fluxes in BALANCE.water struct to zero
@@ -145,8 +158,10 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
 		BALANCE.water.dr_lateralSnow=0;
         BALANCE.water.dr_rain=0;
 		BALANCE.water.dr_lateral=0;
+        BALANCE.water.dr_DarcyReservoir=0;
         %mismatch
         BALANCE.water.dm_lacking=0;
+        BALANCE.water.dr_water_fluxes_out=zeros(numlabs,numlabs);
 
         % complete energy balance (EB)
         OUT.EB.Qg = [OUT.EB.Qg; TEMPORARY.Qg];         % ground heat flux (positive into ground)
