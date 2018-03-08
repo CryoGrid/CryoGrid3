@@ -14,6 +14,8 @@ add_modules;  %adds required modules
 
 number_of_realizations=3;
 
+saveDir = '/data/scratch/nitzbon/CryoGrid/CryoGrid3_infiltration_xice_mpi/runs';
+
 if number_of_realizations>1
     parpool(number_of_realizations);
 end
@@ -50,7 +52,6 @@ spmd
     %------ model parameters --------------------------------------------------
     % parameters related to soil
     PARA.soil.albedo=0.2;       % albedo snow-free surface
-    %PARA.soil.albedoPond=0.07;  % albedo of water, used when the uppermost grod cell is 100% water due to modeled thermokarst development
     PARA.soil.epsilon=0.97;     % emissvity snow-free surface
     PARA.soil.z0=1e-3;          % roughness length [m] snow-free surface
     PARA.soil.rs=50;            % surface resistance against evapotransiration [m^-1] snow-free surface
@@ -100,8 +101,8 @@ spmd
     PARA.technical.SWEperCell=0.005;            % SWE per grid cell in [m] - determines size of snow grid cells
     PARA.technical.maxSWE=0.4;                  % in [m] SWE
     PARA.technical.arraySizeT=5002;             % number of values in the look-up tables for conductivity and capacity
-    PARA.technical.starttime=datenum(2006, 10, 1);       % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum(2007, 10, 1);         % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.starttime=datenum(2000, 10, 1);       % starttime of the simulation - if empty start from first value of time series
+    PARA.technical.endtime=datenum(2014, 10, 1);         % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;   % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;   % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;            % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
@@ -172,13 +173,10 @@ spmd
     end
     
     % ------make output directory (name depends on parameters) ----------------
-    run_number= sprintf( 'testrunMPI_geometryHEX_xH%d_xW%d_xS%d_infil%d_xice%d_rF%d_sF%d_realization%d' , ...
-        [ PARA.modules.exchange_heat, PARA.modules.exchange_water, PARA.modules.exchange_snow, ...
-        PARA.modules.infiltration, PARA.modules.xice, ...
-        PARA.forcing.rain_fraction, PARA.forcing.snow_fraction ,  ...
-        index ] );
+    run_number = sprintf( [ 'TESTRUN-MPI_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' ) '_stratSAM_geomHEX_extFluxT-0.005_xH%d_xW%d_xS%d_rf%d_sf%d' ], ...
+        [ PARA.modules.exchange_heat, PARA.modules.exchange_water, PARA.modules.exchange_snow, PARA.forcing.rain_fraction, PARA.forcing.snow_fraction] ) ;
     
-    mkdir(['./runs/' run_number])
+    mkdir([ saveDir '/' run_number]);
     
     %--------------------------------------------------------------------------
     %-----------do not modify from here onwards--------------------------------
@@ -236,7 +234,7 @@ spmd
     OUT = generateOUT();
     
     disp('initialization successful');
-    iSaveSettings( [ './runs/' run_number '/' run_number '_settings.mat'] , FORCING, PARA, GRID)
+    iSaveSettings(  [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_settings.mat'] , FORCING, PARA, GRID)
     
     
     %% ________________________________________________________________________
@@ -488,9 +486,9 @@ spmd
     end
     
     % save final state and output at t=endtime
-    iSaveOUT(['./runs/' run_number '/' run_number '_output' datestr(t,'yyyy') '.mat'], OUT)
-    iSaveState(['./runs/' run_number '/' run_number '_finalState' datestr(t,'yyyy') '.mat'], T, wc, t, SEB, PARA, GRID)
-    
+    iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_output' datestr(t,'yyyy') '.mat'], OUT)
+    iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_finalState' datestr(t,'yyyy') '.mat'], T, wc, t, SEB, PARA, GRID)
+    iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_altitudes_vs_time_' datestr(t,'yyyy')  '.png'], OUT, PARA );
 end
 
 if number_of_realizations>1

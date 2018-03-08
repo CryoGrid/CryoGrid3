@@ -59,14 +59,14 @@ function PARA = get_parallel_variables(PARA)
     PARA.ensemble.snow_contact_length = PARA.ensemble.thermal_contact_length;
 
     % parameters related to infiltration scheme
-    PARA.ensemble.external_water_flux=[0, 0, 0 ] ; % 0];   %in m/day
+    PARA.ensemble.external_water_flux=[0, 0, -5e-3 ] ; % 0];   %in m/day
     PARA.ensemble.rootDepth = [ 0.2, 0.1, 0.2 ];
     PARA.ensemble.fieldCapacity = [ 0.5, 0.5, 0.5 ]; 
     
     % location-specific fix parameter values
     PARA.location.initial_altitude = PARA.ensemble.initial_altitude(index);
     PARA.soil.externalWaterFlux = PARA.ensemble.external_water_flux(index);
-    PARA.soil.rootDepth = PARA.ensemble.rootDetph(index);
+    PARA.soil.rootDepth = PARA.ensemble.rootDepth(index);
     PARA.soil.fieldCapacity= PARA.ensemble.fieldCapacity(index);
 	% location-specific dynamic auxiliary variables
     PARA.location.area = PARA.ensemble.area(index);
@@ -114,9 +114,9 @@ function PARA = get_parallel_variables(PARA)
         depth_xice_T    vwc_xice_T      0.20    0.05    1   natPor;...
         9.0+elevation_T 0.30            0.70    0.00    1   0.30     ] } );    
     
-    PARA.soil.layer_properties = { stratigraphyMap{'CENTER'}, ...
-                                   stratigraphyMap{'RIM'}, ...
-                                   stratigraphyMap{'TROUGH'} };
+    PARA.soil.layer_properties = { stratigraphyMap('CENTER'), ...
+                                   stratigraphyMap('RIM'), ...
+                                   stratigraphyMap('TROUGH') };
                               
     PARA.soil.layer_properties = PARA.soil.layer_properties{index};
     
