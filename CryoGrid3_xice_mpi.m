@@ -356,6 +356,7 @@ spmd
                 % heat exchange module
                 if PARA.modules.exchange_heat
                     labBarrier();
+                    heat_fluxes = zeros( number_of_realizations, 1);
                     % check preconditions
                     precondition_heatExchange = true; %no specific conditions so far
                     if precondition_heatExchange
@@ -363,7 +364,6 @@ spmd
                         disp('sync - exchanging heat');
                         % calculate lateral heat fluxes
                         dE_dt_lateral = zeros( length(GRID.general.cT_grid), 1);  %in [J/m^3/s]
-                        heat_fluxes = zeros( numlabs, 1);
                         PACKAGE_heatExchange.T = T;
                         PACKAGE_heatExchange.cT_grid = GRID.general.cT_grid;
                         PACKAGE_heatExchange.k_cTgrid = k_cTgrid;
@@ -386,13 +386,13 @@ spmd
                 % water exchange module
                 if PARA.modules.exchange_water
                     labBarrier();
+                    water_fluxes = zeros( number_of_realizations, 1 ); % in [m/s]
                     % check preconditions
                     precondition_waterExchange = checkPreconditionWaterExchange( T, GRID );
                     if precondition_waterExchange
                         % WRAPPER
                         disp('sync - exchanging water');
                         % calculate lateral water fluxes
-                        water_fluxes = nan( number_of_realizations, 1 ); % in [m/s]
                         PACKAGE_waterExchange.water_table_altitude = PARA.ensemble.water_table_altitude(index);
                         PACKAGE_waterExchange.active_layer_depth_altitude = PARA.ensemble.active_layer_depth_altitude(index);
                         PACKAGE_waterExchange.infiltration_condition = T(GRID.soil.cT_domain_ub)>0 && isempty(GRID.snow.cT_domain_ub);
@@ -405,7 +405,7 @@ spmd
                             if j~=index
                                 PACKAGE_waterExchange_j = labReceive(j, 2);
                                 % JAN: for now: assume DarcyFlux and distribute over sync time step (no check for available water, missing water tracked in BALANCE.dm_lacking)
-                                water_fluxes(j) = calculateLateralWaterFluxes( T, PACKAGE_waterExchange_j, GRID, PARA, j);  % matrix containing all fluxes in [m/s] scaled to row index
+                                water_fluxes(j) = calculateLateralWaterFluxes( T, PACKAGE_waterExchange_j, GRID, PARA, j);
                             end
                         end
                         % for debugging: print water flux per column
