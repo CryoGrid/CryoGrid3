@@ -51,9 +51,10 @@ if ~isempty(GRID.snow.cT_domain_ub) %snow cover already exitis
     else
         snowHeight = abs( GRID.general.K_grid(GRID.snow.cT_domain_ub) - GRID.general.K_grid(GRID.snow.cT_domain_lb+1) );
         maxSnowHeight = PARA.location.absolute_maxSnow_altitude - getAltitude( PARA, GRID );
+        waterContribution=GRID.snow.Snow_a(GRID.snow.cT_domain_ub); % Léo : try to have maxSnow working properly
         deltaSnow_i = max( [ 0, ...
                              min( [ FORCING.i.snowfall.*timestep./1000, ...
-                                    (maxSnowHeight - snowHeight ) .* PARA.snow.rho_snow ./ PARA.constants.rho_w ] ) ] ); %ensures that no more than maxSnow can accumulate
+                                    (maxSnowHeight - snowHeight ) .* PARA.snow.rho_snow ./ PARA.constants.rho_w - waterContribution] ) ] ); %ensures that no more than maxSnow can accumulate % Léo : try to have maxSnow working properly
         %account for excess snow in water balance
         BALANCE.water.dr_excessSnow = BALANCE.water.dr_excessSnow -( FORCING.i.snowfall.*timestep - deltaSnow_i*1000 ); %defined as negative when snow is removed
     end

@@ -16,19 +16,21 @@ add_modules;  %adds required modules
 
 % dbstop if error;
 
-number_of_realizations=2;
+number_of_realizations=5;
 
 if number_of_realizations>1
     parpool(number_of_realizations);
 end
 
 % Name and Forcing
-run_number='debug06March_5yrs';
+run_numberi='March14_5w5yr_full';
 forcingname='Suossjavri_WRF_Norstore_adapted5yr.mat';
+
+diary(['./runs/' run_numberi '_log.txt'])
 
 spmd
     % Name of the run
-    run_number=[run_number '_real' num2str(labindex)];
+    run_number=[run_numberi '_real' num2str(labindex)];
      
     index=labindex;   %number identifying the process; change this to e.g. 1 for single realization (non-parallel) run
     
@@ -69,8 +71,8 @@ spmd
     
     PARA.soil.externalWaterFlux=0;       % external water flux / drainage in [m/day] % LEO : Parameters to check
     PARA.soil.convectiveDomain=[];       % soil domain where air convection due to buoyancy is possible -> start and end [m] - if empty no convection is possible
-    PARA.soil.mobileWaterDomain=[];      % soil domain where water from excess ice melt is mobile -> start and end [m] - if empty water is not mobile % LEO : Parameters to check
-    PARA.soil.relative_maxWater=0;              % depth at which a water table will form [m] - above excess water is removed, below it pools up % LEO : Parameters to check
+    PARA.soil.mobileWaterDomain=[];      % soil domain where water from excess ice melt is mobile -> start and end [m] - if empty water is not mobile
+    PARA.soil.relative_maxWater=0;              % depth at which a water table will form [m] - above excess water is removed, below it pools up
     PARA.soil.hydraulic_conductivity = 1e-5;
     PARA.soil.infiltration_limit=1.25;     % depth [m] from the surface at wich the infiltration bucket scheme is stopped if no permafrost.
     PARA = loadSoilTypes( PARA );
@@ -85,7 +87,7 @@ spmd
     PARA.snow.tau_1=86400.0;        % time constants of snow albedo change (according to ECMWF reanalysis) [sec]
     PARA.snow.tau_a=0.008;          % [per day]
     PARA.snow.tau_f=0.24;           % [per day]
-    PARA.snow.relative_maxSnow= 0.13; 	% maximum snow depth that can be reached [m] - excess snow is removed in the model - if empty, no snow threshold
+    PARA.snow.relative_maxSnow= 2; 	% maximum snow depth that can be reached [m] - excess snow is removed in the model - if empty, no snow threshold
     PARA.snow.extinction=30.0;      % light extinction coefficient of snow
     
     % parameters related to water body on top of soil domain
@@ -152,19 +154,19 @@ spmd
     
     %FORCING data mat-file
     PARA.forcing.filename=forcingname;  %must be in subfolder "forcing" and follow the conventions for CryoGrid 3 forcing files
-    PARA.forcing.rain_fraction=1;
-    PARA.forcing.snow_fraction=1;
+    PARA.forcing.rain_fraction=0.5;
+    PARA.forcing.snow_fraction=0.5;
     
     % switches for modules
     PARA.modules.infiltration=1;   % true if infiltration into unfrozen ground occurs
-    PARA.modules.xice=0;           % true if thaw subsicdence is enabled
+    PARA.modules.xice=1;           % true if thaw subsicdence is enabled
     PARA.modules.lateral=1;		   % true if adjacent realizations are run (this does not require actual lateral fluxes)
     
     if PARA.modules.lateral
         % switches for lateral processes
-        PARA.modules.exchange_heat = 0;
+        PARA.modules.exchange_heat = 1;
         PARA.modules.exchange_water = 1;
-        PARA.modules.exchange_snow = 0;
+        PARA.modules.exchange_snow = 1;
         
         %---------overwrites variables for each realization--------------------
         % this function must define everything that is realization-specific or dependent of all realizations
@@ -246,13 +248,13 @@ spmd
     %_________________________________________________________________________I
     
     while t<PARA.technical.endtime
-        
+
         %------ interpolate forcing data to time t ----------------------------
         FORCING = interpolateForcingData(t, FORCING);
-        
+
         %------determine the thermal properties of the model domains ----------
         [c_cTgrid, k_cTgrid, k_Kgrid, lwc_cTgrid] = getThermalPropertiesInfiltration(T, wc, c_cTgrid, k_cTgrid, k_Kgrid, lwc_cTgrid, GRID, PARA);
-        
+
         %------- water and energy balance calculations ------------------------
         BALANCE = updateBALANCE(T, wc, c_cTgrid, lwc_cTgrid, BALANCE, GRID, PARA);
         
@@ -280,6 +282,11 @@ spmd
             TEMPORARY.syncTime-t,...
             TEMPORARY.outputTime-t ] );
         
+        if PARA.modules.lateral==0; % Léo : found it necessary to run a single run
+            timestep=min([max([min([PARA.technical.minTimestep,...
+                PARA.technical.targetDeltaE./(max(abs(SEB.dE_dt./GRID.general.K_delta).*(24.*3600)))]),...
+                PARA.technical.maxTimestep]), TEMPORARY.outputTime-t]);
+        end
         
         % give a warning when timestep required by CFT criterion is below the minimum timestep specified
         if timestep > 0.5 * min( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain) ) / (24.*3600)
@@ -296,7 +303,7 @@ spmd
         
         %------- water body module --------------------------------------------
         T = mixingWaterBody(T, GRID);
-        
+
         %------- snow cover module --------------------------------------------
         [T, GRID, PARA, SEB, BALANCE] = CryoGridSnow(T, GRID, FORCING, SEB, PARA, c_cTgrid, timestep, BALANCE);
         [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE);
@@ -330,14 +337,14 @@ spmd
         PARA.location.active_layer_depth_altitude = bottomBucket_altitude;
         PARA.location.bottomBucketSoilcTIndex = bottomBucketSoilcTIndex;
         PARA.location.water_table_altitude = getWaterTableAltitudeFC(T, wc, GRID, PARA);
-        
+
         %------- update threshold variables if no lateral exchange processes occur, otherwise updated at sync time
         if ~PARA.modules.lateral
             PARA.location.absolute_maxWater_altitude = PARA.location.altitude + PARA.soil.relative_maxWater;
-            if isempty( PARA.snow.maxSnow )
+            if isempty( PARA.snow.relative_maxSnow ) % Leo : changed from PARA.snow.maxSnow
                 PARA.location.absolute_maxSnow_altitude = [];
             else
-                PARA.location.absolute_maxSnow_altitude =  PARA.ensemble.altitude + PARA.snow.relative_maxSnow;
+                PARA.location.absolute_maxSnow_altitude =  PARA.location.altitude + PARA.snow.relative_maxSnow; % Léo : changed ensemble to location otherwise it craches. 
             end
         end
         
@@ -346,13 +353,12 @@ spmd
         BALANCE.water.dp_rain = BALANCE.water.dp_rain + FORCING.i.rainfall.*timestep;   %sum up rainfall in [mm] per output interval
         % snowfall
         BALANCE.water.dp_snow = BALANCE.water.dp_snow + FORCING.i.snowfall.*timestep;   %sum up snowfall in [mm] SWE per output interval
-        
+
         %------- lateral exchange module --------------------------------------
         % all functions called in this block should go into
         % /modules/cryoGridLateral
         % calling PARA.ensemble is only allowed here
         
-        water_fluxes_final=zeros(numlabs,numlabs); % Need to be defined before the "if PARA.modules.lateral" in case the variable is not created and used as an inupt in sum_up_output_store
         
         if PARA.modules.lateral
             if t==TEMPORARY.syncTime %communication between workers
@@ -401,8 +407,7 @@ spmd
                         % WRAPPER
                         fprintf('\t\t\tsync - exchanging water\n');
                         % calculate lateral water fluxes
-                        water_fluxes= nan(numlabs,numlabs); % in [m/s]
-                        % water_fluxes = nan( 1, numlabs ); 
+                        water_fluxes= zeros(numlabs,numlabs); % in m of height change
                         PACKAGE_waterExchange.water_table_altitude = PARA.ensemble.water_table_altitude(index);
                         PACKAGE_waterExchange.active_layer_depth_altitude = PARA.ensemble.active_layer_depth_altitude(index);
                         PACKAGE_waterExchange.infiltration_condition = T(GRID.soil.cT_domain_ub)>0 && isempty(GRID.snow.cT_domain_ub);
@@ -441,25 +446,26 @@ spmd
                             end
                         end
                         
-                        water_fluxes_final=nansum(water_fluxes_gather,3);
-                        waterflux=nansum(water_fluxes_final(labindex,:));
-                        BALANCE.water.dr_lateral = BALANCE.water.dr_lateral + waterflux*1000;
-                        waterflux=waterflux+boundary_water_flux;
+                        water_fluxes=nansum(water_fluxes_gather,3);
+                        waterflux=nansum(water_fluxes(labindex,:))+boundary_water_flux;
                         
                         % apply lateral water flux directly (as bulk subsurface flux)
                         [wc, excess_water, lacking_water] = bucketScheme(T, wc, zeros( size(wc) ), GRID, PARA, waterflux);
-                        fprintf('\t\t\tExchanged :\t%3.2e m\n\t\t\tBoundary :\t%3.2e m\n\t\t\tTotal :\t%3.2e m\n\t\t\tlacking : %3.2e m\n', waterflux-boundary_water_flux, boundary_water_flux, waterflux, lacking_water)
                         assert( lacking_water < 1e-9, 'CryoGrid3 - lateral exchange - lacking water>0');    % there should be no lacking water as this was checked for
-                        if excess_water>0
-                            BALANCE.water.dr_lateralExcess=BALANCE.water.dr_lateralExcess + excess_water;            % Added by Léo to have the lateral fluxes in BALANCE
-                            GRID.lake.residualWater = GRID.lake.residualWater + excess_water;         % for now: store the excess water, later: treat it according to BC for surface water fluxes % Léo : bot sure why we store this here and not in a BALANCE variable ?
-                        end
                         
-                        % track water fluxes in BALANCE struct 
+                        % Store and display
+                        BALANCE.water.dr_water_fluxes_out=BALANCE.water.dr_water_fluxes_out+water_fluxes.*1000;
+                        BALANCE.water.dr_lateral = BALANCE.water.dr_lateral + (waterflux-excess_water)*1000; % Excess water is removed so that we only keep the net water modification implied by the lateral fluxes
+                        fprintf('\t\t\tNet wc change :\t%3.2e m\n',waterflux-excess_water)
+                        if excess_water>1e-9
+                            BALANCE.water.dr_lateralExcess=BALANCE.water.dr_lateralExcess + excess_water*1000;            % Added by Léo to have the lateral fluxes in BALANCE
+                            fprintf('\t\t\tExcess water :\t%3.2e m\n',excess_water)
+                            % GRID.lake.residualWater = GRID.lake.residualWater + excess_water;   % for now: store the excess water, later: treat it according to BC for surface water fluxes % Léo : commented
+                        end 
                         if strcmp(PARA.ensemble.boundaryCondition(labindex).type,'DarcyReservoir')==1;
                             BALANCE.water.dr_DarcyReservoir = BALANCE.water.dr_DarcyReservoir + boundary_water_flux*1000;
+                            fprintf('\t\t\tBoundary contribution :\t%3.2e m\n',boundary_water_flux)
                         end
-                        BALANCE.water.dr_water_fluxes_out=BALANCE.water.dr_water_fluxes_out+water_fluxes_final;
                         % for debugging: print water flux per column
                         % fprintf('Water flux to worker %d = %f mm \n', [index, waterflux*1000] );
                     end
@@ -510,7 +516,7 @@ spmd
                         if my_snow_change ~= 0
                             [T, GRID] = applyLateralSnowFluxes( T, PARA, GRID, FORCING, my_snow_change );
                             [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE);
-                            BALANCE.water.dr_lateralSnow = BALANCE.water.dr_lateralSnow + my_snow_change ;
+                            BALANCE.water.dr_lateralSnow = BALANCE.water.dr_lateralSnow + my_snow_change * 1000 ; % Léo : I add the *1000 to have everybody in mm
                         end
                         
                         snow_fluxes = zeros( 1, numlabs );
@@ -528,12 +534,10 @@ spmd
             end
         end
         
-        
         %------- next time step -----------------------------------------------
         t=t+timestep;
         %---------- sum up + OUTPUT -------------------------------------------
         [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc_cTgrid(GRID.soil.cT_domain), timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, run_number, snow_fluxes, heat_fluxes);
-        
         
     end
     
@@ -547,4 +551,5 @@ if number_of_realizations>1
     delete(gcp('nocreate'))
 end
 
-disp('Done.');
+fprintf('Done with %s\n', run_numberi);
+diary off

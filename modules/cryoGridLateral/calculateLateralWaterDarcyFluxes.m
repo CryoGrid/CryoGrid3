@@ -61,7 +61,7 @@ if PARA.ensemble.hydraulic_contact_length(index,j)>0
         
     else % No possible movement of water, because of snow or suficial freezing
         water_fluxes(j,index)=0;
-        water_fluxes(index,0)=0;
+        water_fluxes(index,j)=0;
     end
     
 else % No connection between workers
