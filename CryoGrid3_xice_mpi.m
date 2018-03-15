@@ -282,7 +282,7 @@ spmd
             TEMPORARY.syncTime-t,...
             TEMPORARY.outputTime-t ] );
         
-        if PARA.modules.lateral==0; % Léo : found it necessary to run a single run
+        if PARA.modules.lateral==0; % Lï¿½o : found it necessary to run a single run
             timestep=min([max([min([PARA.technical.minTimestep,...
                 PARA.technical.targetDeltaE./(max(abs(SEB.dE_dt./GRID.general.K_delta).*(24.*3600)))]),...
                 PARA.technical.maxTimestep]), TEMPORARY.outputTime-t]);
@@ -344,7 +344,7 @@ spmd
             if isempty( PARA.snow.relative_maxSnow ) % Leo : changed from PARA.snow.maxSnow
                 PARA.location.absolute_maxSnow_altitude = [];
             else
-                PARA.location.absolute_maxSnow_altitude =  PARA.location.altitude + PARA.snow.relative_maxSnow; % Léo : changed ensemble to location otherwise it craches. 
+                PARA.location.absolute_maxSnow_altitude =  PARA.location.altitude + PARA.snow.relative_maxSnow; % Lï¿½o : changed ensemble to location otherwise it craches. 
             end
         end
         
@@ -458,9 +458,9 @@ spmd
                         BALANCE.water.dr_lateral = BALANCE.water.dr_lateral + (waterflux-excess_water)*1000; % Excess water is removed so that we only keep the net water modification implied by the lateral fluxes
                         fprintf('\t\t\tNet wc change :\t%3.2e m\n',waterflux-excess_water)
                         if excess_water>1e-9
-                            BALANCE.water.dr_lateralExcess=BALANCE.water.dr_lateralExcess + excess_water*1000;            % Added by Léo to have the lateral fluxes in BALANCE
+                            BALANCE.water.dr_lateralExcess=BALANCE.water.dr_lateralExcess + excess_water*1000;            % Added by Lï¿½o to have the lateral fluxes in BALANCE
                             fprintf('\t\t\tExcess water :\t%3.2e m\n',excess_water)
-                            % GRID.lake.residualWater = GRID.lake.residualWater + excess_water;   % for now: store the excess water, later: treat it according to BC for surface water fluxes % Léo : commented
+                            % GRID.lake.residualWater = GRID.lake.residualWater + excess_water;   % for now: store the excess water, later: treat it according to BC for surface water fluxes % Lï¿½o : commented
                         end 
                         if strcmp(PARA.ensemble.boundaryCondition(labindex).type,'DarcyReservoir')==1;
                             BALANCE.water.dr_DarcyReservoir = BALANCE.water.dr_DarcyReservoir + boundary_water_flux*1000;
@@ -516,7 +516,7 @@ spmd
                         if my_snow_change ~= 0
                             [T, GRID] = applyLateralSnowFluxes( T, PARA, GRID, FORCING, my_snow_change );
                             [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE);
-                            BALANCE.water.dr_lateralSnow = BALANCE.water.dr_lateralSnow + my_snow_change * 1000 ; % Léo : I add the *1000 to have everybody in mm
+                            BALANCE.water.dr_lateralSnow = BALANCE.water.dr_lateralSnow + my_snow_change * 1000 ; % Lï¿½o : I add the *1000 to have everybody in mm
                         end
                         
                         snow_fluxes = zeros( 1, numlabs );
