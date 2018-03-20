@@ -4,7 +4,7 @@ function GRID=makeGrids(PARA)
 GRID.snow.snowCellSize=PARA.technical.SWEperCell/(PARA.snow.rho_snow/PARA.constants.rho_w);
 GRID.snow.snowGrid=[-1.*(PARA.technical.maxSWE./(PARA.technical.SWEperCell)+2).*GRID.snow.snowCellSize:GRID.snow.snowCellSize:-GRID.snow.snowCellSize]';
 %tsvd added 
-    GRID.lake.water.waterGrid=[0:0.02:PARA.water.depth-0.02]';  %with water (it is recommended to use a grid resolution of about 2cm)
+GRID.lake.water.waterGrid=[0:0.02:PARA.water.depth-0.02]';  %with water (it is recommended to use a grid resolution of about 2cm)
 %GRID.lake.water.waterGrid=[]'; %no water
 if ~isempty(GRID.lake.water.waterGrid)
     GRID.soil.soilGrid=PARA.technical.subsurfaceGrid + (2*GRID.lake.water.waterGrid(end)-GRID.lake.water.waterGrid(end-1));
@@ -13,7 +13,7 @@ GRID.soil.soilGrid=PARA.technical.subsurfaceGrid;
 end
 
 %tsvd   K_grid =[GRID.snow.snowGrid;  GRID.soil.soilGrid]; %grid on which the conductivty information lives (edges of grid cells)
-    K_grid =[GRID.snow.snowGrid; GRID.lake.water.waterGrid; GRID.soil.soilGrid]; %grid on which the conductivty information lives (edges of grid cells)
+K_grid =[GRID.snow.snowGrid; GRID.lake.water.waterGrid; GRID.soil.soilGrid]; %grid on which the conductivty information lives (edges of grid cells)
 cT_grid=(K_grid(1:end-1)+K_grid(2:end))/2; %grid on which heat capacity and temperature information lives (midpoints of grid cells)
 cT_delta=(-cT_grid(1:end-1,1)+cT_grid(2:end,1));
 K_delta=(-K_grid(1:end-1,1)+K_grid(2:end,1));

@@ -1,5 +1,6 @@
 function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, run_number, water_fluxes, snow_fluxes, heat_fluxes) 
 
+%tsvd GRID.lake.cT_domain replaced by GRID.lake.water.cT_domain
 
     TEMPORARY.timestep_sum=TEMPORARY.timestep_sum+(timestep*24*3600)*timestep;
     TEMPORARY.T_sum=TEMPORARY.T_sum+T.*timestep;
@@ -70,8 +71,8 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
 
         % related to soil
         OUT.soil.topPosition=[OUT.soil.topPosition; -GRID.general.K_grid(GRID.soil.cT_domain_ub)];
-        if ~isempty( GRID.lake.cT_domain_ub )
-            OUT.soil.lakeFloor = [OUT.soil.lakeFloor; - GRID.general.K_grid(GRID.lake.cT_domain_lb+1) ];
+        if ~isempty( GRID.lake.water.cT_domain_ub )
+            OUT.soil.lakeFloor = [OUT.soil.lakeFloor; - GRID.general.K_grid(GRID.lake.water.cT_domain_lb+1) ];
         else
             OUT.soil.lakeFloor = [OUT.soil.lakeFloor; NaN];
         end
