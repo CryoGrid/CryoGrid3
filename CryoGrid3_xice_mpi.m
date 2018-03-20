@@ -5,6 +5,8 @@
 % Developed by: S. Westermann and M. Langer 2015
 %
 % -------------------------------------------------------------------------
+    clear all
+    close all
 
 delete(gcp('nocreate')) % useful to restart from a crash
 
@@ -13,6 +15,7 @@ add_modules;  %adds required modules
 %dbstop if error;
 
 number_of_realizations=2;
+debug_mode=0   % if set to 1, timestep = timestepMin for debugging (avoid of NaN for timestep calculation)
 
 if number_of_realizations>1
     parpool(number_of_realizations);
@@ -91,7 +94,7 @@ spmd
 PARA.water.rs=0.;            % surface resistance -> should be 0 for water
 %tsvd
 PARA.water.z0=1e-3;          % roughness length surface [m] % JAN: value for summer / vegetation
-%PARA.water.z0=1e-4;         % roughness length surface [m] - gets overridden by value calculated by function flake_roughnessLength.m version Flake
+%tsvd PARA.water.z0=1e-4;         % roughness length surface [m] - gets overridden by value calculated by function flake_roughnessLength.m version Flake
 PARA.water.extinction=1.2;   % light extinction coefficient of water
 PARA.water.depth=1.;
 PARA.water.fetch=20;
@@ -106,7 +109,7 @@ PARA.water.fetch=20;
     PARA.technical.SWEperCell=0.005;            % SWE per grid cell in [m] - determines size of snow grid cells
     PARA.technical.maxSWE=0.4;                  % in [m] SWE
     PARA.technical.arraySizeT=5002;             % number of values in the look-up tables for conductivity and capacity
-    PARA.technical.starttime=datenum(1979, 6, 1);       % starttime of the simulation - if empty start from first value of time series
+    PARA.technical.starttime=datenum(1979, 6, 10);       % starttime of the simulation - if empty start from first value of time series
     PARA.technical.endtime=datenum(1980, 7, 1);         % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;   % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;   % largest possible time step in [days] - here 300 seconds
@@ -135,7 +138,13 @@ PARA.water.fetch=20;
 	else
     	PARA.location.absolute_maxSnow_altitude = [ PARA.location.altitude + PARA.snow.relative_maxSnow ];
 	end
-
+%tsvd
+    PARA.location.latitude  = 72.376;          % [deg]                                                   <                                                                                                        -
+    PARA.location.longitude = 126.491;         % [deg]                                                   <                                                                                                        -
+    %PARA.location.GridCellSize = 1e6;          % [m^2]                                                   <                                                                                                        -
+    %PARA.location.TileFraction = 1e-2;   
+    % parameters related to the site location    
+    
     %initial temperature profile -> first column depth [m] -> second column temperature [degree C]
     PARA.Tinitial = [ -2     5   ;...
                        0     0   ;...
@@ -157,17 +166,23 @@ PARA.water.fetch=20;
     PARA.modules.infiltration=1;   % true if infiltration into unfrozen ground occurs
     PARA.modules.xice=1;           % true if thaw subsicdence is enabled
 	PARA.modules.lateral=1;		   % true if adjacent realizations are run (this does not require actual lateral fluxes)
-    
-	if PARA.modules.lateral
-		% switches for lateral processes
-		PARA.modules.exchange_heat = 1;
-		PARA.modules.exchange_water = 1;
-		PARA.modules.exchange_snow = 1;
-
-		%---------overwrites variables for each realization--------------------
+%tsvd  extended for lateral switched off
+    if ~PARA.modules.lateral
+        PARA.modules.exchange_heat = 0;
+        PARA.modules.exchange_water = 0;
+        PARA.modules.exchange_snow = 0;
+        PARA.snow.maxSnow= [] ;         % maximum snow depth that can be reached [m] - excess snow is removed in the model - if empty, no snow threshold
+        % in par mode this is replaced by PARA.ensemble.immobile_snow_height 
+    elseif PARA.modules.lateral
+    % switches for lateral processes
+        PARA.modules.exchange_heat = 1; %zzz for testing switching off of lateral exchange, set to 1 afterwards!
+        PARA.modules.exchange_water = 1; 
+        PARA.modules.exchange_snow = 1;  
+        
+        %---------overwrites variables for each realization--------------------
 		% this function must define everything that is realization-specific or dependent of all realizations
-		PARA = get_parallel_variables( PARA );
-	end
+        PARA = get_parallel_variables( PARA );
+    end
 
     % ------make output directory (name depends on parameters) ----------------
     run_number= sprintf( 'testrunMPI_POOL_xH%d_xW%d_xS%d_infil%d_xice%d_rF%d_sF%d_realization%d' , ...
@@ -246,6 +261,13 @@ PARA.water.fetch=20;
     %_________________________________________________________________________I
 
     while t<PARA.technical.endtime
+%tsvd  zzz
+    % store old STATE for energy / water balance checks
+    T_old = T;
+    lwc_old = lwc_cTgrid(GRID.soil.cT_domain);
+    wc_old = wc;
+    c_cTgrid_old = c_cTgrid;
+    Snow_w_old = GRID.snow.Snow_w;
 
         %------ interpolate forcing data to time t ----------------------------
         FORCING = interpolateForcingData(t, FORCING);
@@ -275,13 +297,18 @@ PARA.water.fetch=20;
         % account for min and max timesteps specified, max. energy change per grid cell and the CFT stability criterion.
         % energy change due to advection of heat through water fluxes is still excluded.
         % timestep in [days]
+%tsvd
+    if(~debug_mode)
         timestep = min( [ max( [ min( [ 0.5 * nanmin( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain ) ) ./ (24.*3600), ...
                                         PARA.technical.targetDeltaE .* nanmin( abs(GRID.general.K_delta ./ SEB.dE_dt ) ) ./ (24.*3600), ...
                                         PARA.technical.maxTimestep ] ), ...
                                  PARA.technical.minTimestep ] ), ...
                           TEMPORARY.syncTime-t,...
                           TEMPORARY.outputTime-t ] );
-
+    else % debug mode              
+        timestep =  PARA.technical.minTimestep; % use for debugging to avoid NaN... zzz
+        %disp('WARNING: timestep set to minTimestep for debugging')
+    end
 
         % give a warning when timestep required by CFT criterion is below the minimum timestep specified
         if timestep > 0.5 * min( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain) ) ./ (24.*3600)
@@ -339,7 +366,7 @@ PARA.water.fetch=20;
 %tsvd version Flake [GRID, PARA, wc] = excessGroundIce(T, GRID, PARA);
             % assure wc has correct length
             wc = wc( end-sum(GRID.soil.cT_domain)+1 : end );
-%tsvd       wc( end-sum(GRID.soil.cT_domain)+1 : end ); %tsvd make vector dims consistent
+%tsvd       wc( end-sum(GRID.soil.cT_domain)+1 : end ); % make vector dims consistent
         elseif PARA.modules.xice && PARA.modules.infiltration
             [GRID, PARA, wc, meltwaterGroundIce] = excessGroundIceInfiltration(T, wc, GRID, PARA);
 %tsvd       [GRID, PARA, wc] = excessGroundIceInfiltration(T, wc, GRID, PARA);
@@ -358,11 +385,12 @@ PARA.water.fetch=20;
 		%------- update threshold variables if no lateral exchange processes occur, otherwise updated at sync time
 		if ~PARA.modules.lateral
 			PARA.location.absolute_maxWater_altitude = PARA.location.altitude + PARA.soil.relative_maxWater;
-			if isempty( PARA.snow.maxSnow )
+            if isempty( PARA.snow.maxSnow )
+            %tsvd if isempty( PARA.ensemble.immobile_snow_height )
 	   		 	PARA.location.absolute_maxSnow_altitude = [];
 			else
 				PARA.location.absolute_maxSnow_altitude = [ PARA.ensemble.altitude + PARA.snow.relative_maxSnow ];
-			end
+            end
 		end
 
         %------- water balance calculations -----------------------------------

@@ -1,5 +1,7 @@
 function [FLAKE GRID] = initializeLAKE(GRID, PARA);
 
+GRID.lake.unfrozenWaterSurface = false; % zzz needed?
+GRID.lake.residualWater = 0; % the water content stored "mixed" cells of air and water if a water body is present 
 
 %---- flake initialization ------------------------------------------------
 FLAKE.t_snow_n_flk=0+273.15;
@@ -22,7 +24,6 @@ FLAKE.q_bot_flk=0;
 
 FLAKE.fetch=100;
 FLAKE.depth_w=PARA.water.depth;
-
 FLAKE.d_h_ice_dt  = 0;
 FLAKE.q_ice_water = 0;
 FLAKE.extincoef_water_typ=PARA.water.extinction;

@@ -25,8 +25,8 @@ function [GRID] = updateGRID_excessiceInfiltration2(meltwaterGroundIce, GRID)
 %         % K domains not implemented so far
 
 %tsvd
-    GRID.lake.water.cT_domain(max([GRID.air.cT_domain_lb+1 GRID.ice.cT_domain_lb+1]) : GRID.soil.cT_domain_ub-1) = 1;
-    GRID.lake.water.K_domain(max([GRID.air.K_domain_lb+1 GRID.ice.K_domain_lb+1]) : GRID.soil.K_domain_ub-1) = 1;
+    GRID.lake.water.cT_domain(max([GRID.air.cT_domain_lb+1 GRID.lake.ice.cT_domain_lb+1]) : GRID.soil.cT_domain_ub-1) = 1;
+    GRID.lake.water.K_domain(max([GRID.air.K_domain_lb+1 GRID.lake.ice.K_domain_lb+1]) : GRID.soil.K_domain_ub-1) = 1;
     
     [GRID.lake.water.cT_domain_lb GRID.lake.water.cT_domain_ub] = LayerIndex(GRID.lake.water.cT_domain);
     [GRID.lake.water.K_domain_lb GRID.lake.water.K_domain_ub]   = LayerIndex(GRID.lake.water.K_domain);
