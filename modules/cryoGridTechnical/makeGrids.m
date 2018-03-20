@@ -34,7 +34,7 @@ GRID.air.K_domain(1:length(GRID.snow.snowGrid))=1;
 %set soil grid
 GRID.soil.cT_domain= false(size(GRID.general.cT_grid));
 %tsvd    GRID.soil.cT_domain(GRID.general.cT_grid>0)=1;
-    GRID.soil.cT_domain(end-length(GRID.soil.soilGrid)+2:end)=1; %required if there is a lake on top 
+GRID.soil.cT_domain(end-length(GRID.soil.soilGrid)+2:end)=1; %required if there is a lake on top 
 [GRID.soil.cT_domain_lb, GRID.soil.cT_domain_ub] = LayerIndex(GRID.soil.cT_domain);
 GRID.soil.K_domain= false(size(GRID.general.K_grid));
 GRID.soil.K_domain(GRID.soil.cT_domain_ub:end)=1;
