@@ -1,3 +1,4 @@
+function [] = CryoGrid3_xice_mpi(SETUP)
 % -------------------------------------------------------------------------
 % CryoGRID3
 % main script for running the model
@@ -6,21 +7,20 @@
 %
 % -------------------------------------------------------------------------
 
-delete(gcp('nocreate')) % useful to restart from a crash
-
-add_modules;  %adds required modules
-
+%delete(gcp('nocreate')) % useful to restart from a crash
+%add_modules;  %adds required modules
 %dbstop if error;
 
-number_of_realizations=3;
+number_of_realizations=SETUP.numRealizations;
 
-saveDir = '/data/scratch/nitzbon/CryoGrid/CryoGrid3_infiltration_xice_mpi/runs';
+taskName = SETUP.taskName;
+saveDir = SETUP.saveDir; %'/data/scratch/nitzbon/CryoGrid/CryoGrid3_infiltration_xice_mpi/runs';
 
-if number_of_realizations>1
-    parpool(number_of_realizations);
-end
+% if number_of_realizations>1
+%     parpool(number_of_realizations);
+% end
 
-spmd
+spmd%(number_of_realizations, number_of_realizations)
     index=labindex;   %number identifying the process; change this to e.g. 1 for single realization (non-parallel) run
     
     %---------------define input parameters------------------------------------
@@ -29,9 +29,9 @@ spmd
     
     % default stratigraphy used in publication:
     PARA.soil.layer_properties=[    0.0   0.60    0.10    0.15    1   0.75;...
-                                    0.15  0.65    0.3     0.05    2   0.65;...
-                                    0.9   0.65    0.3     0.05    1   0.65;...
-                                    9.0   0.30    0.70    0.00    1   0.30     ];
+        0.15  0.65    0.3     0.05    2   0.65;...
+        0.9   0.65    0.3     0.05    1   0.65;...
+        9.0   0.30    0.70    0.00    1   0.30     ];
     % simple stratigraphy with excess ice used to test water balance:
     % PARA.soil.layer_properties=[ 0.0     0.5    0.5     0.00   1   0.50;...
     %                              0.4     0.8    0.2     0.00   1   0.40;...
@@ -60,7 +60,7 @@ spmd
     
     % parameters related to hydrology scheme
     PARA.soil.fieldCapacity=0.5;    %water holding capacity of the soil - this must be adapted to fit the upperlost layers!!
-    PARA.soil.evaporationDepth=0.1; %depth to which evaporation occurs - place on grid cell boundaries
+    PARA.soil.evaporationDepth=SETUP.d_E; %depth to which evaporation occurs - place on grid cell boundaries
     PARA.soil.rootDepth=0.2;        %depth affected by transpiration - place on grid cell boundaries
     PARA.soil.wiltingPoint=0.2;     %point at which transpiration shuts off
     PARA.soil.residualWC=0.05;      %water always remaining in the soil, not accessible to evaporation
@@ -68,8 +68,8 @@ spmd
     PARA.soil.externalWaterFlux=2e-3;  %external water flux / drainage in [m/day]
     PARA.soil.convectiveDomain=[];       % soil domain where air convection due to buoyancy is possible -> start and end [m] - if empty no convection is possible
     PARA.soil.mobileWaterDomain=[0 10.0];      % soil domain where water from excess ice melt is mobile -> start and end [m] - if empty water is not mobile
-    PARA.soil.relative_maxWater=0.;              % depth at which a water table will form [m] - above excess water is removed, below it pools up
-    PARA.soil.hydraulic_conductivity = 1e-5;
+    PARA.soil.relative_maxWater=1.0;              % depth at which a water table will form [m] - above excess water is removed, below it pools up
+    PARA.soil.hydraulic_conductivity = SETUP.K;
     PARA = loadSoilTypes( PARA );
     
     % parameters related to snow
@@ -86,7 +86,7 @@ spmd
     PARA.snow.extinction=25.0;      % light extinction coefficient of snow
     
     % parameters related to water body on top of soil domain
-    PARA.water.albedo=0.05;     % albedo water (parameterization after Wayne and Burt (1954) in surfaceCondition.m)
+    PARA.water.albedo=0.07;     % albedo water (parameterization after Wayne and Burt (1954) in surfaceCondition.m)
     PARA.water.epsilon=0.99;    % surface emissivity water
     PARA.water.rs=0.0;            % surface resistance -> should be 0 for water
     PARA.water.z0=5e-4;              % roughness length surface [m] % JAN: value for summer / vegetation
@@ -101,13 +101,13 @@ spmd
     PARA.technical.SWEperCell=0.005;            % SWE per grid cell in [m] - determines size of snow grid cells
     PARA.technical.maxSWE=0.4;                  % in [m] SWE
     PARA.technical.arraySizeT=5002;             % number of values in the look-up tables for conductivity and capacity
-    PARA.technical.starttime=datenum(2000, 10, 1);       % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum(2014, 10, 1);         % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.starttime=SETUP.startDate;       % starttime of the simulation - if empty start from first value of time series
+    PARA.technical.endtime=SETUP.endDate;         % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;   % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;   % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;            % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
     PARA.technical.outputTimestep= 3 ./ 24.0 ;          % output time step in [days] - here three hours
-    PARA.technical.syncTimeStep = 12 ./ 24.0 ;          % output time step in [days] - here three hours
+    PARA.technical.syncTimeStep = SETUP.syncTimestep;% 12 ./ 24.0 ;          % output time step in [days] - here three hours
     PARA.technical.saveDate='01.01.';           % date of year when output file is written - no effect if "saveInterval" is empty
     PARA.technical.saveInterval=[1];             % interval [years] in which output files are written - if empty the entire time series is written - minimum is 1 year
     PARA.technical.waterCellSize=0.02;          % default size of a newly added water cell when water ponds below water table [m]
@@ -133,22 +133,22 @@ spmd
     end
     
     %initial temperature profile -> first column depth [m] -> second column temperature [degree C]
-%     PARA.Tinitial = [ -2     5   ;...
-%         0     0   ;...
-%         2    -5   ;...
-%         10    -10  ;...
-%         25    -9   ;...
-%         100    -9   ;...
-%         2000    10   ];
+    %     PARA.Tinitial = [ -2     5   ;...
+    %         0     0   ;...
+    %         2    -5   ;...
+    %         10    -10  ;...
+    %         25    -9   ;...
+    %         100    -9   ;...
+    %         2000    10   ];
     PARA.Tinitial = [  -2     5   ;...
-                        0     0   ;...
-                        2    -2   ;...
-                        5    -7   ;...
-                        10    -9  ;...
-                        25    -9   ;...
-                        100    -8   ;...
-                        1100    10.2   ];      % the geothermal gradient for Qgeo=0.05W/m² and K=2.746W/Km is about 18.2 K/km 
-
+        0     0   ;...
+        2    -2   ;...
+        5    -7   ;...
+        10    -9  ;...
+        25    -9   ;...
+        100    -8   ;...
+        1100    10.2   ];      % the geothermal gradient for Qgeo=0.05W/m² and K=2.746W/Km is about 18.2 K/km
+    
     PARA = loadConstants( PARA );
     
     %FORCING data mat-file
@@ -169,12 +169,13 @@ spmd
         
         %---------overwrites variables for each realization--------------------
         % this function must define everything that is realization-specific or dependent of all realizations
-        PARA = get_parallel_variables( PARA );
+        PARA = get_parallel_variables( PARA, SETUP);
     end
     
     % ------make output directory (name depends on parameters) ----------------
-    run_number = sprintf( [ 'TESTRUN-MPI_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' ) '_stratSAM_geomHEX_extFluxT-0.005_xH%d_xW%d_xS%d_rf%d_sf%d' ], ...
-        [ PARA.modules.exchange_heat, PARA.modules.exchange_water, PARA.modules.exchange_snow, PARA.forcing.rain_fraction, PARA.forcing.snow_fraction] ) ;
+    %run_number = sprintf( [ 'POLYGON-CRT_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' ) '_geomHEX_xH%d_xW%d_xS%d_rf%d_sf%d_extFluxT%0.4f' ], ...
+    %    [ PARA.modules.exchange_heat, PARA.modules.exchange_water, PARA.modules.exchange_snow, PARA.forcing.rain_fraction, PARA.forcing.snow_fraction, extFluxT] ) ;
+    run_number = taskName;
     
     mkdir([ saveDir '/' run_number]);
     
@@ -491,8 +492,8 @@ spmd
     iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_altitudes_vs_time_' datestr(t,'yyyy')  '.png'], OUT, PARA );
 end
 
-if number_of_realizations>1
-    delete(gcp('nocreate'))
-end
+% if number_of_realizations>1
+%     delete(gcp('nocreate'))
+% end
 
 disp('Done.');

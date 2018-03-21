@@ -8,7 +8,7 @@ function [dE_dt, BALANCE] = calculateLateralHeatFluxes(T_index, k_index, PACKAGE
         altitude_cTgrid_index = -GRID.general.cT_grid + PARA.ensemble.initial_altitude(index);
 
         % determine the contact domain
-        distance_index_j = PARA.ensemble.distanceBetweenPoints(j, index);
+        distance_index_j = PARA.ensemble.thermalDistance(j, index);
         weight_index = PARA.ensemble.weight(index);
         weight_j = PARA.ensemble.weight(j);
         contact_length_index_j = PARA.ensemble.thermal_contact_length(j, index);
@@ -22,18 +22,6 @@ function [dE_dt, BALANCE] = calculateLateralHeatFluxes(T_index, k_index, PACKAGE
         altitude_cTgrid_j(end) = min_contact_altitude;
         T_j = PACKAGE_heatExchange_j.T;
         k_j = PACKAGE_heatExchange_j.k_cTgrid;
-        if ~isreal(altitude_cTgrid_index)
-            disp('altitude_cTgrid_index contains complex values');
-        end
-        if ~isreal(altitude_cTgrid_j)
-            disp('altitude_cTgrid_j contains complex values');
-        end
-        if ~isreal(T_j)
-            disp('T_j contains complex values');
-        end
-        if ~isreal(k_j)
-            disp('k_j contains complex values');
-        end
         T_interp_j = interp1( altitude_cTgrid_j, T_j, altitude_cTgrid_index, 'linear');
         k_interp_j = interp1( altitude_cTgrid_j, k_j, altitude_cTgrid_index, 'linear');
 
