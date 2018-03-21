@@ -29,7 +29,6 @@ function [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, 
         GRID.soil.cT_mineral(1)=[];
         GRID.soil.cT_soilType(1)=[];
 
-
         GRID.soil.excessGroundIce(1)=[];
 
     end
@@ -63,9 +62,9 @@ function [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, 
         % update remaining soil fields with exception of cT_water
         GRID.soil.cT_organic =  [ 0 ; GRID.soil.cT_organic ];
         GRID.soil.cT_natPor =   [ GRID.soil.cT_natPor(1); GRID.soil.cT_natPor ];    % take natPor of cell below
-        GRID.soil.cT_actPor =   [ 1; GRID.soil.cT_actPor ];                         % set to 1
+        GRID.soil.cT_actPor =   [ 1; GRID.soil.cT_actPor ];                         % set actual porosity to 1
         GRID.soil.cT_mineral =  [ 0 ; GRID.soil.cT_mineral ];
-        GRID.soil.cT_soilType = [ 1; GRID.soil.cT_soilType];                        % assume sand as soil type for water cell
+        GRID.soil.cT_soilType = [ 3; GRID.soil.cT_soilType];                        % soilType 3 = pond (sand freeze curve, field cap =0 )
 
         GRID.soil.excessGroundIce = [ 0 ; GRID.soil.excessGroundIce ];
 

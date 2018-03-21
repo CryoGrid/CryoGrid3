@@ -22,7 +22,7 @@ function [dE_dt, BALANCE] = calculateLateralHeatFluxes(T_index, k_index, PACKAGE
         altitude_cTgrid_j(end) = min_contact_altitude;
         T_j = PACKAGE_heatExchange_j.T;
         k_j = PACKAGE_heatExchange_j.k_cTgrid;
-        if ~isreal(altitude_cTgrid_index)
+        if ~isreal(altitude_cTgrid_index) %likley not relevant anymore
             disp('altitude_cTgrid_index contains complex values');
         end
         if ~isreal(altitude_cTgrid_j)

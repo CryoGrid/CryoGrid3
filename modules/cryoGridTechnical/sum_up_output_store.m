@@ -1,4 +1,4 @@
-function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, run_number, water_fluxes, snow_fluxes, heat_fluxes) 
+function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, saveDir, run_number, water_fluxes, snow_fluxes, heat_fluxes) 
 
 %tsvd GRID.lake.cT_domain replaced by GRID.lake.water.cT_domain
 
@@ -98,6 +98,7 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
         % derived characteristics and related to geometry
         OUT.location.area = [OUT.location.area; PARA.location.area];
         OUT.location.altitude=[OUT.location.altitude; PARA.location.altitude];
+        OUT.location.soil_altitude= [OUT.location.soil_altitude; PARA.location.soil_altitude];
         OUT.location.surface_altitude=[OUT.location.surface_altitude; PARA.location.surface_altitude];
         OUT.location.active_layer_depth_altitude = [OUT.location.active_layer_depth_altitude; PARA.location.active_layer_depth_altitude];
         OUT.location.water_table_altitude=[OUT.location.water_table_altitude; PARA.location.water_table_altitude];
@@ -179,14 +180,15 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
 
 
         %------------------------------------------------------------------     
-        disp([datestr(now,'yyyy-mm-dd HH:MM:SS'),':  at ',datestr(t), ',  Average timestep: ',  num2str(TEMPORARY.timestep_out), ' seconds'])
+        disp([datestr(now,'yyyy-mm-dd HH:MM:SS'),':  at ', datestr(t), ',  Average timestep: ',  num2str(TEMPORARY.timestep_out), ' seconds'])
       
         TEMPORARY.outputTime=round((TEMPORARY.outputTime+PARA.technical.outputTimestep)./PARA.technical.outputTimestep).*PARA.technical.outputTimestep;
      
         %write output files      
         if  round((t-TEMPORARY.saveTime).*48)==0   
-            iSaveOUT(['./runs/' run_number '/' run_number '_output' datestr(t,'yyyy')  '.mat'], OUT)
-            iSaveState(['./runs/' run_number '/' run_number '_finalState'  datestr(t,'yyyy') '.mat'], T, wc, t, SEB, PARA, GRID)
+            iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_output' datestr(t,'yyyy')  '.mat' ], OUT);
+            iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_finalState'  datestr(t,'yyyy') '.mat' ], T, wc, t, SEB, PARA, GRID);
+            iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_altitudes_vs_time_' datestr(t,'yyyy')  '.png' ], OUT, PARA );
             OUT = generateOUT();  
             TEMPORARY.saveTime=datenum(str2num(datestr(t,'yyyy'))+1, str2num(datestr(t,'mm')), str2num(datestr(t,'dd')), str2num(datestr(t,'HH')), str2num(datestr(t,'MM')), 0);
         end            

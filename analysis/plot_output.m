@@ -6,8 +6,10 @@
 clear all
 close all
 
- dirname = '/home/jnitzbon/CryoGrid/github/GITHUB_CryoGrid3_infiltration_xice_mpi/runs/';
- runname = 'testrunMPI_POOL_xH1_xW1_xS1_infil1_xice1_rF1.000000_sF1.000000_realization';
+ %tsvd dirname = '/home/jnitzbon/CryoGrid/github/GITHUB_CryoGrid3_infiltration_xice_mpi/runs/';
+ %runname = 'testrunMPI_POOL_xH1_xW1_xS1_infil1_xice1_rF1.000000_sF1.000000_realization';
+ dirname = 'E:\CryoGrid3\runs';
+ runname = 'testrunMPI_POOL_xH1_xW1_xS1_infil1_xice1_rF1_sF1_realization2';
  number_of_realizations = 2;
 % 
 
@@ -30,9 +32,14 @@ close all
         if number_of_realizations>1
             run = [ run num2str(i) ];
         end
-        outputfile = [dir run  '/' run '_output1979.mat'];
-        configfile = [dir run  '/' run '_settings.mat'];
-
+        %tsvd outputfile = [dir run  '/' run '_output1979.mat'];
+        % configfile = [dir run  '/' run '_settings.mat'];
+        outputfile = [dir run  '\' run '_output1979.mat'];
+        configfile = [dir run  '\' run '_settings.mat'];
+        
+        outputfile = 'E:\CryoGrid3\runs\testrunMPI_POOL_xH1_xW1_xS1_infil1_xice1_rF1_sF1_realization2\testrunMPI_POOL_xH1_xW1_xS1_infil1_xice1_rF1_sF1_realization2_output1979.mat'
+        configfile = 'E:\CryoGrid3\runs\testrunMPI_POOL_xH1_xW1_xS1_infil1_xice1_rF1_sF1_realization2\testrunMPI_POOL_xH1_xW1_xS1_infil1_xice1_rF1_sF1_realization2_settings.mat'
+        
         load(outputfile);
         load(configfile);
 
