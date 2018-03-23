@@ -1,7 +1,6 @@
 function [FORCING]= interpolateForcingData(t, FORCING)
 
 
-
 posit=floor((t-FORCING.data.t_span(1,1))./(FORCING.data.t_span(2,1)-FORCING.data.t_span(1,1)))+1;
 
 %.*size(FORCING.data.t_span,1)) + 1;

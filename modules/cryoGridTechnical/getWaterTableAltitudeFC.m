@@ -18,11 +18,15 @@ else
     while water(i)<=fieldC && T(i)>0
         waterTable = waterTable - K_delta(i);
         i=i+1;
+%         if i>length(water);
+%            water
+%            T
+%         end
     end
     
     if T(i)<=0;
         waterTable=NaN;
-        fprintf('Dry to permafrost\n')% Loop was stopped by the temperature condition so no water table
+        % fprintf('Dry to permafrost\n')% Loop was stopped by the temperature condition so no water table
         
     elseif water(i)<porosity(i) 
         Substract=K_delta(i)*(1-((water(i)-fieldC)/(porosity(i)-fieldC)));
