@@ -179,7 +179,7 @@ spmd
     PARA.forcing.snow_fraction=1;
     
     % switches for modules
-    PARA.modules.infiltration=0;   % true if infiltration into unfrozen ground occurs
+    PARA.modules.infiltration=1;   % true if infiltration into unfrozen ground occurs
     PARA.modules.xice=0;           % true if thaw subsicdence is enabled
 	PARA.modules.lateral=1;		   % true if adjacent realizations are run (this does not require actual lateral fluxes)
 %tsvd  extended for lateral switched off
@@ -201,7 +201,7 @@ spmd
     end
 
     % ------make output directory (name depends on parameters) ----------------
-    run_number = sprintf( [ 'TESTRUN-MPI_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' ) '_stratSAM_geomHEX_extFluxT-0.005_xH%d_xW%d_xS%d_rf%d_sf%d' ], ...
+    run_number = sprintf( [ 'Lake-MPI_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' ) ], ...
         [ PARA.modules.exchange_heat, PARA.modules.exchange_water, PARA.modules.exchange_snow, PARA.forcing.rain_fraction, PARA.forcing.snow_fraction] ) ;
     
     mkdir([ saveDir '/' run_number]);
