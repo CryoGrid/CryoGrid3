@@ -1,6 +1,5 @@
 function GRID=makeGrids(PARA)
 
-
 GRID.snow.snowCellSize=PARA.technical.SWEperCell/(PARA.snow.rho_snow/PARA.constants.rho_w);
 GRID.snow.snowGrid=[-1.*(PARA.technical.maxSWE./(PARA.technical.SWEperCell)+2).*GRID.snow.snowCellSize:GRID.snow.snowCellSize:-GRID.snow.snowCellSize]';
 %tsvd added 

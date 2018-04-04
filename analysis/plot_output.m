@@ -9,7 +9,9 @@ close all
  %tsvd dirname = '/home/jnitzbon/CryoGrid/github/GITHUB_CryoGrid3_infiltration_xice_mpi/runs/';
  %runname = 'testrunMPI_POOL_xH1_xW1_xS1_infil1_xice1_rF1.000000_sF1.000000_realization';
  dirname = 'E:\CryoGrid3\runs';
- runname = 'testrunMPI_POOL_xH1_xW1_xS1_infil1_xice1_rF1_sF1_realization2';
+% runname = 'testrunMPI_POOL_xH1_xW1_xS1_infil1_xice1_rF1_sF1_realization2';
+%runname = ' TESTRUN-MPI_197906-198007_stratSAM_geomHEX_extFluxT-0.005_xH1_xW1_xS0_rf1_sf1';
+runname ='TESTRUN-MPI_197906-198007_stratSAM_geomHEX_extFluxT-0.005_xH0_xW0_xS0_rf1_sf1';
  number_of_realizations = 2;
 % 
 

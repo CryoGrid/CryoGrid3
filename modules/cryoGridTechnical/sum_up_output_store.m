@@ -104,7 +104,9 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
         OUT.location.water_table_altitude=[OUT.location.water_table_altitude; PARA.location.water_table_altitude];
 
         % lateral fluxes
-        OUT.lateral.terrain_index_snow=[ OUT.lateral.terrain_index_snow; PARA.ensemble.terrain_index_snow ];
+%tsvd        OUT.lateral.terrain_index_snow=[ OUT.lateral.terrain_index_snow; PARA.ensemble.terrain_index_snow ];
+        OUT.lateral.terrain_index_snow=[ OUT.lateral.terrain_index_snow ]; % exclude ensemble struct for lateral=0    zzz define switch Abfrage... lateral 0/1?
+        
         OUT.lateral.water_fluxes = [ OUT.lateral.water_fluxes; water_fluxes' ];     % vector containing water fluxes in [m/s] to the current worker
         OUT.lateral.snow_fluxes = [ OUT.lateral.snow_fluxes; snow_fluxes' ];      % vector containing snow fluxes in [m SWE / s] to the current worker
         OUT.lateral.heat_fluxes = [ OUT.lateral.heat_fluxes; heat_fluxes' ];      % vector containing depth-integrated heat fluxes in [J/m^2 s ] to the current worker
@@ -188,7 +190,7 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
         if  round((t-TEMPORARY.saveTime).*48)==0   
             iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_output' datestr(t,'yyyy')  '.mat' ], OUT);
             iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_finalState'  datestr(t,'yyyy') '.mat' ], T, wc, t, SEB, PARA, GRID);
-            iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_altitudes_vs_time_' datestr(t,'yyyy')  '.png' ], OUT, PARA );
+       %ttt iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_altitudes_vs_time_' datestr(t,'yyyy')  '.png' ], OUT, PARA );
             OUT = generateOUT();  
             TEMPORARY.saveTime=datenum(str2num(datestr(t,'yyyy'))+1, str2num(datestr(t,'mm')), str2num(datestr(t,'dd')), str2num(datestr(t,'HH')), str2num(datestr(t,'MM')), 0);
         end            

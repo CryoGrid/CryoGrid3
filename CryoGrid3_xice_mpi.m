@@ -8,8 +8,11 @@
     clear all
     close all
 
-delete(gcp('nocreate')) % useful to restart from a crash
-
+    par_mode = 1;  % parallel mode off/on
+    
+if(par_mode==1) 
+    delete(gcp('nocreate')) % useful to restart from a crash
+end
 add_modules;  %adds required modules
 
 %dbstop if error;
@@ -17,16 +20,18 @@ add_modules;  %adds required modules
 number_of_realizations=2;
 debug_mode=0   % if set to 1, timestep = timestepMin for debugging (avoid of NaN for timestep calculation)
 
-%tsvd saveDir = '/data/scratch/nitzbon/CryoGrid/CryoGrid3_infiltration_xice_mpi/runs';
+saveDir = './runs';
 
 if number_of_realizations>1
     parpool(number_of_realizations);
 end
 
+%nnn
 spmd
     index=labindex;   %number identifying the process; change this to e.g. 1 for single realization (non-parallel) run
+%nnn    index=1
     
-    %---------------define input parameters------------------------------------
+%---------------define input parameters------------------------------------
     % here you provide the ground stratigraphy
     % z     w/i     m       o     type porosity
     
@@ -86,7 +91,7 @@ spmd
     PARA.snow.tau_1=86400.0;        % time constants of snow albedo change (according to ECMWF reanalysis) [sec]
     PARA.snow.tau_a=0.008;          % [per day]
     PARA.snow.tau_f=0.24;           % [per day]
-    PARA.snow.relative_maxSnow= [1.0]; 	% maximum snow depth that can be reached [m] - excess snow is removed in the model - if empty, no snow threshold
+    PARA.snow.relative_maxSnow= [0.1]; 	%ttt  maximum snow depth that can be reached [m] - excess snow is removed in the model - if empty, no snow threshold
     PARA.snow.extinction=25.0;      % light extinction coefficient of snow
     %tsvd add lake parameters
     % parameters related to lake
@@ -97,7 +102,7 @@ spmd
     PARA.water.z0=5e-4;          % roughness length surface [m] % JAN: value for summer / vegetation
     %tsvd PARA.water.z0=1e-4;         % roughness length surface [m] - gets overridden by value calculated by function flake_roughnessLength.m version Flake
     PARA.water.extinction=1.2;   % light extinction coefficient of water
-    PARA.water.depth=1.;
+    PARA.water.depth=0.;
     PARA.water.fetch=20;
 
     PARA.ice.albedo =0.20;      % albedo ice / Lei et al. (2011) shows a range of 0.1 to 0.35 
@@ -174,8 +179,8 @@ spmd
     PARA.forcing.snow_fraction=1;
     
     % switches for modules
-    PARA.modules.infiltration=1;   % true if infiltration into unfrozen ground occurs
-    PARA.modules.xice=1;           % true if thaw subsicdence is enabled
+    PARA.modules.infiltration=0;   % true if infiltration into unfrozen ground occurs
+    PARA.modules.xice=0;           % true if thaw subsicdence is enabled
 	PARA.modules.lateral=1;		   % true if adjacent realizations are run (this does not require actual lateral fluxes)
 %tsvd  extended for lateral switched off
     if ~PARA.modules.lateral
@@ -186,9 +191,9 @@ spmd
         % in par mode this is replaced by PARA.ensemble.immobile_snow_height 
     elseif PARA.modules.lateral
     % switches for lateral processes
-        PARA.modules.exchange_heat = 1; %zzz for testing switching off of lateral exchange, set to 1 afterwards!
-        PARA.modules.exchange_water = 1; 
-        PARA.modules.exchange_snow = 1;  
+        PARA.modules.exchange_heat = 0; %ttt
+        PARA.modules.exchange_water = 0; %ttt
+        PARA.modules.exchange_snow = 0;  %ttt
         
         %---------overwrites variables for each realization--------------------
 		% this function must define everything that is realization-specific or dependent of all realizations
@@ -248,6 +253,7 @@ spmd
     BALANCE = initializeBALANCE(T, wc, c_cTgrid, lwc_cTgrid, GRID, PARA);
     
     %---- temporary arrays for storage of lateral fluxes --> these could go into a LATERAL struct or TEMPORARY?
+%nnn comment out for single mode...
     water_fluxes = zeros( numlabs, 1 );                         % total water flux in [m/s] from each worker to worker index
     snow_fluxes = zeros( numlabs, 1 );                          % total snow flux in [m SWE] per output interval from each worker to worker index
     heat_fluxes = zeros( numlabs, 1);                           % total heat flux in [J] per output interval of all workers to worker index
@@ -259,6 +265,7 @@ spmd
     OUT = generateOUT();
     
     disp('initialization successful');
+    %%% nnn 
     iSaveSettings(  [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_settings.mat'] , FORCING, PARA, GRID)
     
     
@@ -306,12 +313,33 @@ spmd
         % timestep in [days]
 %tsvd
     if(~debug_mode)
-        timestep = min( [ max( [ min( [ 0.5 * nanmin( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain ) ) ./ (24.*3600), ...
-                   PARA.technical.targetDeltaE .* nanmin( abs(GRID.general.K_delta ./ SEB.dE_dt ) ) ./ (24.*3600), ...
-                   PARA.technical.maxTimestep ] ), ...
-                   PARA.technical.minTimestep ] ), ...
-                   TEMPORARY.syncTime-t,...
-                   TEMPORARY.outputTime-t ] );
+
+ %tsvd new timestep calculation to avoid problems with lateral mode switched off
+
+% old
+%         timestep = min( [ max( [ min( [ 0.5 * nanmin( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain ) ) ./ (24.*3600), ...
+%                    PARA.technical.targetDeltaE .* nanmin( abs(GRID.general.K_delta ./ SEB.dE_dt ) ) ./ (24.*3600), ...
+%                    PARA.technical.maxTimestep ] ), ...
+%                    PARA.technical.minTimestep ] ), ...
+%                    TEMPORARY.syncTime-t,...
+%                    TEMPORARY.outputTime-t ] );
+
+% new
+        if PARA.modules.lateral
+            timestep = min( [ max( [ min( [ 0.5 * nanmin(GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain ) ) ./ (24.*3600), ...
+                    PARA.technical.targetDeltaE .* nanmin(abs(GRID.general.K_delta ./ SEB.dE_dt ) ) ./ (24.*3600), ...
+                    PARA.technical.maxTimestep ] ), ...
+                    PARA.technical.minTimestep ] ), ...
+                    TEMPORARY.syncTime-t,...
+                    TEMPORARY.outputTime-t ] );
+        else
+            timestep = min( [ max( [ min( [ 0.5 * nanmin(GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain ) ) ./ (24.*3600), ...
+                    PARA.technical.targetDeltaE .* nanmin(abs(GRID.general.K_delta ./ SEB.dE_dt ) ) ./ (24.*3600), ...
+                    PARA.technical.maxTimestep ] ), ...
+                    PARA.technical.minTimestep ] ), ...
+                    TEMPORARY.outputTime-t ] );
+        end
+
     else % debug mode              
         timestep =  PARA.technical.minTimestep; % use for debugging to avoid NaN... zzz
         %disp('WARNING: timestep set to minTimestep for debugging')
@@ -333,7 +361,7 @@ spmd
         if max((T<-100))==1; disp('dwd'); end
 
         %------- water body module --------------------------------------------
-        T = mixingWaterBody(T, GRID);  % zzz ok to keep?
+%tsvd        T = mixingWaterBody(T, GRID);  % zzz check whether this is ok to switch off
         %------- snow cover module --------------------------------------------
         [T, GRID, PARA, SEB, BALANCE] = CryoGridSnow(T, GRID, FORCING, SEB, PARA, c_cTgrid, timestep, BALANCE);
         [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE);
@@ -414,7 +442,7 @@ spmd
             if t==TEMPORARY.syncTime %communication between workers
                 disp('CryoGridLateral: sync - start');
                 labBarrier(); %common start
-                PARA = updateAuxiliaryVariablesAndCommonThresholds(T, wc, GRID, PARA) ;
+                PARA = updateAuxiliaryVariablesAndCommonThresholds(T, wc, GRID, PARA) ; %ddd commenting out (here and below) does not help prevent snow grid crash
                 
                 % heat exchange module
                 if PARA.modules.exchange_heat
@@ -545,15 +573,19 @@ spmd
         %------- next time step -----------------------------------------------
         t=t+timestep;
         %---------- sum up + OUTPUT -------------------------------------------
-        [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc_cTgrid(GRID.soil.cT_domain), timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, saveDir, run_number, water_fluxes, snow_fluxes, heat_fluxes);
-        
-        
+      %nnn  
+      [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc_cTgrid(GRID.soil.cT_domain), timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, saveDir, run_number, water_fluxes, snow_fluxes, heat_fluxes);
     end
     
     % save final state and output at t=endtime
-    iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_output' datestr(t,'yyyy') '.mat'], OUT)
-    iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_finalState' datestr(t,'yyyy') '.mat'], T, wc, t, SEB, PARA, GRID)
-    iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_altitudes_vs_time_' datestr(t,'yyyy')  '.png'], OUT, PARA );
+%nnn    
+iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_output' datestr(t,'yyyy') '.mat'], OUT)
+%nnn    
+iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_finalState' datestr(t,'yyyy') '.mat'], T, wc, t, SEB, PARA, GRID)
+%nnn    
+%iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_altitudes_vs_time_' datestr(t,'yyyy')  '.png'], OUT, PARA );
+
+%nnn 
 end
 
 if number_of_realizations>1

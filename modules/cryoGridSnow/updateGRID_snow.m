@@ -24,23 +24,37 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
             GRID.snow.SWEinitial=0;       
 
             % -------- update K grid -------------------------------------
+            assert(~isnan(GRID.general.K_grid(GRID.snow.cT_domain_ub+1)),' error in uppermost lake cell K_grid'); %tsvd
+            
             GRID.general.K_grid(GRID.snow.cT_domain_ub) = GRID.general.K_grid(GRID.snow.cT_domain_ub+1)  - ( GRID.snow.Snow_i(GRID.snow.cT_domain_ub) + GRID.snow.Snow_a(GRID.snow.cT_domain_ub) + GRID.snow.Snow_w(GRID.snow.cT_domain_ub) );
     %tsvd        GRID.general.K_grid(GRID.snow.K_domain_ub)=-1.*( GRID.snow.Snow_i(GRID.snow.cT_domain_ub) + GRID.snow.Snow_a(GRID.snow.cT_domain_ub) + GRID.snow.Snow_w(GRID.snow.cT_domain_ub) );
             T(GRID.snow.cT_domain_ub)=T(GRID.air.cT_domain_lb);
-
+            assert( sum(isnan( GRID.general.K_grid ) )==0, 'updateGRID_snow - error xxx')
+            assert( sum(isnan(GRID.snow.Snow_i) )==0,' GRID.snow.snow_i NAN  1') 
         end
 
     else   %snow exists
 
         check_change=false;  
+     try
+        assert( sum(isnan(GRID.snow.Snow_i) )==0,' GRID.snow.snow_i NAN  1') 
+    catch
+           %GRID.general.K_grid
+        G2=GRID;
+        G2ind = labindex;
+        save Data2_check G2 G2ind 
+    end        
         GRID.general.K_grid(GRID.snow.cT_domain_ub) = GRID.general.K_grid(GRID.snow.cT_domain_ub+1) -...
             ( GRID.snow.Snow_i(GRID.snow.cT_domain_ub) + GRID.snow.Snow_w(GRID.snow.cT_domain_ub) + GRID.snow.Snow_a(GRID.snow.cT_domain_ub)); %updates the position of the uppermost snow grid cell
-
-        try
+        %try                
             assert( ~isnan( GRID.general.K_grid(GRID.snow.cT_domain_ub) ), 'updateGRID_snow - error in uppermost snow cell position' );
-        catch
-            xxx=GRID.general.K_grid; ...save
+        %   assert(GRID.lake.water.cT_domain(GRID.lake.water.cT_domain_ub)+GRID.snow.cT_domain(GRID.snow.cT_domain_lb)<2,'snow on lake!');
+        if(~isempty(GRID.lake.water.cT_domain_ub)) 
+            assert(GRID.lake.water.cT_domain(GRID.lake.water.cT_domain_ub)+GRID.snow.cT_domain(GRID.lake.water.cT_domain_ub-1)<2,'snow on lake!');
         end
+        %catch
+        %    save Data_check PARA GRID %labindex
+        %end
         
         if GRID.snow.Snow_i(GRID.snow.cT_domain_ub)>=1.5.*PARA.technical.SWEperCell  %create new grid cell
 
@@ -200,6 +214,13 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
     end
     
     assert( sum( isnan(T(GRID.snow.cT_domain)))==0, 'updateGRID_snow - error in T after grid update' );
+%try
     assert( sum( isnan(GRID.general.K_grid))==0, 'update_GRID_snow - error in Kgrid after grid update');
+%catch
+%        %GRID.general.K_grid
+%     x2=GRID;
+%     x2ind = labindex;
+%     save Data2_check x2 x2ind 
+% end
 
 end

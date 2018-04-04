@@ -2,4 +2,6 @@ analysis
 forcing
 runs
 *.asv
+*.docx
+*.mat
 
