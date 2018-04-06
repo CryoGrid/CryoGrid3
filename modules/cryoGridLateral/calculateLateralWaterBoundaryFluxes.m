@@ -8,8 +8,8 @@ if double( T(GRID.soil.cT_domain_ub)>0 && isempty(GRID.snow.cT_domain_ub) )==1; 
     
     if strcmp(PARA.ensemble.boundaryCondition(labindex).type,'DarcyReservoir')==1; % worker as the DarcyReservoir boundary condition
         wt=PARA.ensemble.water_table_altitude(labindex);
-        ald = PARA.ensemble.active_layer_depth_altitude(labindex);
-        [waterpot, hasWater] = nanmax([wt, ald] );
+        inf_altitude = PARA.ensemble.infiltration_altitude(labindex);
+        [waterpot, hasWater] = nanmax([wt, inf_altitude] );
         Darcy_elevation=PARA.ensemble.boundaryCondition(labindex).parameters.elevation;
         Darcy_fluxFactor=PARA.ensemble.boundaryCondition(labindex).parameters.fluxFactor;
         DeltaH=abs(waterpot - Darcy_elevation);

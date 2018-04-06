@@ -7,12 +7,12 @@ function PARA = get_parallel_variables(PARA)
     perimeter = 4; % 2*pi.*(diameter./2); % in [m]
 
     % geometric relations
-    PARA.ensemble.distanceBetweenPoints=diag(25*ones(numlabs-1,1),-1)+diag(25*ones(numlabs-1,1),1); %   %in m. Put 0 for all non-connected ensemble members
+    PARA.ensemble.distanceBetweenPoints=diag(2*ones(numlabs-1,1),-1)+diag(25*ones(numlabs-1,1),1); %   %in m. Put 0 for all non-connected ensemble members
     PARA.ensemble.weight = [1 1 1 1 1];
     PARA.ensemble.area = [1 1 1 1 1]; % in m^2
 
     % topographical relations
-    PARA.ensemble.initial_altitude = [300 300 310 320 330]; %in m a.s.l., this is the reference for the "zero" position of the grids
+    PARA.ensemble.initial_altitude = [300 300.3 300.6 300.9 301.2]; %in m a.s.l., this is the reference for the "zero" position of the grids
     PARA.ensemble.altitude = PARA.ensemble.initial_altitude;  
     PARA.ensemble.surface_altitude = PARA.ensemble.initial_altitude;
 
@@ -24,10 +24,10 @@ function PARA = get_parallel_variables(PARA)
     PARA.ensemble.external_water_flux=[0 0 0 0 0] ; % 0];   %in m/day
     PARA.ensemble.hydraulic_conductivity= diag(PARA.soil.hydraulic_conductivity*ones(numlabs-1,1),-1)+diag(PARA.soil.hydraulic_conductivity*ones(numlabs-1,1),1); %in m/sec % [Roth: 1e-5 for saturated silt, 2.2e-5 for saturated sand] % Léo: 10-5 m/s good for peat also
     PARA.ensemble.water_table_altitude = PARA.ensemble.altitude;  %initialize somehow;
-    PARA.ensemble.alt_infiltration_limit=min(PARA.ensemble.altitude-PARA.soil.infiltration_limit); % Léo : We should decide if it is a common value for all or if it can varies from a worker to another
+    PARA.ensemble.infiltration_limit_altitude=min(PARA.ensemble.altitude-PARA.soil.infiltration_limit_depth); % Léo : We should decide if it is a common value for all or if it can varies from a worker to another
     %PARA.ensemble.max_water_flux= [0 0];   %in m water equivalent
     PARA.ensemble.hydraulic_contact_length = diag( 1 * ones(numlabs-1,1),-1) + diag( 1 * ones(numlabs-1,1),1);
-    PARA.ensemble.active_layer_depth_altitude = nan(numlabs,1);
+    PARA.ensemble.infiltration_altitude = nan(numlabs,1);
     PARA.ensemble.hydraulicDistance = PARA.ensemble.distanceBetweenPoints;
     PARA.ensemble.bottomBucketSoilcTIndex = ones(numlabs,1);
     boundaryCondition={'DarcyReservoir','NoBC', 'NoBC','NoBC','NoBC'};
@@ -59,11 +59,12 @@ function PARA = get_parallel_variables(PARA)
     PARA.location.altitude = PARA.ensemble.altitude(labindex);
     PARA.location.surface_altitude = PARA.ensemble.surface_altitude(labindex);
     PARA.location.water_table_altitude = PARA.ensemble.water_table_altitude(labindex);
-	PARA.location.active_layer_depth_altitude = PARA.ensemble.active_layer_depth_altitude(labindex);
+	PARA.location.infiltration_altitude = PARA.ensemble.infiltration_altitude(labindex);
 	% location-specific dynamic common thresholds
-	PARA.location.absolute_maxWater_altitude = min( PARA.ensemble.altitude ) + PARA.soil.relative_maxWater; % Léo : max->min so that a relative value of 0, block ponding for everybody. 
-    PARA.location.absolute_maxSnow_altitude = PARA.ensemble.altitude(labindex) + PARA.snow.relative_maxSnow;
+	PARA.location.absolute_maxWater_altitude = max( PARA.ensemble.altitude ) + PARA.soil.relative_maxWater; % Leo : change max->min if you prefer that a relative value of 0, block ponding for everybody. 
+    PARA.location.absolute_maxSnow_altitude = max(PARA.ensemble.altitude) + PARA.snow.relative_maxSnow;
     PARA.location.bottomBucketSoilcTIndex = PARA.ensemble.bottomBucketSoilcTIndex(labindex);
+    PARA.soil.infiltration_limit_altitude=PARA.ensemble.infiltration_limit_altitude;
     
     % different stratigraphies
     layer_properties=[ 0.0   0.55    0.05    0.15   1   0.80;...

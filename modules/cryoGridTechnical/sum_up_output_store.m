@@ -13,7 +13,7 @@ TEMPORARY.dE_dt_SEB_sum = TEMPORARY.dE_dt_SEB_sum + SEB.dE_dt_SEB * timestep;
 TEMPORARY.dE_dt_cond_sum = TEMPORARY.dE_dt_cond_sum + SEB.dE_dt_cond * timestep;
 
 TEMPORARY.waterTableElevation_sum = TEMPORARY.waterTableElevation_sum + PARA.location.water_table_altitude * timestep;
-TEMPORARY.bottomBucketSoilDepth_sum = TEMPORARY.bottomBucketSoilDepth_sum + PARA.location.active_layer_depth_altitude * timestep;
+TEMPORARY.bottomBucketSoilDepth_sum = TEMPORARY.bottomBucketSoilDepth_sum + PARA.location.infiltration_altitude * timestep;
 
 %----store in output table --------------------------------------------
 if  t==TEMPORARY.outputTime
@@ -104,10 +104,10 @@ if  t==TEMPORARY.outputTime
     OUT.location.area = [OUT.location.area; PARA.location.area];
     OUT.location.altitude=[OUT.location.altitude; PARA.location.altitude];
     OUT.location.surface_altitude=[OUT.location.surface_altitude; PARA.location.surface_altitude];
-    OUT.location.active_layer_depth_altitude = [OUT.location.active_layer_depth_altitude; PARA.location.active_layer_depth_altitude];
+    OUT.location.infiltration_altitude = [OUT.location.infiltration_altitude; PARA.location.infiltration_altitude];
     OUT.location.water_table_altitude=[OUT.location.water_table_altitude; PARA.location.water_table_altitude];
     
-    OUT.location.active_layer_depth_altitude_mean = [OUT.location.active_layer_depth_altitude_mean ; TEMPORARY.bottomBucketSoilDepth];
+    OUT.location.infiltration_altitude_mean = [OUT.location.infiltration_altitude_mean ; TEMPORARY.bottomBucketSoilDepth];
     OUT.location.water_table_altitude_mean = [OUT.location.water_table_altitude_mean ; TEMPORARY.waterTableElevation];
     
     % lateral fluxes
@@ -137,7 +137,7 @@ if  t==TEMPORARY.outputTime
     OUT.WB.dr_excessSnow=[ OUT.WB.dr_excessSnow; BALANCE.water.dr_excessSnow ];
     OUT.WB.dr_lateralSnow=[ OUT.WB.dr_lateralSnow; BALANCE.water.dr_lateralSnow ];  % lateral snow flux to other realizations
     OUT.WB.dr_rain = [ OUT.WB.dr_rain; BALANCE.water.dr_rain ];  					% this is only rain on frozen ground
-    OUT.WB.dr_lateral = [OUT.WB.dr_lateral; BALANCE.water.dr_lateral ];			% lateral water flux to other realizations
+    OUT.WB.dr_lateralWater = [OUT.WB.dr_lateralWater; BALANCE.water.dr_lateralWater ];			% lateral water flux to other realizations
     OUT.WB.dr_DarcyReservoir = [OUT.WB.dr_DarcyReservoir; BALANCE.water.dr_DarcyReservoir ]; % fluxes related to the Darcy Reservoir boundary condition
     OUT.WB.dr_lateralExcess = [OUT.WB.dr_lateralExcess ; BALANCE.water.dr_lateralExcess ]; % % excess water when applying lateral fluxes
     % mismatch
@@ -159,7 +159,7 @@ if  t==TEMPORARY.outputTime
     BALANCE.water.dr_excessSnow=0;
     BALANCE.water.dr_lateralSnow=0;
     BALANCE.water.dr_rain=0;
-    BALANCE.water.dr_lateral=0;
+    BALANCE.water.dr_lateralWater=0;
     BALANCE.water.dr_DarcyReservoir=0;
     BALANCE.water.dr_lateralExcess=0;
     BALANCE.water.dr_water_fluxes_out=zeros(numlabs,numlabs);

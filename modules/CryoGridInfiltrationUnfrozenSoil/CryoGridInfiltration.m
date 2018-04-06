@@ -1,4 +1,4 @@
-function [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRID, PARA, FORCING, BALANCE, lateral_flux_rate)
+function [wc, GRID, BALANCE, TEMPORARY] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRID, PARA, FORCING, BALANCE,TEMPORARY, lateral_flux_rate)
     
     % possible meltwater contribution from xice
     if ~PARA.modules.xice
@@ -14,7 +14,7 @@ function [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRI
     
     % lateral flux to/from other workers
     lateral_flux_rate = lateral_flux_rate.*3600.*24; % now in m/day
-    BALANCE.water.dr_lateral = BALANCE.water.dr_lateral + lateral_flux_rate.*timestep.*1000;
+    BALANCE.water.dr_lateralWater = BALANCE.water.dr_lateralWater + lateral_flux_rate.*timestep.*1000;
 
     if isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0   %no snow cover and uppermost grid cell unfrozen
 
@@ -26,8 +26,9 @@ function [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRI
         % changes due to rainfall
         dwc_dt(1)=dwc_dt(1)+FORCING.i.rainfall./1000.*timestep;
 
-        % changes due to meltwater from excess ice
-        dwc_dt(1)=dwc_dt(1)+meltwaterGroundIceAboveWaterTableThreshold;
+        % changes due to meltwater from excess ice and lateral water
+        dwc_dt(1)=dwc_dt(1) + meltwaterGroundIceAboveWaterTableThreshold + TEMPORARY.water2pool; % Leo : add water from the lateral fluxes
+        TEMPORARY.water2pool=0;
 
         % routing of water    
         [wc, surface_runoff, lacking_water] = bucketScheme(T, wc, dwc_dt, GRID, PARA, (external_flux_rate+lateral_flux_rate).*timestep);

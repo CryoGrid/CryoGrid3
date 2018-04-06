@@ -4,11 +4,8 @@ T=T(GRID.soil.cT_domain);
 K_delta=GRID.general.K_delta(GRID.soil.cT_domain);  %in m
 porosity=1-GRID.soil.cT_mineral-GRID.soil.cT_organic;
 soilType = GRID.soil.cT_soilType;
-if numlabs < 2;
-    [~,i_max]=min(abs((PARA.location.altitude(labindex)-GRID.soil.soilGrid)-PARA.soil.alt_infiltration_limit));
-else
-    [~,i_max]=min(abs((PARA.ensemble.altitude(labindex)-GRID.soil.soilGrid)-PARA.ensemble.alt_infiltration_limit));
-end
+[~,i_max]=min(abs((PARA.location.altitude - GRID.soil.soilGrid)-PARA.soil.infiltration_limit_altitude));
+
 
 % to be changed!
 fieldCapacity = zeros(size(soilType));
