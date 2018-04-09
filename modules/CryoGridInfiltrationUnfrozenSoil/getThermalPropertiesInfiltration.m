@@ -34,6 +34,17 @@ function [c_temp, k_temp, k_eff, lwc_temp] = getThermalPropertiesInfiltration(T,
     
     lwc_temp(GRID.snow.cT_domain) = GRID.snow.Snow_w(GRID.snow.cT_domain)./GRID.general.K_delta(GRID.snow.cT_domain);
                                          
+ %tsvd------ lake domain --------------------------------------------------
+ %zzz check if ok!?   
+    c_temp(GRID.lake.water.cT_domain) = PARA.constants.c_w;
+    k_temp(GRID.lake.water.cT_domain) = 5.46E-01   ; % in loadConstants.m 0.57 is used!  FLAKE:  Molecular heat conductivity of water [J m^{-1} s^{-1} K^{-1}]  zzz
+    lwc_temp(GRID.lake.water.cT_domain) = 1.;
+
+    c_temp(GRID.lake.ice.cT_domain) = PARA.constants.c_i;
+    k_temp(GRID.lake.ice.cT_domain) = 2.29;   ; % in loadConstants.m 2.2 is used!  FLAKE:  Molecular heat conductivity of ice [J m^{-1} s^{-1} K^{-1}]
+    lwc_temp(GRID.lake.ice.cT_domain) = 0.;
+
+    
     %------- interpolate conductivity to K-grid ---------------------------                                                                    
     k_eff(2:end-1) = GRID.general.K_delta(1:end-1)./(2.*GRID.general.cT_delta) .* (1./k_temp(1:end-1)).^2 ...
                    + GRID.general.K_delta(2:end)  ./(2.*GRID.general.cT_delta) .* (1./k_temp(2:end)).^2;

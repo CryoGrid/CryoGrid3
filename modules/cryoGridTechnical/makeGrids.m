@@ -1,6 +1,6 @@
 function GRID=makeGrids(PARA)
 
-GRID.snow.snowCellSize=PARA.technical.SWEperCell/(PARA.snow.rho_snow/PARA.constants.rho_w);
+GRID.snow.snowCellSize=PARA.technical.SWEperCell/(PARA.snow.rho_snow/PARA.constants.rho_w); % only used to calculate length initial air grid...
 GRID.snow.snowGrid=[-1.*(PARA.technical.maxSWE./(PARA.technical.SWEperCell)+2).*GRID.snow.snowCellSize:GRID.snow.snowCellSize:-GRID.snow.snowCellSize]';
 %tsvd added 
 GRID.lake.water.waterGrid=[0:0.02:PARA.water.depth-0.02]';  %with water (it is recommended to use a grid resolution of about 2cm)

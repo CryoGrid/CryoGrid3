@@ -14,4 +14,4 @@ function [precond_water] = checkPreconditionWaterExchange( T, GRID )
         end
     end
             
-	precond_water = precondition_waterExchange > 1;	% at least two workers need matching conditions
+	precond_water = precondition_waterExchange > 1	% at least two workers need matching conditions

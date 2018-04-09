@@ -1,5 +1,8 @@
 function [T, GRID, PARA, SEB, BALANCE] = CryoGridSnow(T, GRID, FORCING, SEB, PARA, c_temp, timestep, BALANCE)
 
+    if(~isempty(GRID.lake.water.cT_domain_ub)) %ttt
+        assert(GRID.lake.water.cT_domain(GRID.lake.water.cT_domain_ub)+GRID.snow.cT_domain(GRID.lake.water.cT_domain_ub-1)<2,'snow on lake!');
+    end
     if ~isempty(GRID.snow.cT_domain_ub) %snow cover already exitis
 
         %----------calculate snow surface albedo ------------------------------
@@ -72,7 +75,7 @@ function [T, GRID, PARA, SEB, BALANCE] = CryoGridSnow(T, GRID, FORCING, SEB, PAR
         if(isempty(GRID.lake.water.cT_domain_ub) || ~isempty(GRID.lake.ice.cT_domain_ub) ) %tsvd only allow for snow buildup if no lake, or if lake ice exists
             GRID.snow.SWEinitial = GRID.snow.SWEinitial + FORCING.i.snowfall.*timestep./1000 - GRID.snow.SWEinitial.*0.1.*timestep;
         end
-        GRID.lake.residualWater = GRID.lake.residualWater + GRID.snow.SWEinitial.*0.1.*timestep;
+        GRID.lake.residualWater = GRID.lake.residualWater + GRID.snow.SWEinitial.*0.1.*timestep; % zzz check with Jan: what if rain on lake ice...(collect in residualWater?), where collect rain on lake water? what if SWEinitial exists, then lake ice melts away...?
         BALANCE.water.dr_snowmelt = BALANCE.water.dr_snowmelt - GRID.snow.SWEinitial.*0.1.*timestep*1000; %SWEinitial decreasing counted as surface runoff
 
         %----- add the rainfall as runoff in case of no infiltration into frozen ground
@@ -89,4 +92,8 @@ function [T, GRID, PARA, SEB, BALANCE] = CryoGridSnow(T, GRID, FORCING, SEB, PAR
         PARA.snow.albedo=PARA.snow.max_albedo;
         SEB.newSnow=0;
     end
+    
+    if(~isempty(GRID.lake.water.cT_domain_ub)) %ttt
+        assert(GRID.lake.water.cT_domain(GRID.lake.water.cT_domain_ub)+GRID.snow.cT_domain(GRID.lake.water.cT_domain_ub-1)<2,'snow on lake (2)!');
+    end    
 end

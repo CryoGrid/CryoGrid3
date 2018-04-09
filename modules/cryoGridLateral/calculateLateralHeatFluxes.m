@@ -1,6 +1,7 @@
 function [dE_dt, BALANCE] = calculateLateralHeatFluxes(T_index, k_index, PACKAGE_heatExchange_j, GRID, PARA, BALANCE, j)
     
-	index = labindex;
+%ooo	index = labindex;
+    index=1
     dE_dt = zeros( length(GRID.general.cT_grid), 1);
     if PARA.ensemble.thermal_contact_length(index,j)>0  % calculate lateral heat flux only for laterally connected workers
         
@@ -35,7 +36,13 @@ function [dE_dt, BALANCE] = calculateLateralHeatFluxes(T_index, k_index, PACKAGE
             disp('k_j contains complex values');
         end
         T_interp_j = interp1( altitude_cTgrid_j, T_j, altitude_cTgrid_index, 'linear');
-        k_interp_j = interp1( altitude_cTgrid_j, k_j, altitude_cTgrid_index, 'linear');
+        try
+            assert( sum( isnan( T_interp_j ) )==0, 'calc lat heat fluxes - error in T interpolation') %ttt
+        catch
+           save Data_Tinterp T_interp_j altitude_cTgrid_j T_j altitude_cTgrid_index 
+        end
+            k_interp_j = interp1( altitude_cTgrid_j, k_j, altitude_cTgrid_index, 'linear');
+        assert( sum( isnan( k_interp_j ) )==0, 'calc lat heat fluxes - error in k interpolation') %ttt
 
         % determine effectice thermal conductivities
         k_eff = (weight_index+weight_j) ./ ( weight_index./k_index + weight_j./k_interp_j );

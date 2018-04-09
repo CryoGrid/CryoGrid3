@@ -5,31 +5,29 @@
 % Developed by: S. Westermann and M. Langer 2015
 %
 % -------------------------------------------------------------------------
-    clear all
-    close all
+clear all
+close all
+%tsvd  define simulation setting
+debug_mode=0   %  if set to 1, timestep = timestepMin for debugging (avoid of NaN for timestep calculation)
+run_mode = 1;  %  1: single mode 1 column   & lateral exchange setting    2: offline   3: online
+number_of_realizations=1;
 
-    par_mode = 1;  % parallel mode off/on
-    
-if(par_mode==1) 
+if(run_mode==1)     % single run
+    index=1
+elseif(run_mode==2) % multiple runs - offline
+    disp('not implemented so far')
+elseif(run_mode==3) % multiple runs - online
     delete(gcp('nocreate')) % useful to restart from a crash
-end
+    parpool(number_of_realizations)
+    disp('need to complement run mode...')
+end 
+
 add_modules;  %adds required modules
-
-%dbstop if error;
-
-number_of_realizations=2;
-debug_mode=0   % if set to 1, timestep = timestepMin for debugging (avoid of NaN for timestep calculation)
 
 saveDir = './runs';
 
-if number_of_realizations>1
-    parpool(number_of_realizations);
-end
-
-%nnn
-spmd
-    index=labindex;   %number identifying the process; change this to e.g. 1 for single realization (non-parallel) run
-%nnn    index=1
+%ooo spmd
+%    index=labindex;   %number identifying the process; change this to e.g. 1 for single realization (non-parallel) run
     
 %---------------define input parameters------------------------------------
     % here you provide the ground stratigraphy
@@ -102,7 +100,7 @@ spmd
     PARA.water.z0=5e-4;          % roughness length surface [m] % JAN: value for summer / vegetation
     %tsvd PARA.water.z0=1e-4;         % roughness length surface [m] - gets overridden by value calculated by function flake_roughnessLength.m version Flake
     PARA.water.extinction=1.2;   % light extinction coefficient of water
-    PARA.water.depth=0.;
+    PARA.water.depth=1.;
     PARA.water.fetch=20;
 
     PARA.ice.albedo =0.20;      % albedo ice / Lei et al. (2011) shows a range of 0.1 to 0.35 
@@ -179,9 +177,9 @@ spmd
     PARA.forcing.snow_fraction=1;
     
     % switches for modules
-    PARA.modules.infiltration=1;   % true if infiltration into unfrozen ground occurs
+    PARA.modules.infiltration=0;   % true if infiltration into unfrozen ground occurs
     PARA.modules.xice=0;           % true if thaw subsicdence is enabled
-	PARA.modules.lateral=1;		   % true if adjacent realizations are run (this does not require actual lateral fluxes)
+	PARA.modules.lateral=0;		   % true if adjacent realizations are run (this does not require actual lateral fluxes)
 %tsvd  extended for lateral switched off
     if ~PARA.modules.lateral
         PARA.modules.exchange_heat = 0;
@@ -192,8 +190,8 @@ spmd
     elseif PARA.modules.lateral
     % switches for lateral processes
         PARA.modules.exchange_heat = 1; %ttt
-        PARA.modules.exchange_water = 0; %ttt
-        PARA.modules.exchange_snow = 0;  %ttt
+        PARA.modules.exchange_water = 1; %ttt
+        PARA.modules.exchange_snow = 1;  %ttt
         
         %---------overwrites variables for each realization--------------------
 		% this function must define everything that is realization-specific or dependent of all realizations
@@ -202,8 +200,7 @@ spmd
 
     % ------make output directory (name depends on parameters) ----------------
     run_number = sprintf( [ 'Lake-MPI_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' ) ], ...
-        [ PARA.modules.exchange_heat, PARA.modules.exchange_water, PARA.modules.exchange_snow, PARA.forcing.rain_fraction, PARA.forcing.snow_fraction] ) ;
-    
+        ['_', PARA.modules.exchange_heat, PARA.modules.exchange_water, PARA.modules.exchange_snow] ) ;
     mkdir([ saveDir '/' run_number]);
     
     %--------------------------------------------------------------------------
@@ -253,12 +250,20 @@ spmd
     BALANCE = initializeBALANCE(T, wc, c_cTgrid, lwc_cTgrid, GRID, PARA);
     
     %---- temporary arrays for storage of lateral fluxes --> these could go into a LATERAL struct or TEMPORARY?
-%nnn comment out for single mode...
-    water_fluxes = zeros( numlabs, 1 );                         % total water flux in [m/s] from each worker to worker index
-    snow_fluxes = zeros( numlabs, 1 );                          % total snow flux in [m SWE] per output interval from each worker to worker index
-    heat_fluxes = zeros( numlabs, 1);                           % total heat flux in [J] per output interval of all workers to worker index
-    dE_dt_lateral = zeros( length(GRID.general.cT_grid), 1);    % cell-wise heat flux in [W/m^3]? of all workers to worker index
-    
+%ooo 
+    if(run_mode==1)
+        water_fluxes = 0.;
+        snow_fluxes = 0.;
+        heat_fluxes = 0.;
+        dE_dt_lateral = zeros(length(GRID.general.cT_grid), 1); 
+    elseif(run_mode==2)
+        disp('need to implement...')
+    elseif(run_mode==3)
+        water_fluxes = zeros( numlabs, 1 );                         % total water flux in [m/s] from each worker to worker index
+        snow_fluxes = zeros( numlabs, 1 );                          % total snow flux in [m SWE] per output interval from each worker to worker index
+        heat_fluxes = zeros( numlabs, 1);                           % total heat flux in [J] per output interval of all workers to worker index
+        dE_dt_lateral = zeros( length(GRID.general.cT_grid), 1);    % cell-wise heat flux in [W/m^3]? of all workers to worker index
+    end
     %__________________________________________________________________________
     %-------- provide arrays for data storage ---------------------------------
     [t, TEMPORARY] = generateTemporary(T, PARA);
@@ -564,9 +569,9 @@ iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(index
 %nnn    
 %iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_altitudes_vs_time_' datestr(t,'yyyy')  '.png'], OUT, PARA );
 
-%nnn 
-end
+%ooo  end   %end spmd
 
+%ooo adapt...
 if number_of_realizations>1
     delete(gcp('nocreate'))
 end
