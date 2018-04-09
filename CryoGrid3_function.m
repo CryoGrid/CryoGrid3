@@ -1,4 +1,4 @@
-function [] = CryoGrid3_function( runName, startDate, endDate, rainFrac, snowFrac, maxWater, maxSnow, snowDens, extFlux, fieldCapacity )
+function [] = CryoGrid3_function( runName, startDate, endDate, rainFrac, snowFrac, maxWater, maxSnow, snowDens, extFlux, fieldCapacity,evapDepth, ETversion )
 
 % -------------------------------------------------------------------------
 % CryoGRID3
@@ -14,6 +14,8 @@ paraFromFile = exist('configFile');     % check if config file passed
 
 %addpath('./nansuite/')
 
+saveDir = '/data/scratch/nitzbon/CryoGrid/CryoGrid3_infiltration_xice_ETscheme';
+mkdir( [ saveDir '/runs' ] );
 
 createLogFile=0;
 
@@ -61,7 +63,7 @@ if isempty(spinupFile)
     
     % parameters related to hydrology scheme
     PARA.soil.fieldCapacity=fieldCapacity;    %water holding capacity of the soil - this must be adapted to fit the upperlost layers!!
-    PARA.soil.evaporationDepth=0.1; %depth to which evaporation occurs - place on grid cell boundaries
+    PARA.soil.evaporationDepth=evapDepth; %depth to which evaporation occurs - place on grid cell boundaries
     PARA.soil.rootDepth=0.2;        %depth affected by transpiration - place on grid cell boundaries
     PARA.soil.wiltingPoint=0.2;     %point at which transpiration shuts off
     PARA.soil.residualWC=0.05;      %water always remaining in the soil, not accessible to evaporation
@@ -166,12 +168,12 @@ if isempty(spinupFile)
     %                           PARA.soil.relative_maxWater, PARA.soil.externalWaterFlux, PARA.soil.fieldCapacity ] );
     
     % ------make output directory (name depends on parameters) ----------------
-    mkdir(['./runs/' run_number])
+    mkdir([saveDir '/runs/' run_number])
     
     
     % ------redirect command line output to logfile ---------------------------
     if createLogFile
-        diary(['./runs/' run_number '/' run_number '_diary.txt']);
+       % diary([saveDir '/runs/' '/' run_number '_diary.txt']);
     end
     
     
@@ -226,7 +228,7 @@ if isempty(spinupFile)
     OUT = generateOUT();
     
     disp('initialization successful');
-    iSaveSettings( [ './runs/' run_number '/' run_number '_settings.mat'] , FORCING, PARA, GRID)
+    iSaveSettings( [ saveDir '/runs/' run_number '/' run_number '_settings.mat'] , FORCING, PARA, GRID)
     
 else %take setting from spinup file
     load(spinupFile); % this loads T, wc, PARA, GRID, SEB from final state of spinup run
@@ -289,7 +291,7 @@ while t<PARA.technical.endtime
     %set surface conditions (albedo, roughness length, etc.)
     [PARA, GRID] = surfaceCondition(GRID, PARA, T);
     %calculate the surface energy balance
-    [SEB, dwc_dt] = surfaceEnergyBalanceInfiltration(T, wc, FORCING, GRID, PARA, SEB);
+    [SEB, dwc_dt] = surfaceEnergyBalanceInfiltration(T, wc, FORCING, GRID, PARA, SEB, ETversion);
     
     %------ soil module  --------------------------------------------------
     %calculate heat conduction
@@ -303,7 +305,7 @@ while t<PARA.technical.endtime
     % energy change due to advection of heat through water fluxes is still excluded.
     % timestep in [days]
     timestep = min( [ max( [ min( [ 0.5 * nanmin( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain ) ) ./ (24.*3600), ...
-        PARA.technical.targetDeltaE .* nanmin( abs(GRID.general.K_delta ./ SEB.dE_dt ./ double(T<1.0)  ) ) ./ (24.*3600), ...
+        PARA.technical.targetDeltaE .* nanmin( abs(GRID.general.K_delta ./ SEB.dE_dt ) ) ./ (24.*3600), ...
         PARA.technical.maxTimestep ] ), ...
         PARA.technical.minTimestep ] ), ...
         TEMPORARY.outputTime-t ] );
@@ -375,13 +377,13 @@ while t<PARA.technical.endtime
     %------- next time step -----------------------------------------------
     t=t+timestep;
     %---------- sum up + OUTPUT -------------------------------------------
-    [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc_cTgrid(GRID.soil.cT_domain), timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, run_number);
+    [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc_cTgrid(GRID.soil.cT_domain), timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, run_number, saveDir);
     
 end
 
 % save final state and output at t=endtime
-iSaveOUT(['./runs/' run_number '/' run_number '_output' datestr(t,'yyyy') '.mat'], OUT)
-iSaveState(['./runs/' run_number '/' run_number '_finalState' datestr(t,'yyyy') '.mat'], T, wc, t, SEB, PARA, GRID)
+iSaveOUT([saveDir '/runs/' run_number '/' run_number '_output' datestr(t,'yyyy') '.mat'], OUT)
+iSaveState([saveDir '/runs/' run_number '/' run_number '_finalState' datestr(t,'yyyy') '.mat'], T, wc, t, SEB, PARA, GRID)
 
 
 disp('Done.');

@@ -1,4 +1,4 @@
-function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, run_number);
+function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, run_number, saveDir)
 
 
 TEMPORARY.timestep_sum=TEMPORARY.timestep_sum+(timestep*24*3600)*timestep;
@@ -182,8 +182,8 @@ if  t==TEMPORARY.outputTime
         
         
         
-        iSaveOUT(['./runs/' run_number '/' run_number '_output' datestr(t,'yyyy')  '.mat'], OUT)
-        iSaveState(['./runs/' run_number '/' run_number '_finalState'  datestr(t,'yyyy') '.mat'], T, wc, t, SEB, PARA, GRID)
+        iSaveOUT([saveDir '/runs/' run_number '/' run_number '_output' datestr(t,'yyyy')  '.mat'], OUT)
+        iSaveState([saveDir '/runs/' run_number '/' run_number '_finalState'  datestr(t,'yyyy') '.mat'], T, wc, t, SEB, PARA, GRID)
         OUT = generateOUT();
         TEMPORARY.saveTime=datenum(str2num(datestr(t,'yyyy'))+1, str2num(datestr(t,'mm')), str2num(datestr(t,'dd')), str2num(datestr(t,'HH')), str2num(datestr(t,'MM')), 0);
     end

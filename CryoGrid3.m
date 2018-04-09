@@ -17,7 +17,7 @@ profile on;
 
 createLogFile=0;
 
-spinupFile = [ './runs/TESTRUN_197906-201406_stratSam_rf1_sf1_maxSnow1.0_snowDens=200.0_maxWater0.5_extFlux0.0000_fc0.30/TESTRUN_197906-201406_stratSam_rf1_sf1_maxSnow1.0_snowDens=200.0_maxWater0.5_extFlux0.0000_fc0.30_finalState1980.mat' ] ;
+spinupFile = [];% [ './runs/TESTRUN_197906-201406_stratSam_rf1_sf1_maxSnow1.0_snowDens=200.0_maxWater0.5_extFlux0.0000_fc0.30/TESTRUN_197906-201406_stratSam_rf1_sf1_maxSnow1.0_snowDens=200.0_maxWater0.5_extFlux0.0000_fc0.30_finalState1980.mat' ] ;
 
 if isempty(spinupFile)
     
@@ -101,8 +101,8 @@ if isempty(spinupFile)
     PARA.technical.SWEperCell=0.005;            % SWE per grid cell in [m] - determines size of snow grid cells
     PARA.technical.maxSWE=0.4;                  % in [m] SWE
     PARA.technical.arraySizeT=5002;             % number of values in the look-up tables for conductivity and capacity
-    PARA.technical.starttime=datenum(1979, 4, 1);       % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum(1979, 8, 1);         % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.starttime=datenum(2000, 6, 1);       % starttime of the simulation - if empty start from first value of time series
+    PARA.technical.endtime=datenum(2000, 8, 1);         % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;   % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;   % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;            % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
@@ -147,7 +147,7 @@ if isempty(spinupFile)
     %FORCING data mat-file
     PARA.forcing.filename='samoylov_ERA_obs_fitted_1979_2014_spinup.mat';  %must be in subfolder "forcing" and follow the conventions for CryoGrid 3 forcing files
     PARA.forcing.rain_fraction=1;
-    PARA.forcing.snow_fraction=2;
+    PARA.forcing.snow_fraction=0;
     
     % switches for modules
     PARA.modules.infiltration=1;   % true if infiltration into unfrozen ground occurs
@@ -161,9 +161,8 @@ if isempty(spinupFile)
     end
     
     
-    run_number = sprintf( [ 'TESTRUN_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' ) '_stratSam_rf%d_sf%d_maxSnow%0.1f_snowDens=%0.1f_maxWater%0.1f_extFlux%0.4f_fc%0.2f' ], ...
-        [ PARA.forcing.rain_fraction, PARA.forcing.snow_fraction, PARA.snow.relative_maxSnow, PARA.snow.rho_snow, ...
-        PARA.soil.relative_maxWater, PARA.soil.externalWaterFlux, PARA.soil.fieldCapacity ] );
+    run_number = sprintf( [ 'TESTRUN-ETscheme_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' ) '_rf%d_sf%d' ], ...
+        [ PARA.forcing.rain_fraction, PARA.forcing.snow_fraction ] );
     
     % ------make output directory (name depends on parameters) ----------------
     mkdir(['./runs/' run_number])
@@ -286,7 +285,7 @@ while t<PARA.technical.endtime
     %set surface conditions (albedo, roughness length, etc.)
     [PARA, GRID] = surfaceCondition(GRID, PARA, T);
     %calculate the surface energy balance
-    [SEB, dwc_dt] = surfaceEnergyBalanceInfiltration(T, wc, FORCING, GRID, PARA, SEB);
+    [SEB, dwc_dt] = surfaceEnergyBalanceInfiltration2(T, wc, FORCING, GRID, PARA, SEB);
     
     %------ soil module  --------------------------------------------------
     %calculate heat conduction
