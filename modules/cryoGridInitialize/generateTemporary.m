@@ -35,3 +35,9 @@ TEMPORARY.T_sum=0.*T;
 
 TEMPORARY.t_last=t;
 TEMPORARY.counter=0;
+
+TEMPORARY.waterTableElevation=0;
+TEMPORARY.bottomBucketSoilDepth=0;
+TEMPORARY.waterTableElevation_sum=0;
+TEMPORARY.bottomBucketSoilDepth_sum=0;
+TEMPORARY.water2pool=0;

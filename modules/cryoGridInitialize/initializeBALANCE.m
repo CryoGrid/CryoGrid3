@@ -43,7 +43,11 @@ function BALANCE = initializeBALANCE(T, wc, c_cTgrid, lwc_cTgrid, GRID, PARA)
     BALANCE.water.dr_excessSnow=0;
     BALANCE.water.dr_lateralSnow=0;
     BALANCE.water.dr_rain=0;  % this is only rain on frozen ground
-    BALANCE.water.dr_lateral=0;
+    BALANCE.water.dr_lateralWater=0;
+    BALANCE.water.dr_DarcyReservoir=0; % When worker is connected to a Darcy_reservoir as a boundary condition
+    BALANCE.water.dr_lateralExcess=0; % excess water when applying lateral fluxes
     % mismatch
     BALANCE.water.dm_lacking=0;
+    
+    BALANCE.water.dr_water_fluxes_out=zeros(numlabs,numlabs);
 end

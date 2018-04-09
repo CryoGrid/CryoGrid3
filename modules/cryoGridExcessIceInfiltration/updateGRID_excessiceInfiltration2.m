@@ -30,14 +30,4 @@ function [GRID] = updateGRID_excessiceInfiltration2(meltwaterGroundIce, GRID)
         [GRID.lake.K_domain_lb, GRID.lake.K_domain_ub] = LayerIndex(GRID.lake.K_domain);
     end
 
-
-
-
-
-
-
-
-
-
-
 end

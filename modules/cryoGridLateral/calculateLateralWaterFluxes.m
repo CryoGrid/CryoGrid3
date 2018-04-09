@@ -19,25 +19,24 @@ if PARA.ensemble.hydraulic_contact_length(index,j)>0
     infiltration_condition_index = isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0;
     infiltration_condition_j = PACKAGE_waterExchange_j.infiltration_condition;
     
-    
     if infiltration_condition_index && infiltration_condition_j
         
         wt_index = PARA.ensemble.water_table_altitude(index);
         wt_j     = PACKAGE_waterExchange_j.water_table_altitude;
-        ald_index = PARA.ensemble.active_layer_depth_altitude(index);
-        ald_j     = PACKAGE_waterExchange_j.active_layer_depth_altitude;
+        inf_index = PARA.ensemble.infiltration_altitude(index);
+        inf_j     = PACKAGE_waterExchange_j.infiltration_altitude;
         
 
         % Decipher between cases
-        [waterpotWindex, hasWater_index] = nanmax([wt_index, ald_index ] );
-        [waterpotWj, hasWater_j]         = nanmax([wt_j,     ald_j     ] );
+        [waterpotWindex, hasWater_index] = nanmax([wt_index, inf_index ] );
+        [waterpotWj, hasWater_j]         = nanmax([wt_j,     inf_j     ] );
         
      
         if (waterpotWj > waterpotWindex && hasWater_j==1)% Current worker is gaining water
 
             % Calculate the maximum exchanged water volume
             DeltaH = waterpotWj - waterpotWindex;
-            contact_height = waterpotWj - nanmax( [ waterpotWindex, ald_j ]);
+            contact_height = waterpotWj - nanmax( [ waterpotWindex, inf_j ]);
             Distance=sqrt(DeltaH^2 + PARA.ensemble.hydraulicDistance(j,index)^2);
             %section=(PARA.ensemble.waterTable(j)-soilGrid_workerj(PARA.ensemble.bottomBucketSoilcTIndex(j)+1)) * PARA.ensemble.contactLength(j,index);
             section=contact_height .* PARA.ensemble.hydraulic_contact_length(j,index);
@@ -78,7 +77,7 @@ if PARA.ensemble.hydraulic_contact_length(index,j)>0
 
             % Calculate maximum of the exchange water volume
             DeltaH= waterpotWindex - waterpotWj;
-            contact_height =waterpotWindex - nanmax( [ waterpotWj, ald_index ] );
+            contact_height =waterpotWindex - nanmax( [ waterpotWj, inf_index ] );
             Distance=sqrt(DeltaH^2 + PARA.ensemble.hydraulicDistance(j,index)^2);
             %section=(PARA.ensemble.waterTable(index)-GRID.soil.soilGrid(PARA.ensemble.bottomBucketSoilcTIndex(index)+1)) * PARA.ensemble.contactLength(j,index);
             %Jan: see question above
