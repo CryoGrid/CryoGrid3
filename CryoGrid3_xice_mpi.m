@@ -7,7 +7,7 @@ function [] = CryoGrid3_xice_mpi(SETUP)
 %
 % -------------------------------------------------------------------------
 
-%delete(gcp('nocreate')) % useful to restart from a crash
+delete(gcp('nocreate')) % useful to restart from a crash
 %add_modules;  %adds required modules
 %dbstop if error;
 
@@ -16,9 +16,9 @@ number_of_realizations=SETUP.numRealizations;
 taskName = SETUP.taskName;
 saveDir = SETUP.saveDir; %'/data/scratch/nitzbon/CryoGrid/CryoGrid3_infiltration_xice_mpi/runs';
 
-% if number_of_realizations>1
-%     parpool(number_of_realizations);
-% end
+if number_of_realizations>1
+    parpool(number_of_realizations);
+end
 
 spmd%(number_of_realizations, number_of_realizations)
     index=labindex;   %number identifying the process; change this to e.g. 1 for single realization (non-parallel) run
@@ -29,9 +29,9 @@ spmd%(number_of_realizations, number_of_realizations)
     
     % default stratigraphy used in publication:
     PARA.soil.layer_properties=[    0.0   0.60    0.10    0.15    1   0.75;...
-        0.15  0.65    0.3     0.05    2   0.65;...
-        0.9   0.65    0.3     0.05    1   0.65;...
-        9.0   0.30    0.70    0.00    1   0.30     ];
+                                    0.15  0.65    0.3     0.05    2   0.65;...
+                                    0.9   0.65    0.3     0.05    1   0.65;...
+                                    9.0   0.30    0.70    0.00    1   0.30     ];
     % simple stratigraphy with excess ice used to test water balance:
     % PARA.soil.layer_properties=[ 0.0     0.5    0.5     0.00   1   0.50;...
     %                              0.4     0.8    0.2     0.00   1   0.40;...
@@ -147,7 +147,7 @@ spmd%(number_of_realizations, number_of_realizations)
         10    -9  ;...
         25    -9   ;...
         100    -8   ;...
-        1100    10.2   ];      % the geothermal gradient for Qgeo=0.05W/m² and K=2.746W/Km is about 18.2 K/km
+        1100    10.2   ];      % the geothermal gradient for Qgeo=0.05W/m?? and K=2.746W/Km is about 18.2 K/km
     
     PARA = loadConstants( PARA );
     
@@ -158,14 +158,14 @@ spmd%(number_of_realizations, number_of_realizations)
     
     % switches for modules
     PARA.modules.infiltration=1;   % true if infiltration into unfrozen ground occurs
-    PARA.modules.xice=1;           % true if thaw subsicdence is enabled
-    PARA.modules.lateral=1;		   % true if adjacent realizations are run (this does not require actual lateral fluxes)
+    PARA.modules.xice=0;           % true if thaw subsicdence is enabled
+    PARA.modules.lateral=0;		   % true if adjacent realizations are run (this does not require actual lateral fluxes)
     
     if PARA.modules.lateral
         % switches for lateral processes
-        PARA.modules.exchange_heat = 1;
-        PARA.modules.exchange_water = 1;
-        PARA.modules.exchange_snow = 1;
+        PARA.modules.exchange_heat = 0;
+        PARA.modules.exchange_water = 0;
+        PARA.modules.exchange_snow = 0;
         
         %---------overwrites variables for each realization--------------------
         % this function must define everything that is realization-specific or dependent of all realizations
@@ -271,13 +271,20 @@ spmd%(number_of_realizations, number_of_realizations)
         % account for min and max timesteps specified, max. energy change per grid cell and the CFT stability criterion.
         % energy change due to advection of heat through water fluxes is still excluded.
         % timestep in [days]
-        timestep = min( [ max( [ min( [ 0.5 * nanmin( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain ) ) ./ (24.*3600), ...
-            PARA.technical.targetDeltaE .* nanmin( abs(GRID.general.K_delta ./ SEB.dE_dt ) ) ./ (24.*3600), ...
-            PARA.technical.maxTimestep ] ), ...
-            PARA.technical.minTimestep ] ), ...
-            TEMPORARY.syncTime-t,...
-            TEMPORARY.outputTime-t ] );
-        
+        if PARA.modules.lateral
+            timestep = min( [ max( [ min( [ 0.5 * nanmin( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain ) ) ./ (24.*3600), ...
+                PARA.technical.targetDeltaE .* nanmin( abs(GRID.general.K_delta ./ SEB.dE_dt ) ) ./ (24.*3600), ...
+                PARA.technical.maxTimestep ] ), ...
+                PARA.technical.minTimestep ] ), ...
+                TEMPORARY.syncTime-t,...
+                TEMPORARY.outputTime-t ] );
+        else
+            timestep = min( [ max( [ min( [ 0.5 * nanmin( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain ) ) ./ (24.*3600), ...
+                PARA.technical.targetDeltaE .* nanmin( abs(GRID.general.K_delta ./ SEB.dE_dt ) ) ./ (24.*3600), ...
+                PARA.technical.maxTimestep ] ), ...
+                PARA.technical.minTimestep ] ), ...
+                TEMPORARY.outputTime-t ] );
+        end
         
         % give a warning when timestep required by CFT criterion is below the minimum timestep specified
         if timestep > 0.5 * min( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain) ) ./ (24.*3600)
@@ -329,10 +336,10 @@ spmd%(number_of_realizations, number_of_realizations)
         %------- update threshold variables if no lateral exchange processes occur, otherwise updated at sync time
         if ~PARA.modules.lateral
             PARA.location.absolute_maxWater_altitude = PARA.location.altitude + PARA.soil.relative_maxWater;
-            if isempty( PARA.snow.maxSnow )
+            if isempty( PARA.snow.relative_maxSnow )
                 PARA.location.absolute_maxSnow_altitude = [];
             else
-                PARA.location.absolute_maxSnow_altitude = [ PARA.ensemble.altitude + PARA.snow.relative_maxSnow ];
+                PARA.location.absolute_maxSnow_altitude = [ PARA.location.altitude + PARA.snow.relative_maxSnow ];
             end
         end
         
@@ -459,7 +466,7 @@ spmd%(number_of_realizations, number_of_realizations)
                         if my_snow_change ~= 0
                             [T, GRID] = applyLateralSnowFluxes( T, PARA, GRID, FORCING, my_snow_change );
                             [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE);
-                            BALANCE.water.dr_lateralSnow = BALANCE.water.dr_lateralSnow + my_snow_change ;
+                            BALANCE.water.dr_lateralSnow = BALANCE.water.dr_lateralSnow + my_snow_change*1000 ;
                         end
                         
                         snow_fluxes = zeros( numlabs , 1 );

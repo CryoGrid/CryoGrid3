@@ -103,7 +103,9 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
         OUT.location.water_table_altitude=[OUT.location.water_table_altitude; PARA.location.water_table_altitude];
 
         % lateral fluxes
-        OUT.lateral.terrain_index_snow=[ OUT.lateral.terrain_index_snow; PARA.ensemble.terrain_index_snow ];
+        if PARA.modules.lateral
+            OUT.lateral.terrain_index_snow=[ OUT.lateral.terrain_index_snow; PARA.ensemble.terrain_index_snow ];
+        end
         OUT.lateral.water_fluxes = [ OUT.lateral.water_fluxes; water_fluxes' ];     % vector containing water fluxes in [m/s] to the current worker
         OUT.lateral.snow_fluxes = [ OUT.lateral.snow_fluxes; snow_fluxes' ];      % vector containing snow fluxes in [m SWE / s] to the current worker
         OUT.lateral.heat_fluxes = [ OUT.lateral.heat_fluxes; heat_fluxes' ];      % vector containing depth-integrated heat fluxes in [J/m^2 s ] to the current worker
