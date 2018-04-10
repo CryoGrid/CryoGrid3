@@ -76,11 +76,11 @@ GRID.soil.cT_soilType( (GRID.soil.cT_mineral+GRID.soil.cT_organic)<=1e-6 )=1;  %
 soilGRIDsizeOld = sum( GRID.soil.cT_domain );   % to check if LUT update necessary
 
 % remove air cells and mixed air/water cells above water table and adjust the GRID domains
-while GRID.soil.cT_mineral(1)+GRID.soil.cT_organic(1)+wc(1)<=0 || ...      % upper cell filled with pure air
+while GRID.soil.cT_mineral(1)+GRID.soil.cT_organic(1)+wc(1)<=1e-6 || ...      % upper cell filled with pure air
         (GRID.soil.cT_mineral(1)+GRID.soil.cT_organic(1)<=1e-6 && ( PARA.location.initial_altitude - GRID.general.K_grid(GRID.soil.cT_domain_ub+1) > PARA.location.absolute_maxWater_altitude) )  
 
     disp('xice - update GRID - removing grid cell ...')
-    if wc(1)==0
+    if wc(1)<=1e-6
         disp('... upper cell wc=0')
     elseif wc(1)==1
         disp('... upper cell wc=1')
@@ -137,11 +137,22 @@ if GRID.soil.cT_mineral(1)+GRID.soil.cT_organic(1)<=1e-6 && ...
 end    
     
 soilGRIDsizeNew = sum (GRID.soil.cT_domain );
+
 % update look up tables since soil water contents changed
-% --> only if grid cells freeze, otherwise not necessary ?????
-% if sum(double(wc~=GRID.soil.cT_water & T(GRID.soil.cT_domain)<=0))>0
-if soilGRIDsizeOld~=soilGRIDsizeNew
-    disp('xice - reinitializing LUT - soil/air domains changed');
-    GRID.soil.cT_water=wc;
-    GRID = initializeSoilThermalProperties(GRID, PARA);
+cellsChanged = soilGRIDsizeNew - soilGRIDsizeOld;
+if cellsChanged > 0
+    warning('xice - reinitializing LUT - created soil/water cells in xice module');
+    GRID.soil.cT_water = wc;
+    GRID = initializeSoilThermalProperties(GRID, PARA);   
+elseif cellsChanged < 0
+    disp('xice - shortening LUT - removed water cell(s)');
+    GRID.soil.cT_water(1) = [];
+    GRID.soil.cT_frozen(1) = [];
+    GRID.soil.cT_thawed(1) = [];
+    GRID.soil.K_frozen(1) = [];
+    GRID.soil.K_thawed(1) = [];
+    GRID.soil.conductivity(1,:) = [];
+    GRID.soil.capacity(1,:) = [];
+    GRID.soil.liquidWaterContent(1,:) = [];
 end
+

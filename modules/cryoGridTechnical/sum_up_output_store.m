@@ -82,7 +82,7 @@ if  t==TEMPORARY.outputTime
     else
         OUT.soil.lakeFloor = [OUT.soil.lakeFloor; NaN];
     end
-    OUT.soil.soil{1, size(OUT.soil.soil,2)+1}=[GRID.soil.cT_water GRID.soil.cT_mineral GRID.soil.cT_organic];
+    OUT.soil.soil{1, size(OUT.soil.soil,2)+1}=[wc GRID.soil.cT_mineral GRID.soil.cT_organic];
 
 
     % related to snow
