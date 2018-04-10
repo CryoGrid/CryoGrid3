@@ -4,11 +4,9 @@ function [PARA] = updateAuxiliaryVariablesAndCommonThresholds( T, wc, GRID, PARA
     PARA.ensemble.altitude(labindex) = getAltitude( PARA, GRID );
 	PARA.ensemble.water_table_altitude(labindex) = getWaterTableAltitudeFC(T, wc, GRID, PARA );% use getWaterTabelFC to account for non-saturated cells above fieldCapacity
 	PARA.ensemble.soil_altitude(labindex) = getSoilAltitude( PARA, GRID );
-	[ inf_altitude, inf_cT_index] = getInfiltrationAltitude(PARA, GRID, T);
-    PARA.ensemble.infiltration_altitude(labindex) = inf_altitude;
-    PARA.ensemble.bottomBucketSoilcTIndex(labindex) = inf_cT_index;
+	[ PARA.ensemble.infiltration_altitude(labindex), PARA.location.bottomBucketSoilcTIndex ] = getInfiltrationAltitude(PARA, GRID, T);
 
-% sending information from "labindex" to all "j"
+    % sending information from "labindex" to all "j"
     for j=1:numlabs
         if j~=labindex
             labSend(PARA.ensemble.surface_altitude(labindex), j, 1);
@@ -40,8 +38,9 @@ function [PARA] = updateAuxiliaryVariablesAndCommonThresholds( T, wc, GRID, PARA
     PARA.location.soil_altitude = PARA.ensemble.soil_altitude(labindex);
     PARA.location.water_table_altitude = PARA.ensemble.water_table_altitude(labindex);
 	PARA.location.infiltration_altitude = PARA.ensemble.infiltration_altitude(labindex);
-	% JAN: this needs to clarified. which variables are exchanged and which not? Is the "Limit" a common threshold or column-specific?		
-	PARA.location.bottomBucketSoilcTIndex = PARA.ensemble.bottomBucketSoilcTIndex(labindex);
+    PARA.soil.infiltration_limit_altitude = PARA.location.soil_altitude - PARA.soil.infiltration_limit_depth;
     
-%PARA.ensemble.infiltration_limit_altitude=min(PARA.ensemble.altitude-PARA.soil.infiltration_limit_depth);
+    %JAN: I think the absolute infiltration limit should be
+    %realization-specific, e.g. if we think of an aquiclude underlying the terrain but following its topography
+    %PARA.ensemble.infiltration_limit_altitude=min(PARA.ensemble.altitude-PARA.soil.infiltration_limit_depth);
     %PARA.soil.infiltration_limit_altitude=PARA.ensemble.infiltration_limit_altitude;

@@ -1,4 +1,4 @@
-function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, saveDir, run_number, water_fluxes, snow_fluxes, heat_fluxes) 
+function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, saveDir, run_number, snow_fluxes, heat_fluxes) 
 
 TEMPORARY.timestep_sum=TEMPORARY.timestep_sum+(timestep*24*3600)*timestep;
 TEMPORARY.T_sum=TEMPORARY.T_sum+T.*timestep;

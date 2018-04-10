@@ -3,7 +3,7 @@ function PARA = get_parallel_variables(PARA)
 index = labindex;
 
 % geometric relations
-    PARA.ensemble.distanceBetweenPoints=10 .* ( diag(ones(numlabs-1,1),-1)+diag(ones(numlabs-1,1),1) ); %   %in m. Put 0 for all non-connected ensemble members
+PARA.ensemble.distanceBetweenPoints=10 .* ( diag(ones(numlabs-1,1),-1)+diag(ones(numlabs-1,1),1) ); %   %in m. Put 0 for all non-connected ensemble members
 PARA.ensemble.weight = [1, 1];
 PARA.ensemble.area = PARA.ensemble.weight.*100; % in m^2
 
@@ -26,13 +26,13 @@ PARA.ensemble.hydraulic_contact_length = 20 .* diag( 1 * ones(numlabs-1,1),-1) +
 PARA.ensemble.infiltration_altitude = nan(1, numlabs);
 PARA.ensemble.hydraulicDistance = PARA.ensemble.distanceBetweenPoints;
 
-% check these:
-PARA.ensemble.infiltration_limit_altitude=min(PARA.ensemble.altitude-PARA.soil.infiltration_limit_depth); % Léo : We should decide if it is a common value for all or if it can varies from a worker to another
-PARA.ensemble.bottomBucketSoilcTIndex = ones(numlabs,1);
+% JAN: not necessary if absoulte limit realization-specific
+%PARA.ensemble.infiltration_limit_altitude=min(PARA.ensemble.altitude-PARA.soil.infiltration_limit_depth); % Léo : We should decide if it is a common value for all or if it can varies from a worker to another
+%PARA.ensemble.bottomBucketSoilcTIndex = ones(numlabs,1);
 
-boundaryCondition={'DarcyReservoir','NoBC', 'NoBC','NoBC','NoBC'};
-Darcy_elevation=[300 NaN NaN NaN NaN]; % Elevation of the Darcy reservoir that can drain or refill the worker it is connected to. NaN for workers withour this boundary condition
-Darcy_fluxFactor=[5*1e-5/50 NaN NaN NaN NaN]; % Taken as the hydraulic_contact_length*hydraulic_conductivity/hydraulic_distance    Defined for now like this, lets see if we wantto define it differently
+boundaryCondition={'DarcyReservoir','NoBC'};
+Darcy_elevation=[19.5 NaN ]; % Elevation of the Darcy reservoir that can drain or refill the worker it is connected to. NaN for workers withour this boundary condition
+Darcy_fluxFactor=[5*1e-5/50 NaN ]; % Taken as the hydraulic_contact_length*hydraulic_conductivity/hydraulic_distance    Defined for now like this, lets see if we wantto define it differently
 PARA.ensemble.boundaryCondition(length(boundaryCondition)).type=boundaryCondition{end};
 [PARA.ensemble.boundaryCondition.type]=boundaryCondition{:};
 for i=1:numlabs
@@ -43,7 +43,7 @@ for i=1:numlabs
 end
 
 % parameters related to snow exchange
-PARA.ensemble.snow_fluxes = zeros( 1, numlabs );            % total snow flux in [m SWE] per output interval from each worker to worker index
+%PARA.ensemble.snow_fluxes = zeros( 1, numlabs );            % total snow flux in [m SWE] per output interval from each worker to worker index
 PARA.ensemble.immobile_snow_height = [0.1, 0.1 ]; %in m
 PARA.ensemble.terrain_index_snow = calculateTerrainIndexSnow(PARA.ensemble.altitude, PARA.ensemble.weight);
 
@@ -66,9 +66,10 @@ PARA.location.infiltration_altitude = PARA.ensemble.infiltration_altitude(labind
 % location-specific dynamic common thresholds
 PARA.location.absolute_maxWater_altitude = [max( PARA.ensemble.altitude ) + PARA.soil.relative_maxWater];
 PARA.location.absolute_maxSnow_altitude = [max( PARA.ensemble.altitude ) + PARA.snow.relative_maxSnow];
-% check if these are necessary
-PARA.location.bottomBucketSoilcTIndex = PARA.ensemble.bottomBucketSoilcTIndex(labindex);
-PARA.soil.infiltration_limit_altitude=PARA.ensemble.infiltration_limit_altitude;
+
+% JAN: not necessary if absoulte limit realization-specific
+%PARA.location.bottomBucketSoilcTIndex = PARA.ensemble.bottomBucketSoilcTIndex(labindex);
+%PARA.soil.infiltration_limit_altitude=PARA.ensemble.infiltration_limit_altitude;
     
 % different stratigraphies
 % to be specificed by user

@@ -1,6 +1,6 @@
 % %clear all
 % if ~paraFromFile
-%     clearvars -except paraFromFile     %added by JAN to enable running with or without config file from same script
+%     clearvars -except paraFromFile     % enable running with or without config file from same script
 % end
 
 clear all

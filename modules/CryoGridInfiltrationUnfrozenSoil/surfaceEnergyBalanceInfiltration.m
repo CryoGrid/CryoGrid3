@@ -48,8 +48,8 @@ if PARA.modules.infiltration
     else
         Qe_pot=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, 0, FORCING.i.p, PARA));  %potential ET
         if Qe_pot>0
-            fraction_T=getET_fraction(T(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_ub+GRID.soil.T_lb-1), wc(1:GRID.soil.T_lb), PARA.soil.fieldCapacity, PARA.soil.wiltingPoint);
-            fraction_E=getET_fraction(T(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_ub+GRID.soil.E_lb-1), wc(1:GRID.soil.E_lb), PARA.soil.fieldCapacity, PARA.soil.residualWC);
+            fraction_T=getET_fraction(T(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_ub+GRID.soil.T_lb-1), wc(1:GRID.soil.T_lb), PARA.soil.fieldCapacity, 0);%PARA.soil.wiltingPoint);
+            fraction_E=getET_fraction(T(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_ub+GRID.soil.E_lb-1), wc(1:GRID.soil.E_lb), PARA.soil.fieldCapacity, 0);%PARA.soil.residualWC);
             fraction_ET = fraction_T.*PARA.soil.ratioET;
             fraction_ET(1:GRID.soil.E_lb) = fraction_ET(1:GRID.soil.E_lb) + fraction_E.*(1-PARA.soil.ratioET);
             
