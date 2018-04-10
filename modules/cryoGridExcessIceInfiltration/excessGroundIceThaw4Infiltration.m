@@ -137,32 +137,22 @@ if GRID.soil.cT_mineral(1)+GRID.soil.cT_organic(1)<=1e-6 && ...
 end    
     
 soilGRIDsizeNew = sum (GRID.soil.cT_domain );
-cellsChanged = soilGRIDsizeNew - soilGRIDsizeOld;
+
 % update look up tables since soil water contents changed
-% --> only if grid cells freeze, otherwise not necessary ?????
-% if sum(double(wc~=GRID.soil.cT_water & T(GRID.soil.cT_domain)<=0))>0
-if soilGRIDsizeOld~=soilGRIDsizeNew
-    disp('xice - reinitializing LUT - soil/air domains changed');
-    GRID.soil.cT_water=wc;
-    GRID = initializeSoilThermalProperties(GRID, PARA);
+cellsChanged = soilGRIDsizeNew - soilGRIDsizeOld;
+if cellsChanged > 0
+    warning('xice - reinitializing LUT - created soil/water cells in xice module');
+    GRID.soil.cT_water = wc;
+    GRID = initializeSoilThermalProperties(GRID, PARA);   
+elseif cellsChanged < 0
+    disp('xice - shortening LUT - removed water cell(s)');
+    GRID.soil.cT_water(1) = [];
+    GRID.soil.cT_frozen(1) = [];
+    GRID.soil.cT_thawed(1) = [];
+    GRID.soil.K_frozen(1) = [];
+    GRID.soil.K_thawed(1) = [];
+    GRID.soil.conductivity(1,:) = [];
+    GRID.soil.capacity(1,:) = [];
+    GRID.soil.liquidWaterContent(1,:) = [];
 end
-
-
-    soilGRIDsizeNew = sum(GRID.soil.cT_domain);
-    cellsChanged = soilGRIDsizeNew - soilGRIDsizeOld;
-    if cellsChanged > 0
-        disp('infiltration - reinitializing LUT - new water cell(s)');
-        GRID.soil.cT_water = wc;
-        GRID = initializeSoilThermalProperties(GRID, PARA);   
-    elseif cellsChanged < 0
-        disp('infiltration - shortening LUT - removed water cell(s)');
-        GRID.soil.cT_water(1) = [];
-        GRID.soil.cT_frozen(1) = [];
-        GRID.soil.cT_thawed(1) = [];
-        GRID.soil.K_frozen(1) = [];
-        GRID.soil.K_thawed(1) = [];
-        GRID.soil.conductivity(1,:) = [];
-        GRID.soil.capacity(1,:) = [];
-        GRID.soil.liquidWaterContent(1,:) = [];
-    end
 
