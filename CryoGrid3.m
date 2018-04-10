@@ -10,14 +10,15 @@ paraFromFile = exist('configFile');     % check if config file passed
 
 add_modules;  %adds required modules
 
-%addpath('./nansuite/')
 
-dbstop if error;
-profile on;
+addpath('./nansuite/')
+
+%dbstop if error;
+profile off;
 
 createLogFile=0;
 
-spinupFile = [ './runs/TESTRUN_197906-201406_stratSam_rf1_sf1_maxSnow1.0_snowDens=200.0_maxWater0.5_extFlux0.0000_fc0.30/TESTRUN_197906-201406_stratSam_rf1_sf1_maxSnow1.0_snowDens=200.0_maxWater0.5_extFlux0.0000_fc0.30_finalState1980.mat' ] ;
+spinupFile = [];%[ './runs/TESTRUN_197906-201406_stratSam_rf1_sf1_maxSnow1.0_snowDens=200.0_maxWater0.5_extFlux0.0000_fc0.30/TESTRUN_197906-201406_stratSam_rf1_sf1_maxSnow1.0_snowDens=200.0_maxWater0.5_extFlux0.0000_fc0.30_finalState1980.mat' ] ;
 
 if isempty(spinupFile)
     
@@ -28,7 +29,7 @@ if isempty(spinupFile)
     
     %default used in publication:
     PARA.soil.layer_properties=[ 0.0   0.60    0.10    0.15    1   0.75;...
-        0.15  0.65    0.3     0.05    2   0.65;...
+        0.10  0.65    0.3     0.05    2   0.4;...
         0.9   0.65    0.3     0.05    1   0.65;...
         9.0   0.30    0.70    0.00    1   0.30     ];
     
@@ -60,16 +61,16 @@ if isempty(spinupFile)
     PARA.soil.kh_bedrock=3.0;   % thermal conductivity of the mineral soil fraction [W/mK]
     
     % parameters related to hydrology scheme
-    PARA.soil.fieldCapacity=0.4;    %water holding capacity of the soil - this must be adapted to fit the upperlost layers!!
+    PARA.soil.fieldCapacity=0.3;    %water holding capacity of the soil - this must be adapted to fit the upperlost layers!!
     PARA.soil.evaporationDepth=0.1; %depth to which evaporation occurs - place on grid cell boundaries
     PARA.soil.rootDepth=0.2;        %depth affected by transpiration - place on grid cell boundaries
     PARA.soil.wiltingPoint=0.2;     %point at which transpiration shuts off
     PARA.soil.residualWC=0.05;      %water always remaining in the soil, not accessible to evaporation
     PARA.soil.ratioET=0.5;          % 1: only transpiration; 0: only evaporation, values in between must be made dependent on LAI, etc.
-    PARA.soil.externalWaterFlux=0;  %external water flux / drainage in [m/day]
+    PARA.soil.externalWaterFlux=-0.001;  %external water flux / drainage in [m/day]
     PARA.soil.convectiveDomain=[];       % soil domain where air convection due to buoyancy is possible -> start and end [m] - if empty no convection is possible
     PARA.soil.mobileWaterDomain=[0 10.0];      % soil domain where water from excess ice melt is mobile -> start and end [m] - if empty water is not mobile
-    PARA.soil.relative_maxWater=0.5;              % height relative to surface at which a water table will form [m] - above excess water is removed, below it pools up
+    PARA.soil.relative_maxWater=.0;              % height relative to surface at which a water table will form [m] - above excess water is removed, below it pools up
     PARA = loadSoilTypes( PARA );
     
     % parameters related to snow
@@ -101,7 +102,7 @@ if isempty(spinupFile)
     PARA.technical.SWEperCell=0.005;            % SWE per grid cell in [m] - determines size of snow grid cells
     PARA.technical.maxSWE=0.4;                  % in [m] SWE
     PARA.technical.arraySizeT=5002;             % number of values in the look-up tables for conductivity and capacity
-    PARA.technical.starttime=datenum(1979, 4, 1);       % starttime of the simulation - if empty start from first value of time series
+    PARA.technical.starttime=datenum(1979, 6, 1);       % starttime of the simulation - if empty start from first value of time series
     PARA.technical.endtime=datenum(1979, 8, 1);         % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;   % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;   % largest possible time step in [days] - here 300 seconds
@@ -147,7 +148,7 @@ if isempty(spinupFile)
     %FORCING data mat-file
     PARA.forcing.filename='samoylov_ERA_obs_fitted_1979_2014_spinup.mat';  %must be in subfolder "forcing" and follow the conventions for CryoGrid 3 forcing files
     PARA.forcing.rain_fraction=1;
-    PARA.forcing.snow_fraction=2;
+    PARA.forcing.snow_fraction=1;
     
     % switches for modules
     PARA.modules.infiltration=1;   % true if infiltration into unfrozen ground occurs

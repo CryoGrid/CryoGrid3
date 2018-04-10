@@ -7,7 +7,7 @@ function [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, 
 
     %%% step 2a) remove cells filled with air (e.g. due to evaporation
     %%% of uppermost grid cell )
-    while (GRID.soil.cT_mineral(1)+GRID.soil.cT_organic(1)+wc(1)<=0)
+    while (GRID.soil.cT_mineral(1)+GRID.soil.cT_organic(1)+wc(1)<1e-6)
         disp('infiltration - update GRID - removing air cell')
 
         % adjust air and soil domains and boundaries
@@ -82,10 +82,21 @@ function [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, 
     
     %%% step 2c)  check if soil/air domains changed --> LUT update
     soilGRIDsizeNew = sum(GRID.soil.cT_domain);
-    if soilGRIDsizeOld~=soilGRIDsizeNew
-        disp('infiltration - reinitializing LUT - soil/air domains changed');
+    cellsChanged = soilGRIDsizeNew - soilGRIDsizeOld;
+    if cellsChanged > 0
+        disp('infiltration - reinitializing LUT - new water cell(s)');
         GRID.soil.cT_water = wc;
         GRID = initializeSoilThermalProperties(GRID, PARA);   
+    elseif cellsChanged < 0
+        disp('infiltration - shortening LUT - removed water cell(s)');
+        GRID.soil.cT_water(1) = [];
+        GRID.soil.cT_frozen(1) = [];
+        GRID.soil.cT_thawed(1) = [];
+        GRID.soil.K_frozen(1) = [];
+        GRID.soil.K_thawed(1) = [];
+        GRID.soil.conductivity(1,:) = [];
+        GRID.soil.capacity(1,:) = [];
+        GRID.soil.liquidWaterContent(1,:) = [];
     end
 
 

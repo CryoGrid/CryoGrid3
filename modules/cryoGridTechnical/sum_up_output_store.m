@@ -71,11 +71,11 @@ if  t==TEMPORARY.outputTime
     % related to soil
     OUT.soil.topPosition=[OUT.soil.topPosition; -GRID.general.K_grid(GRID.soil.cT_domain_ub)];
     if ~isempty( GRID.lake.cT_domain_ub )
-        OUT.soil.lakeFloor = [OUT.soil.lakeFloor; - GRID.general.K_grid(GRID.lake.cT_domain_lb+1) ];
+        OUT.soil.lakeFloor = [OUT.soil.lakeFloor; -GRID.general.K_grid(GRID.lake.cT_domain_lb+1) ];
     else
         OUT.soil.lakeFloor = [OUT.soil.lakeFloor; NaN];
     end
-    OUT.soil.soil{1, size(OUT.soil.soil,2)+1}=[GRID.soil.cT_water GRID.soil.cT_mineral GRID.soil.cT_organic];
+    OUT.soil.soil{1, size(OUT.soil.soil,2)+1}=[wc GRID.soil.cT_mineral GRID.soil.cT_organic];
     
     
     % related to snow
