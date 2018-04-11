@@ -16,7 +16,7 @@ lostWater=lostWater + abs(min(boundary_water_fluxes,0));
 if lostWater>0; % worker is loosing water
     
    % available water
-   bottomBucketcTIndex = PARA.ensemble.bottomBucketSoilcTIndex(labindex);
+   bottomBucketcTIndex = PARA.location.bottomBucketSoilcTIndex;
    fieldC = PARA.soil.fieldCapacity;
    K_deltaSoil=GRID.general.K_delta(GRID.soil.cT_domain);   
    availableWaterVect=( wc(1:bottomBucketcTIndex)- fieldC) .* K_deltaSoil(1:bottomBucketcTIndex);

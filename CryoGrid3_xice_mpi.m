@@ -91,8 +91,8 @@ spmd
     PARA.technical.SWEperCell=0.005;            % SWE per grid cell in [m] - determines size of snow grid cells
     PARA.technical.maxSWE=0.4;                  % in [m] SWE
     PARA.technical.arraySizeT=5002;             % number of values in the look-up tables for conductivity and capacity
-    PARA.technical.starttime=datenum(1979, 6, 1);       % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum(1980, 7, 1);         % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.starttime=datenum(1979, 7, 1);       % starttime of the simulation - if empty start from first value of time series
+    PARA.technical.endtime=datenum(1979, 7, 10);         % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;   % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;   % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;            % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
@@ -211,10 +211,10 @@ spmd
     BALANCE = initializeBALANCE(T, wc, c_cTgrid, lwc_cTgrid, GRID, PARA);
     
     %---- temporary arrays for storage of lateral fluxes --> these could go into a LATERAL struct or TEMPORARY?
-    water_fluxes = zeros( 1, numlabs );                         % total water flux in [m/s] from each worker to worker index
-    snow_fluxes = zeros( 1, numlabs );                          % total snow flux in [m SWE] per output interval from each worker to worker index
-    heat_fluxes = zeros( 1, numlabs );                           % total heat flux in [J] per output interval of all workers to worker index
-    dE_dt_lateral = zeros( length(GRID.general.cT_grid), 1);    % cell-wise heat flux in [W/m^3]? of all workers to worker index
+    %water_fluxes = zeros( 1, numlabs );                         % total water flux in [m/s] from each worker to worker index
+    %snow_fluxes = zeros( 1, numlabs );                          % total snow flux in [m SWE] per output interval from each worker to worker index
+    %heat_fluxes = zeros( 1, numlabs );                           % total heat flux in [J] per output interval of all workers to worker index
+    %dE_dt_lateral = zeros( length(GRID.general.cT_grid), 1);  %in [J/m^3/s]
     
     %__________________________________________________________________________
     %-------- provide arrays for data storage ---------------------------------
@@ -289,7 +289,6 @@ spmd
         
         %------- infiltration module-------------------------------------------
         if PARA.modules.infiltration
-            %lateral_water_flux = nansum( water_fluxes );  % lateral fluxes to/from other workers in [m/s] --> this is now done directly at sync time
             [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRID, PARA, FORCING, BALANCE);
         end  
 
@@ -344,14 +343,12 @@ spmd
 				% heat exchange module
 				if PARA.modules.exchange_heat
 					labBarrier();
-                    heat_fluxes = zeros( 1, numlabs );
 					% check preconditions
 					precondition_heatExchange = true; %no specific conditions so far
 					if precondition_heatExchange
 						%WRAPPER
                         fprintf('\t\t\tsync - exchanging heat\n');
 						% calculate lateral heat fluxes
-						dE_dt_lateral = zeros( length(GRID.general.cT_grid), 1);  %in [J/m^3/s]
 		                PACKAGE_heatExchange.T = T;
 		                PACKAGE_heatExchange.cT_grid = GRID.general.cT_grid;
 		                PACKAGE_heatExchange.k_cTgrid = k_cTgrid;
@@ -359,13 +356,16 @@ spmd
 		                    if j~=index
 		                        labSend( PACKAGE_heatExchange, j, 1);
 		                    end
-		                end
+                        end
+                        % provide temporary array for lateral heat fluxes
+  						dE_dt_lateral = zeros( length(GRID.general.cT_grid), 1);  %in [J/m^3/s]
 			            for j=1:number_of_realizations
 					        if j~=index
 				                PACKAGE_heatExchange_j = labReceive(j, 1);
-				                [dE_dt_lateral_j, BALANCE] = calculateLateralHeatFluxes(T, k_cTgrid, PACKAGE_heatExchange_j,GRID, PARA, BALANCE, j);   % contribution from worker j to worker index
-				                heat_fluxes(j) = nansum( dE_dt_lateral_j .* GRID.general.K_delta );  % in [J / m^2 s ], only for tracking the overall heat fluxes  
-				                dE_dt_lateral = dE_dt_lateral + dE_dt_lateral_j;    % sum up contributions from all realizations
+				                [dE_dt_lateral_j, BALANCE] = calculateLateralHeatFluxes(T, k_cTgrid, PACKAGE_heatExchange_j,GRID, PARA, BALANCE, j);   % contribution from worker j to worker index in [ J/m^3/s ]
+                                TEMPORARY.dE_cell_lateral(:,j) = TEMPORARY.dE_cell_lateral(:,j) + dE_dt_lateral_j .* PARA.technical.syncTimeStep.*24.*3600; % in [ J/m^3 ]
+				                TEMPORARY.dE_tot_lateral(j) = TEMPORARY.dE_tot_lateral(j) + nansum(  dE_dt_lateral_j .* PARA.technical.syncTimeStep.*24.*3600 .* GRID.general.K_delta ); % depth intergrated in [ J/m^2 ]
+				                dE_dt_lateral = dE_dt_lateral + dE_dt_lateral_j;    % sum up contributions from all realizations in [ J/m^3/s ]
 		                	end
 		            	end
 						% apply lateral heat fluxes for entire sync interval directly
@@ -383,7 +383,7 @@ spmd
                         fprintf('\t\t\tsync - exchanging water\n');
 						% calculate lateral water fluxes
                         water_fluxes= zeros(numlabs,numlabs); % in m of height change
-		                PACKAGE_waterExchange.water_table_altitude = PARA.ensemble.water_table_altitude(index);
+		                PACKAGE_waterExchange.water_table_altitude = PARA.ensemble.water_table_altitude(index);     % JAN: I think we do not need to exchange water_table and infiltration altitude because this is done already at the beginning of the lateral scheme
                         PACKAGE_waterExchange.infiltration_altitude = PARA.ensemble.infiltration_altitude(index);
 		                PACKAGE_waterExchange.infiltration_condition = T(GRID.soil.cT_domain_ub)>0 && isempty(GRID.snow.cT_domain_ub);
 			            
@@ -426,8 +426,12 @@ spmd
                         
 						% apply lateral water flux directly (as bulk subsurface flux)
                         [wc, excess_water, lacking_water] = bucketScheme(T, wc, zeros( size(wc) ), GRID, PARA, waterflux);
-                        assert( lacking_water < 1e-9, 'CryoGrid3 - lateral exchange - lacking water>0');    % there should be no lacking water as this was checked for
-                        
+                        try
+                            assert( lacking_water < 1e-9, 'CryoGrid3 - lateral exchange - lacking water>0');    % there should be no lacking water as this was checked for
+                        catch
+                            fprintf(' Lacking water = %f m\n', lacking_water );
+                        end
+                            
                         % Store and display
                         BALANCE.water.dr_water_fluxes_out=BALANCE.water.dr_water_fluxes_out+water_fluxes./(PARA.technical.syncTimeStep*24*3600); % here we decide in which units we want it. Now m/s
                         BALANCE.water.dr_lateralWater = BALANCE.water.dr_lateralWater + (waterflux-excess_water)*1000; % Excess water is removed so that we only keep the net water modification implied by the lateral fluxes
@@ -455,7 +459,6 @@ spmd
                         fprintf('\t\t\tsync - exchanging snow\n');
 		                % calculate terrain index with updated surface_altitudes
 		                PARA.ensemble.terrain_index_snow = calculateTerrainIndexSnow(PARA.ensemble.surface_altitude, PARA.ensemble.weight);
-		                
 						% calculate mobile snow
 						% WRAPPER
 		                mobile_snow = zeros( 1, number_of_realizations );
@@ -494,8 +497,7 @@ spmd
 							BALANCE.water.dr_lateralSnow = BALANCE.water.dr_lateralSnow + my_snow_change ;             
 			            end
 
-						snow_fluxes = zeros( 1, numlabs );
-			            snow_fluxes(index) = my_snow_change ./ (PARA.technical.syncTimeStep.*3600.*24); %this is only to have comparable output to other fluxes
+			            TEMPORARY.snow_flux_lateral = TEMPORARY.snow_flux_lateral + my_snow_change;
 			            fprintf('Snow flux to worker %d = %f mm SWE \n', [index, my_snow_change*1000] );
 				       
 					end
@@ -513,7 +515,7 @@ spmd
         %------- next time step -----------------------------------------------
         t=t+timestep;
         %---------- sum up + OUTPUT -------------------------------------------
-        [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc_cTgrid(GRID.soil.cT_domain), timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, saveDir, run_number, snow_fluxes, heat_fluxes);
+        [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc_cTgrid(GRID.soil.cT_domain), timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, saveDir, run_number);
         
     end
     

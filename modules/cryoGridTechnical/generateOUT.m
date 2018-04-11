@@ -36,15 +36,17 @@ function OUT = generateOUT()
     OUT.location.surface_altitude=[];
     OUT.location.infiltration_altitude = [];
     OUT.location.water_table_altitude=[];
+    % averaged over output interval
     OUT.location.infiltration_altitude_mean = [];
     OUT.location.water_table_altitude_mean=[];
     
 
     % lateral fluxes
     OUT.lateral.terrain_index_snow=[];
-    OUT.lateral.water_fluxes = [];     % vector containing water fluxes in [m/s] to the current worker
-    OUT.lateral.snow_fluxes = [];      % vector containing snow fluxes in [m SWE / s] to the current worker
-    OUT.lateral.heat_fluxes = [];      % vector containing depth-integrated heat fluxes in [J/m^2 s ] to the current worker
+    OUT.lateral.water_fluxes = [];     % vector containing accumulated lateral water fluxes per output interval in [m] to the current worker from all other workers
+    OUT.lateral.snow_flux = [];      % accumulated lateral snow fluxes per output interval in [m SWE] to the current worker
+    OUT.lateral.dE_tot = [];      % vector containing depth-integrated lateral heat fluxes per output interval in [J/m^2] to the current worker
+    OUT.lateral.dE_cell = [];    % matrix containing cell-wise, accumulated lateral heat fluxes in [J/m^3] to the current worker
 
     % water balance (WB)
     % all flows are defined as positive when they go into the soil/snow column
