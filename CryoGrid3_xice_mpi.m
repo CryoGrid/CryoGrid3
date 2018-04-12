@@ -1,3 +1,5 @@
+function CryoGrid3_xice_mpi(SETUP)
+
 % -------------------------------------------------------------------------
 % CryoGRID3
 % main script for running the model
@@ -6,17 +8,17 @@
 %
 % -------------------------------------------------------------------------
 
-delete(gcp('nocreate')) % useful to restart from a crash
+%delete(gcp('nocreate')) % useful to restart from a crash
 
-add_modules;  %adds required modules
+%add_modules;  %adds required modules
 
-saveDir = './runs';
+saveDir = SETUP.saveDir; %'./runs';
 
-number_of_realizations=2;
+number_of_realizations=SETUP.numRealizations;
 
-if number_of_realizations>1
-    parpool(number_of_realizations);
-end
+% if number_of_realizations>1
+%     parpool(number_of_realizations);
+% end
 
 spmd
     index=labindex;   %number identifying the process; change this to e.g. 1 for single realization (non-parallel) run
@@ -50,16 +52,16 @@ spmd
     % parameters related to hydrology scheme
     PARA.soil.fieldCapacity=0.5;    %water holding capacity of the soil - this must be adapted to fit the upperlost layers!!
     PARA.soil.evaporationDepth=0.10; %depth to which evaporation occurs - place on grid cell boundaries
-    PARA.soil.rootDepth=0.2;        %depth affected by transpiration - place on grid cell boundaries
+    PARA.soil.rootDepth=0.20;        %depth affected by transpiration - place on grid cell boundaries
 %    PARA.soil.wiltingPoint=0.2;     %point at which transpiration shuts off 
 %    PARA.soil.residualWC=0.05;      %water always remaining in the soil, not accessible to evaporation
     PARA.soil.ratioET=0.5;          % 1: only transpiration; 0: only evaporation, values in between must be made dependent on LAI, etc.
     PARA.soil.externalWaterFlux=0;  %external water flux / drainage in [m/day]
     PARA.soil.convectiveDomain=[];       % soil domain where air convection due to buoyancy is possible -> start and end [m] - if empty no convection is possible
     PARA.soil.mobileWaterDomain=[0 10.0];      % soil domain where water from excess ice melt is mobile -> start and end [m] - if empty water is not mobile
-    PARA.soil.relative_maxWater=0;              % depth at which a water table will form [m] - above excess water is removed, below it pools up
-    PARA.soil.hydraulic_conductivity = 1e-5;
-    PARA.soil.infiltration_limit_depth=1.25;     % depth [m] from the surface at wich the infiltration bucket scheme is stopped if no permafrost.
+    PARA.soil.relative_maxWater=SETUP.relMaxWater;              % depth at which a water table will form [m] - above excess water is removed, below it pools up
+    PARA.soil.hydraulic_conductivity = SETUP.K;
+    PARA.soil.infiltration_limit_depth=2.;     % depth [m] from the surface at wich the infiltration bucket scheme is stopped if no permafrost.
     PARA = loadSoilTypes( PARA );
 
     % parameters related to snow
@@ -72,7 +74,7 @@ spmd
     PARA.snow.tau_1=86400.0;        % time constants of snow albedo change (according to ECMWF reanalysis) [sec]
     PARA.snow.tau_a=0.008;          % [per day]
     PARA.snow.tau_f=0.24;           % [per day]
-    PARA.snow.relative_maxSnow= [1.0]; 	% maximum snow depth that can be reached [m] - excess snow is removed in the model - if empty, no snow threshold
+    PARA.snow.relative_maxSnow=[1.0]; 	% maximum snow depth that can be reached [m] - excess snow is removed in the model - if empty, no snow threshold
     PARA.snow.extinction=25.0;      % light extinction coefficient of snow
 
     % parameters related to water body on top of soil domain
@@ -81,7 +83,7 @@ spmd
     PARA.water.rs=0.0;            % surface resistance -> should be 0 for water
     PARA.water.z0=5e-4;              % roughness length surface [m] % JAN: value for summer / vegetation
     
-    PARA.ice.albedo =0.20;      % albedo ice / Lei et al. (2011) shows a range of 0.1 to 0.35
+    PARA.ice.albedo=0.20;      % albedo ice / Lei et al. (2011) shows a range of 0.1 to 0.35
     PARA.ice.epsilon=0.98;      % surface emissivity snow
     PARA.ice.rs=0.0;              % surface resistance -> should be 0 for ice
     PARA.ice.z0=5e-4;              % roughness length surface [m] % JAN: value for snow
@@ -91,13 +93,13 @@ spmd
     PARA.technical.SWEperCell=0.005;            % SWE per grid cell in [m] - determines size of snow grid cells
     PARA.technical.maxSWE=0.4;                  % in [m] SWE
     PARA.technical.arraySizeT=5002;             % number of values in the look-up tables for conductivity and capacity
-    PARA.technical.starttime=datenum(1979, 7, 1);       % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum(1979, 7, 10);         % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.starttime=SETUP.startDate;       % starttime of the simulation - if empty start from first value of time series
+    PARA.technical.endtime=SETUP.endDate;         % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;   % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;   % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;            % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
     PARA.technical.outputTimestep= 3 ./ 24.0 ;          % output time step in [days] - here three hours
-    PARA.technical.syncTimeStep = 12 ./ 24.0 ;          % output time step in [days] - here three hours
+    PARA.technical.syncTimeStep = SETUP.syncTimestep;          % output time step in [days] - here three hours
     PARA.technical.saveDate='01.01.';           % date of year when output file is written - no effect if "saveInterval" is empty
     PARA.technical.saveInterval=[1];             % interval [years] in which output files are written - if empty the entire time series is written - minimum is 1 year
     PARA.technical.waterCellSize=0.02;          % default size of a newly added water cell when water ponds below water table [m]
@@ -155,14 +157,15 @@ spmd
 
 		%---------overwrites variables for each realization--------------------
 		% this function must define everything that is realization-specific or dependent of all realizations
-		PARA = get_parallel_variables( PARA );
+		PARA = get_parallel_variables( PARA, SETUP );
 	end
 
     % ------make output directory (name depends on parameters) ----------------
-    run_number= sprintf( [ 'TESTRUN_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' )  '_lateral%d_xH%d_xW%d_xS%d_infil%d_xice%d_rF%d_sF%d' ], ...
-        [ PARA.modules.lateral, PARA.modules.exchange_heat, PARA.modules.exchange_water, PARA.modules.exchange_snow, ...
-          PARA.modules.infiltration, PARA.modules.xice, ...
-          PARA.forcing.rain_fraction, PARA.forcing.snow_fraction ] );
+    run_number= SETUP.runName;
+    %sprintf( [ 'TESTRUN_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' )  '_lateral%d_xH%d_xW%d_xS%d_infil%d_xice%d_rF%d_sF%d' ], ...
+     %   [ PARA.modules.lateral, PARA.modules.exchange_heat, PARA.modules.exchange_water, PARA.modules.exchange_snow, ...
+      %    PARA.modules.infiltration, PARA.modules.xice, ...
+       %   PARA.forcing.rain_fraction, PARA.forcing.snow_fraction ] );
     
     mkdir([ saveDir '/' run_number]);
     
@@ -245,7 +248,7 @@ spmd
         %set surface conditions (albedo, roughness length, etc.)
         [PARA, GRID] = surfaceCondition(GRID, PARA, T);
         %calculate the surface energy balance
-        [SEB, dwc_dt] = surfaceEnergyBalanceInfiltration(T, wc, FORCING, GRID, PARA, SEB);
+        [SEB, dwc_dt] = surfaceEnergyBalanceInfiltration(T, wc, FORCING, GRID, PARA, SEB, 2);   %JAN: last argument = 1 : old ET scheme by Sebastian. = 2: new ET scheme
         
         %------ soil module  --------------------------------------------------
         %calculate heat conduction
@@ -340,7 +343,7 @@ spmd
 				labBarrier(); %common start
 				PARA = updateAuxiliaryVariablesAndCommonThresholds(T, wc, GRID, PARA) ;        
 				
-				% heat exchange module
+                % HEAT exchange module
 				if PARA.modules.exchange_heat
 					labBarrier();
 					% check preconditions
@@ -373,7 +376,7 @@ spmd
 					end
 				end
 
-				% water exchange module
+				% WATER exchange module
 				if PARA.modules.exchange_water
 					labBarrier();
 					% check preconditions
@@ -401,11 +404,15 @@ spmd
 
 		                % Calculate possible boundary fluxes
                         [ boundary_water_flux ] = calculateLateralWaterBoundaryFluxes(PARA, GRID, T);
+                        fprintf('\t\t\tBoundary contribution :\t%3.2e m\n',boundary_water_flux)
+
                         
                         % Check for water availability and set real water fluxes
                         [ water_fluxes_worker, boundary_water_flux ] = calculateLateralWaterAvailable( PARA,GRID, wc, water_fluxes,boundary_water_flux );
                         water_fluxes_gather=zeros(numlabs,numlabs,numlabs);
                         water_fluxes_gather(:,:,labindex)=water_fluxes_worker;
+                        fprintf('\t\t\tBoundary contribution :\t%3.2e m\n',boundary_water_flux)
+
                         
                         % Send real fluxes all around
                         for j=1:number_of_realizations
@@ -429,7 +436,7 @@ spmd
                         try
                             assert( lacking_water < 1e-9, 'CryoGrid3 - lateral exchange - lacking water>0');    % there should be no lacking water as this was checked for
                         catch
-                            fprintf(' Lacking water = %f m\n', lacking_water );
+                            fprintf('\t\t\tLacking water = %3.2e m\n', lacking_water );
                         end
                             
                         % Store and display
@@ -450,7 +457,7 @@ spmd
 
 				end
 
-				% snow exchange module
+				% SNOW exchange module
 				if PARA.modules.exchange_snow
 					labBarrier();
 					% check preconditions
@@ -494,11 +501,11 @@ spmd
 			            if my_snow_change ~= 0
 			                [T, GRID] = applyLateralSnowFluxes( T, PARA, GRID, FORCING, my_snow_change );
 			                [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE);
-							BALANCE.water.dr_lateralSnow = BALANCE.water.dr_lateralSnow + my_snow_change ;             
+							BALANCE.water.dr_lateralSnow = BALANCE.water.dr_lateralSnow + my_snow_change*1000 ;             
 			            end
 
 			            TEMPORARY.snow_flux_lateral = TEMPORARY.snow_flux_lateral + my_snow_change;
-			            fprintf('Snow flux to worker %d = %f mm SWE \n', [index, my_snow_change*1000] );
+			            fprintf('\t\t\tSnow flux to worker %d = %f mm SWE \n', [index, my_snow_change*1000] );
 				       
 					end
 				end
@@ -507,7 +514,7 @@ spmd
 				PARA = updateAuxiliaryVariablesAndCommonThresholds(T, wc, GRID, PARA) ;        
 
 		        TEMPORARY.syncTime=round((TEMPORARY.syncTime + PARA.technical.syncTimeStep)./PARA.technical.syncTimeStep).*PARA.technical.syncTimeStep;
-		        fprintf('sync - done\n');
+		        fprintf('\t\t\tsync - done\n');
 			end
         end  
         
@@ -522,6 +529,7 @@ spmd
     % save final state and output at t=endtime
     iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_output' datestr(t,'yyyy') '.mat'], OUT)
     iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_finalState' datestr(t,'yyyy') '.mat'], T, wc, t, SEB, PARA, GRID)
+    iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_altitudes' datestr(t,'yyyy') '.png'], OUT, PARA );
 end
 
 if number_of_realizations>1

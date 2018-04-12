@@ -1,8 +1,8 @@
-function [ boundary_water_fluxes ] = calculateLateralWaterBoundaryFluxes(PARA, GRID, T)
+function [ boundary_water_flux ] = calculateLateralWaterBoundaryFluxes(PARA, GRID, T)
 % Function that calculates the lateral water fluxes created by the boundary
 % conditions of the worker
 
-boundary_water_fluxes=0;
+boundary_water_flux=0;
 
 if double( T(GRID.soil.cT_domain_ub)>0 && isempty(GRID.snow.cT_domain_ub) )==1; % conditions ok for water fluxes
     
@@ -14,19 +14,19 @@ if double( T(GRID.soil.cT_domain_ub)>0 && isempty(GRID.snow.cT_domain_ub) )==1; 
         Darcy_fluxFactor=PARA.ensemble.boundaryCondition(labindex).parameters.fluxFactor;
         DeltaH=abs(waterpot - Darcy_elevation);
         DarcyFlux= Darcy_fluxFactor * DeltaH * DeltaH; % DeltaH is multiplied twice, once as a pressure gradient and the second as the height of the section through which the flux is going
-        waterHeight_change=DarcyFlux * PARA.technical.syncTimeStep *24 *3600 / PARA.ensemble.weight(labindex); % syncTimeStep in days, Darcy flux in m3/sec
+        waterHeight_change=DarcyFlux * PARA.technical.syncTimeStep *24 *3600 / PARA.ensemble.area(labindex); % syncTimeStep in days, Darcy flux in m3/sec
         
         if (waterpot > PARA.ensemble.boundaryCondition(labindex).parameters.elevation && hasWater==1) % worker is loosing water
             
-            boundary_water_fluxes(labindex)=-waterHeight_change;
+            boundary_water_flux=-waterHeight_change;
             
         elseif waterpot < PARA.ensemble.boundaryCondition(labindex).parameters.elevation;
             
-            boundary_water_fluxes(labindex)=waterHeight_change;
+            boundary_water_flux=waterHeight_change;
             
         else
             
-            boundary_water_fluxes(labindex)=0;
+            boundary_water_flux=0;
             
         end
         

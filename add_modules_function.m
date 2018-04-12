@@ -1,6 +1,6 @@
-clear all
 %clearvars -except startYear endYear rainFrac snowFrac waterTable maxSnow extFlux fieldCapacity snowDens
 
+clear all
 close all
 profile off
 dbclear if error

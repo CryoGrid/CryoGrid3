@@ -1,4 +1,3 @@
-% %clear all
 % if ~paraFromFile
 %     clearvars -except paraFromFile     % enable running with or without config file from same script
 % end
