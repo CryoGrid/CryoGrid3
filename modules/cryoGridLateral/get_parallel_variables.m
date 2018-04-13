@@ -13,7 +13,7 @@ PARA.ensemble.altitude = PARA.ensemble.initial_altitude;
 PARA.ensemble.surface_altitude = PARA.ensemble.initial_altitude;
 
 % parameters related to heat exchange
-PARA.ensemble.thermal_contact_length = 20 .* diag(1*ones(numlabs-1,1),-1)+diag(1*ones(numlabs-1,1),1);
+PARA.ensemble.thermal_contact_length = 20 .* (diag(1*ones(numlabs-1,1),-1)+diag(1*ones(numlabs-1,1),1));
 PARA.ensemble.thermalDistance = PARA.ensemble.distanceBetweenPoints;
 %PARA.ensemble.dE_dt_lateral = zeros( length(GRID.general.cT_grid), numlabs) ; % cell-wise lateral heat fluxes in [W/m^3] to the worker index
 %ARA.ensemble.heat_fluxes = zeros( 1, numlabs ); % depth-integrated heat flux in [J/m^2] per synchronization interval from each worker to worker index
@@ -25,13 +25,13 @@ PARA.ensemble.external_water_flux= zeros( 1, numlabs) ;	%in m/day
 PARA.ensemble.hydraulic_conductivity= PARA.soil.hydraulic_conductivity * ( ones(numlabs) - eye(numlabs ) );	%in m/sec % [Roth: 1e-5 for saturated silt, 2.2e-5 for saturated sand]
 % Leos definition:  PARA.ensemble.hydraulic_conductivity= diag(PARA.soil.hydraulic_conductivity*ones(numlabs-1,1),-1)+diag(PARA.soil.hydraulic_conductivity*ones(numlabs-1,1),1); %in m/sec % [Roth: 1e-5 for saturated silt, 2.2e-5 for saturated sand] % Léo: 10-5 m/s good for peat also
 PARA.ensemble.water_table_altitude = nan(1, numlabs);
-PARA.ensemble.hydraulic_contact_length = 20 .* diag( 1 * ones(numlabs-1,1),-1) + diag( 1 * ones(numlabs-1,1),1);
+PARA.ensemble.hydraulic_contact_length = 20 .* (diag( 1 * ones(numlabs-1,1),-1) + diag( 1 * ones(numlabs-1,1),1));
 PARA.ensemble.infiltration_altitude = nan(1, numlabs);
 PARA.ensemble.hydraulicDistance = PARA.ensemble.distanceBetweenPoints;
 
-boundaryCondition={'DarcyReservoir','NoBC'};
-Darcy_elevation=[19 NaN ]; % Elevation of the Darcy reservoir that can drain or refill the worker it is connected to. NaN for workers withour this boundary condition
-Darcy_fluxFactor=[5*1e-5/50 NaN ]; % Taken as the hydraulic_contact_length*hydraulic_conductivity/hydraulic_distance    Defined for now like this, lets see if we wantto define it differently
+boundaryCondition=flip({'DarcyReservoir','NoBC'});
+Darcy_elevation=flip([19 NaN ]); % Elevation of the Darcy reservoir that can drain or refill the worker it is connected to. NaN for workers without this boundary condition
+Darcy_fluxFactor=flip([5*1e-5/50 NaN ]); % Taken as the hydraulic_contact_length*hydraulic_conductivity/hydraulic_distance. Defined for now like this, lets see if we wantto define it differently. NaN for workers without this boundary condition
 PARA.ensemble.boundaryCondition(length(boundaryCondition)).type=boundaryCondition{end};
 [PARA.ensemble.boundaryCondition.type]=boundaryCondition{:};
 for i=1:numlabs

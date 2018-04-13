@@ -23,7 +23,8 @@ if isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0   %no snow cov
 	dwc_dt(1)=dwc_dt(1)+FORCING.i.rainfall./1000.*timestep;
 
 	% changes due to meltwater from excess ice
-	dwc_dt(1)=dwc_dt(1)+meltwaterForInfiltration;
+	dwc_dt(1)=dwc_dt(1)+meltwaterForInfiltration + GRID.soil.water2pool;
+    GRID.soil.water2pool=0;
 
 	% routing of water    
 	[wc, surface_runoff, lacking_water] = bucketScheme(T, wc, dwc_dt, GRID, PARA, external_flux_rate.*timestep);
