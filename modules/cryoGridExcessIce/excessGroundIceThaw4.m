@@ -14,7 +14,7 @@ cT_grid=GRID.general.cT_grid(GRID.soil.cT_domain);
 K_delta=GRID.general.K_delta(GRID.soil.cT_domain);
 
 
-mobileWater = double(T(GRID.soil.cT_domain)>0) .* (water-natPor) .* double(water>natPor);
+mobileWater = double(T(GRID.soil.cT_domain)>0) .* (water-natPor) .* double(water>natPor);  %zzz
 [startCell ~]= LayerIndex(mobileWater~=0); %this is faster
 
 %move solids down
@@ -57,7 +57,7 @@ for i=startCell:-1:1
     if mineral(i)+organic(i)==0
         water(i)=min(K_delta(i), mobileWater);
         mobileWater=mobileWater-water(i);
-        water(i)=round(water(i)./K_delta(i)).*K_delta(i);  %this violates the water balance, but ensures that no grid cells with partly water and partly air can exist;
+        water(i)=round(water(i)./K_delta(i)).*K_delta(i);  %this violates the water balance, but ensures that no grid cells with partly water and partly air can exist;  zzz
     end
 end
 

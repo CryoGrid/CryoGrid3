@@ -186,8 +186,7 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
       
         TEMPORARY.outputTime=round((TEMPORARY.outputTime+PARA.technical.outputTimestep)./PARA.technical.outputTimestep).*PARA.technical.outputTimestep;
      
-        %ooo
-        index=1
+        %ooo  index=1
         
         %write output files      
         if  round((t-TEMPORARY.saveTime).*48)==0   

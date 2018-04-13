@@ -1,6 +1,6 @@
 function [FLAKE GRID] = initializeLAKE(GRID, PARA);
 
-GRID.lake.unfrozenWaterSurface = false; % zzz needed?
+% GRID.lake.unfrozenWaterSurface = false; %tsvd not needed anymore
 GRID.lake.residualWater = 0; % the water content stored "mixed" cells of air and water if a water body is present 
 
 %---- flake initialization ------------------------------------------------

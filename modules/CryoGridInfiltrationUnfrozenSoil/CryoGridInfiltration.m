@@ -1,7 +1,9 @@
 function [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRID, PARA, FORCING, BALANCE, lateral_flux_rate)
 
-if isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0   %no snow cover and uppermost grid cell unfrozen
-    
+%   if isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0   %no snow cover and uppermost grid cell unfrozen
+% zzz check whether it helps to exclude lake case
+    if isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0 || ~isempty (GRID.lake.water.cT_domain_ub) || ~isempty (GRID.lake.ice.cT_domain_ub)  %no snow cover and uppermost grid cell unfrozen
+
     % possible contribution from xice meltwater, snowmelt, rain on frozen ground
     residualWater = GRID.lake.residualWater;
     GRID.lake.residualWater=0;
@@ -70,7 +72,7 @@ end
 % step 3: LUT update
 %         JAN:recalculate lookup tables when water content of freezing grid cells
 %         has changed (infiltrated cells can freeze --> LUT is updated)
-if sum(double(wc~=GRID.soil.cT_water & T(GRID.soil.cT_domain)<=0))>0
+if sum(double(wc~=GRID.soil.cT_water & T(GRID.soil.cT_domain)<=0))>0  %zzz jjj
     disp('infiltration - reinitializing LUT - freezing of infiltrated cell(s)');
     GRID.soil.cT_water = wc;
     GRID = initializeSoilThermalProperties(GRID, PARA);

@@ -25,5 +25,5 @@ L_star=(abs(L_star)<1e-6).*L_star./abs(L_star).*1e-6 + (abs(L_star)>=1e-6).*L_st
 L_star=(abs(L_star)>1e6).*L_star./abs(L_star).*1e6 + (abs(L_star)<=1e6).*L_star;    % introduced upper limit for Lstar
 
 
-SEB.u_star = u_star; %ttt check whether u_star or ustar!?
+SEB.u_star = u_star; 
 SEB.L_star=[SEB.L_star(2:end) L_star];  

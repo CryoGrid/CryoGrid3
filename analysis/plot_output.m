@@ -12,9 +12,9 @@ close all
 % runname = 'testrunMPI_POOL_xH1_xW1_xS1_infil1_xice1_rF1_sF1_realization2';
 %runname = ' TESTRUN-MPI_197906-198007_stratSAM_geomHEX_extFluxT-0.005_xH1_xW1_xS0_rf1_sf1';
 %runname ='TESTRUN-MPI_197906-198007_stratSAM_geomHEX_extFluxT-0.005_xH0_xW0_xS0_rf1_sf1';
-runname='TESTRUN-MPI_197906-198007_stratSAM_geomHEX_extFluxT-0.005_xH0_xW0_xS0_rf1_sf1';
-
-number_of_realizations = 1
+%runname='TESTRUN-MPI_197906-198007_stratSAM_geomHEX_extFluxT-0.005_xH0_xW0_xS0_rf1_sf1';
+runname='LAKE-MPI_xH0_xW0_xS0_infil0_xice0_rF1_sF1_i1_realization'
+number_of_realizations = 2
 % 
 
     %% load output data and settings from files of all workers
@@ -42,7 +42,7 @@ number_of_realizations = 1
         %outputfile = [dir run  '\' run '_output1979.mat'];
         %configfile = [dir run  '\' run '_settings.mat'];
         
-        outputfile = ['..\runs\' run '_output1979.mat'];
+        outputfile = ['..\runs\' run '_output1980.mat'];
         configfile = ['..\runs\' run '_settings.mat'];
         
         %outputfile = 'E:\CryoGrid3\runs\testrunMPI_POOL_xH1_xW1_xS1_infil1_xice1_rF1_sF1_realization2\testrunMPI_POOL_xH1_xW1_xS1_infil1_xice1_rF1_sF1_realization2_output1979.mat'

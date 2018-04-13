@@ -58,13 +58,14 @@ Qnet = FORCING.i.Sin-Sout + FORCING.i.Lin - Lout ;
 
 %calculate ET  
 
-    %snow cover or uppermost grid cell frozen --> no ET
+    %snow cover or uppermost grid cell frozen, or lake ice --> no ET
 %tsvd added from version FLAKE
 if PARA.modules.infiltration 
-    if ~isempty(GRID.snow.cT_domain_ub) || T(GRID.soil.cT_domain_ub)<=0  || ~isempty(GRID.lake.water.cT_domain_ub)    %zzz islake ...   %snow cover or uppermost grid cell frozen --> no ET      tsvd: addition case LAKE added
+    if ~isempty(GRID.snow.cT_domain_ub) || T(GRID.soil.cT_domain_ub)<=0  || ~isempty(GRID.lake.ice.cT_domain_ub)    %lll water replaced by ice  %snow cover or uppermost grid cell frozen --> no ET      tsvd: addition case LAKE added
         Qe=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, PARA.surf.rs, FORCING.i.p, PARA));
     % unfrozen water body at surface
-    elseif GRID.lake.unfrozenWaterSurface % zzz check
+    %tsvd elseif GRID.lake.unfrozenWaterSurface % zzz 
+    elseif ~isempty(GRID.lake.water.cT_domain_ub) 
         Qe=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, PARA.surf.rs, FORCING.i.p, PARA));
         dwc_dt(1)=-Qe./L; %in m water per sec, this can be evaporation or condensation
         
@@ -110,7 +111,8 @@ SEB.Qe = Qe;
 SEB.Qg = Qg;
 SEB.Sout = Sout;
 SEB.Lout = Lout;
-    %tsvd
-    SEB.Sin_water=Sin_water;
+%tsvd
+SEB.Sin_water=Sin_water;
+
 end
 

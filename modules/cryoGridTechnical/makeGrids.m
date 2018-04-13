@@ -6,7 +6,7 @@ GRID.snow.snowGrid=[-1.*(PARA.technical.maxSWE./(PARA.technical.SWEperCell)+2).*
 GRID.lake.water.waterGrid=[0:0.02:PARA.water.depth-0.02]';  %with water (it is recommended to use a grid resolution of about 2cm)
 %GRID.lake.water.waterGrid=[]'; %no water
 if ~isempty(GRID.lake.water.waterGrid)
-    GRID.soil.soilGrid=PARA.technical.subsurfaceGrid + (2*GRID.lake.water.waterGrid(end)-GRID.lake.water.waterGrid(end-1));
+    GRID.soil.soilGrid=PARA.technical.subsurfaceGrid + (2*GRID.lake.water.waterGrid(end)-GRID.lake.water.waterGrid(end-1)); %zzz ok?
 else
 GRID.soil.soilGrid=PARA.technical.subsurfaceGrid;
 end

@@ -42,5 +42,5 @@ k_temp(GRID.lake.water.cT_domain) = 5.46E-01   ; % in loadConstants.m 0.57 is us
 lwc_temp(GRID.lake.water.cT_domain) = 1.;
 
 c_temp(GRID.lake.ice.cT_domain) = PARA.constants.c_i;
-k_temp(GRID.lake.ice.cT_domain) = 2.29;   ; % in loadConstants.m 2.2 is used!  FLAKE:  Molecular heat conductivity of ice [J m^{-1} s^{-1} K^{-1}]
+k_temp(GRID.lake.ice.cT_domain) = 2.29;   ; % in loadConstants.m 2.2 is used!  FLAKE:  Molecular heat conductivity of ice [J m^{-1} s^{-1} K^{-1}]  zzz
 lwc_temp(GRID.lake.ice.cT_domain) = 0.;

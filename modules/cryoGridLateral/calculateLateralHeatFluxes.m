@@ -1,7 +1,6 @@
 function [dE_dt, BALANCE] = calculateLateralHeatFluxes(T_index, k_index, PACKAGE_heatExchange_j, GRID, PARA, BALANCE, j)
     
-%ooo	index = labindex;
-    index=1
+    index = labindex;
     dE_dt = zeros( length(GRID.general.cT_grid), 1);
     if PARA.ensemble.thermal_contact_length(index,j)>0  % calculate lateral heat flux only for laterally connected workers
         
@@ -18,32 +17,30 @@ function [dE_dt, BALANCE] = calculateLateralHeatFluxes(T_index, k_index, PACKAGE
 
         % interpolate j-values to index-grid   
         altitude_cTgrid_j = -PACKAGE_heatExchange_j.cT_grid + PARA.ensemble.initial_altitude(j);
-        min_contact_altitude = min( [altitude_cTgrid_index(end), altitude_cTgrid_j(end)] );
+        min_contact_altitude = min( [altitude_cTgrid_index(end), altitude_cTgrid_j(end)] ); %zzz max instead of min   def. also max_contact_alt ?
         altitude_cTgrid_index(end) = min_contact_altitude;
         altitude_cTgrid_j(end) = min_contact_altitude;
         T_j = PACKAGE_heatExchange_j.T;
         k_j = PACKAGE_heatExchange_j.k_cTgrid;
-        if ~isreal(altitude_cTgrid_index) %likley not relevant anymore
-            disp('altitude_cTgrid_index contains complex values');
-        end
-        if ~isreal(altitude_cTgrid_j)
-            disp('altitude_cTgrid_j contains complex values');
-        end
-        if ~isreal(T_j)
-            disp('T_j contains complex values');
-        end
-        if ~isreal(k_j)
-            disp('k_j contains complex values');
-        end
-        T_interp_j = interp1( altitude_cTgrid_j, T_j, altitude_cTgrid_index, 'linear');
-        try
-            assert( sum( isnan( T_interp_j ) )==0, 'calc lat heat fluxes - error in T interpolation') %ttt
-        catch
-           save Data_Tinterp T_interp_j altitude_cTgrid_j T_j altitude_cTgrid_index 
-        end
-            k_interp_j = interp1( altitude_cTgrid_j, k_j, altitude_cTgrid_index, 'linear');
-        assert( sum( isnan( k_interp_j ) )==0, 'calc lat heat fluxes - error in k interpolation') %ttt
-
+        if ~isreal(altitude_cTgrid_index); disp('altitude_cTgrid_index contains complex values');  end  %likley not relevant anymore
+        if ~isreal(altitude_cTgrid_j);     disp('altitude_cTgrid_j contains complex values');      end
+        if ~isreal(T_j);                   disp('T_j contains complex values');                    end
+        if ~isreal(k_j);                   disp('k_j contains complex values');                    end
+        
+        T_interp_j = interp1( altitude_cTgrid_j, T_j, altitude_cTgrid_index, 'linear'); 
+%         try
+%             assert( sum( isnan( T_interp_j ) )==0, 'calc lat heat fluxes - error in T interpolation') %ttt
+%         catch
+%            save Data_Tinterp T_interp_j altitude_cTgrid_j T_j altitude_cTgrid_index index 
+% %           error('interpolation NAN T error')
+%         end
+        k_interp_j = interp1( altitude_cTgrid_j, k_j, altitude_cTgrid_index, 'linear');
+%         try
+%             assert( sum( isnan( k_interp_j ) )==0, 'calc lat heat fluxes - error in k interpolation') %ttt
+%         catch
+%             save Data_kinterp k_interp_j altitude_cTgrid_j k_j altitude_cTgrid_index index
+%             error('interpolation NAN K error')
+%         end
         % determine effectice thermal conductivities
         k_eff = (weight_index+weight_j) ./ ( weight_index./k_index + weight_j./k_interp_j );
 

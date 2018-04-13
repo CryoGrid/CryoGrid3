@@ -143,18 +143,18 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
             assert( sum( sum( isnan(GRID.snow.Snow_i(GRID.snow.cT_domain) + GRID.snow.Snow_w(GRID.snow.cT_domain) + GRID.snow.Snow_a(GRID.snow.cT_domain)) ) ) == 0 , 'updateGRID_snow - error in Snow_i/a/w grid' );
             
             % snow grid
-            soilTop = GRID.general.K_grid(GRID.snow.cT_domain_lb+1);
+            soilTop = GRID.general.K_grid(GRID.snow.cT_domain_lb+1);  %tsvd in case of an lake, soilTop corresponds to lakeTop
             GRID.general.K_grid(GRID.snow.cT_domain)= soilTop - flipud(cumsum(flipud(GRID.snow.Snow_i(GRID.snow.cT_domain) + GRID.snow.Snow_w(GRID.snow.cT_domain) + GRID.snow.Snow_a(GRID.snow.cT_domain))));
-
+            GRID.general.K_grid(GRID.air.cT_domain)=[GRID.general.K_grid(GRID.air.cT_domain_lb)+(-snowCellSize)*(GRID.air.cT_domain_lb-1):snowCellSize:GRID.general.K_grid(GRID.air.cT_domain_lb)]';
+ 
             assert( sum( isnan( GRID.general.K_grid ) )==0, 'updateGRID_snow - error in K grid after snow grid update')
 
-            % air grid
+            % air grid  zzz this is not in FLAKE version... jjj
             snowTop = GRID.general.K_grid(GRID.snow.cT_domain_ub);
             numAirCells = sum( GRID.air.cT_domain );
             GRID.general.K_grid(GRID.air.cT_domain) = flip( snowTop-snowCellSize:-snowCellSize:snowTop-snowCellSize*numAirCells );
             
             assert( sum( isnan( GRID.general.K_grid ) )==0, 'updateGRID_snow - error in K grid after air grid update')
-
             
             %GRID.general.K_grid(GRID.air.cT_domain) = [GRID.general.K_grid(GRID.air.cT_domain_lb)+(-2*snowCellSize)*(GRID.air.cT_domain_lb-1):2*snowCellSize:GRID.general.K_grid(GRID.air.cT_domain_lb)]';
         end 

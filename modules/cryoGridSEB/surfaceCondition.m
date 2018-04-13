@@ -3,7 +3,7 @@ function [PARA, GRID] = surfaceCondition(GRID, PARA, T, t, FORCING, SEB)
 
 % set surface parameters (albedo, emissivity, roughnesslength, resistance to evaporation) according to the actual surface conditions
 
-GRID.lake.unfrozenWaterSurface=false; % zzz
+% GRID.lake.unfrozenWaterSurface=false; %tsvd not needed anymore
 
 %default soil surface 
 PARA.surf.albedo  = PARA.soil.albedo;
@@ -42,7 +42,7 @@ if GRID.snow.cT_domain(GRID.air.cT_domain_lb+1)==1
 %tsvd  check if lake exists
 %lll if  GRID.lake.water.cT_domain(GRID.air.cT_domain_lb+1)==1 % water surface  
 elseif  GRID.lake.water.cT_domain(GRID.air.cT_domain_lb+1)==1 % water surface  
-    GRID.lake.unfrozenWaterSurface = true; %tsvd lll
+    % GRID.lake.unfrozenWaterSurface = true; %tsvd not needed any more
     %note SolarAzEl.m delivers only an approximation of sun position / t must be in UTC 
     [~, sun_elevation] = SolarAzEl(t,PARA.location.latitude,PARA.location.longitude,PARA.location.altitude);
     PARA.water.albedo = waterAlbedo(sun_elevation, FORCING.i.wind);

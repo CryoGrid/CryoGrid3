@@ -6,7 +6,7 @@ function waterTable = getWaterTableAltitude(T, wc, GRID, PARA)
     if ~isempty(GRID.snow.cT_domain_ub) || T(1)<=0
         waterTable=NaN;
     else
-        waterTable = PARA.location.altitude;
+        waterTable = PARA.location.altitude; % zzz ???!
         water = wc;
         porosity=(1. - GRID.soil.cT_mineral - GRID.soil.cT_organic);
         i=1;

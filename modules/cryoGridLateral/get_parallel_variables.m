@@ -1,6 +1,6 @@
 function PARA = get_parallel_variables(PARA)
 
-%ooo	index = labindex;
+	index = labindex;
     
     % auxiliary calculations for circular geometry
     diameter=10; % in [m]
@@ -15,7 +15,7 @@ function PARA = get_parallel_variables(PARA)
     % topographical relations
     %tsvd PARA.ensemble.initial_altitude = [20.0, 20.5]; %[20.0, 21.0, 20.5];                            %in m a.s.l., this is the reference for the "zero" position of the grids
 %    PARA.ensemble.initial_altitude = [20.0, 20.0]; %[20.0, 21.0, 20.5];                            %in m a.s.l., this is the reference for the "zero" position of the grids
-    PARA.ensemble.initial_altitude = [0.0, 0.0]; %[20.0, 21.0, 20.5];                            %in m a.s.l., this is the reference for the "zero" position of the grids
+    PARA.ensemble.initial_altitude = [0., 0.]; %[20.0, 21.0, 20.5];                            %in m a.s.l., this is the reference for the "zero" position of the grids
 
     PARA.ensemble.altitude = PARA.ensemble.initial_altitude;  
     PARA.ensemble.surface_altitude = PARA.ensemble.initial_altitude;
@@ -46,7 +46,7 @@ function PARA = get_parallel_variables(PARA)
 	% location-specific dynamic auxiliary variables
     PARA.location.area = PARA.ensemble.area(index);
     PARA.location.altitude = PARA.ensemble.altitude(index);
-    PARA.location.surface_altitude = PARA.ensemble.surface_altitude(index);
+    PARA.location.surface_altitude = PARA.ensemble.surface_altitude(index)
     PARA.location.water_table_altitude = PARA.ensemble.water_table_altitude(index);
 	PARA.location.active_layer_depth_altitude = PARA.ensemble.active_layer_depth_altitude(index);
 	% location-specific dynamic common thresholds
@@ -113,6 +113,6 @@ function PARA = get_parallel_variables(PARA)
      PARA.Tinitial=[PARA.Tinitial(:,1) PARA.Tinitial(:, 1+index)];
      
 %     PARA.water.depth = [1.,0.]; 
-     PARA.water.depth = [0.,1.]; 
+     PARA.water.depth = [0.,1.] %ttt
      PARA.water.depth = PARA.water.depth(index); 
 end

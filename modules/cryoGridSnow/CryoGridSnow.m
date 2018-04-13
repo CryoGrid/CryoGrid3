@@ -55,7 +55,7 @@ function [T, GRID, PARA, SEB, BALANCE] = CryoGridSnow(T, GRID, FORCING, SEB, PAR
             snowHeight = abs( GRID.general.K_grid(GRID.snow.cT_domain_ub) - GRID.general.K_grid(GRID.snow.cT_domain_lb+1) );
             maxSnowHeight = PARA.location.absolute_maxSnow_altitude - getAltitude( PARA, GRID );
 
-            assert(maxSnowHeight - snowHeight >=0,'neg snow height!') %ttt
+           % assert(maxSnowHeight - snowHeight >=0,'neg snow height!') %ttt
 
             deltaSnow_i = max( [ 0, ...
                                  min( [ FORCING.i.snowfall.*timestep./1000, ...
@@ -79,7 +79,8 @@ function [T, GRID, PARA, SEB, BALANCE] = CryoGridSnow(T, GRID, FORCING, SEB, PAR
         BALANCE.water.dr_snowmelt = BALANCE.water.dr_snowmelt - GRID.snow.SWEinitial.*0.1.*timestep*1000; %SWEinitial decreasing counted as surface runoff
 
         %----- add the rainfall as runoff in case of no infiltration into frozen ground
-        if ~PARA.modules.infiltration || (PARA.modules.infiltration && T(GRID.soil.cT_domain_ub)<=0 )%no infiltration scheme or uppermost soil cell frozen
+        %ppp
+        if ~PARA.modules.infiltration || (PARA.modules.infiltration && T(GRID.soil.cT_domain_ub)<=0 )%no infiltration scheme or uppermost soil cell frozen  zzz
             GRID.lake.residualWater = GRID.lake.residualWater + FORCING.i.rainfall.*timestep./1000;
             BALANCE.water.dr_rain = BALANCE.water.dr_rain - FORCING.i.rainfall.*timestep;
         end

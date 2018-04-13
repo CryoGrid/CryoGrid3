@@ -200,12 +200,21 @@ spmd
         PARA = get_parallel_variables( PARA );
     end
 
+    disp('Running experiment with xxxx -> give switches here')
     % ------make output directory (name depends on parameters) ----------------
-    run_number = sprintf( [ 'Lake-MPI_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' ) ], ...
-        [ PARA.modules.exchange_heat, PARA.modules.exchange_water, PARA.modules.exchange_snow, PARA.forcing.rain_fraction, PARA.forcing.snow_fraction] ) ;
-    
+%     run_number = sprintf( [ 'Lake-MPI_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' ) , ...
+%          PARA.modules.exchange_heat, PARA.modules.exchange_water, PARA.modules.exchange_snow, PARA.forcing.rain_fraction, PARA.forcing.snow_fraction, index ] )
+    run_number= sprintf( 'LAKE-MPI_xH%d_xW%d_xS%d_infil%d_xice%d_rF%d_sF%d_i%d' , ...
+        [ PARA.modules.exchange_heat, PARA.modules.exchange_water, PARA.modules.exchange_snow, ...
+          PARA.modules.infiltration, PARA.modules.xice, PARA.forcing.rain_fraction, PARA.forcing.snow_fraction , index ] )
     mkdir([ saveDir '/' run_number]);
     
+   %tsvd ------redirect command line output to logfile ---------------------------
+   % if createLogFile
+%        diary(['./' run_number '/' run_number '_log.mat']);
+        diary([ saveDir '/' run_number '/' run_number '_log.mat']);
+        % end
+
     %--------------------------------------------------------------------------
     %-----------do not modify from here onwards--------------------------------
     %--------------------------------------------------------------------------
@@ -242,7 +251,8 @@ spmd
     T = inititializeTemperatureProfile_simple(GRID, PARA, FORCING);
     
     %---- modification for infiltration
-    wc=GRID.soil.cT_water;
+    wc=GRID.soil.cT_water;  
+    %tsvd wc=GRID.general.cT_water;    
     GRID.soil.E_lb = find(PARA.soil.evaporationDepth==GRID.soil.soilGrid(:,1))-1;
     GRID.soil.T_lb= find(PARA.soil.rootDepth==GRID.soil.soilGrid(:,1))-1;
     
@@ -465,7 +475,7 @@ spmd
                         % calculate lateral water fluxes
                         PACKAGE_waterExchange.water_table_altitude = PARA.ensemble.water_table_altitude(index);
                         PACKAGE_waterExchange.active_layer_depth_altitude = PARA.ensemble.active_layer_depth_altitude(index);
-                        PACKAGE_waterExchange.infiltration_condition = T(GRID.soil.cT_domain_ub)>0 && isempty(GRID.snow.cT_domain_ub);
+                        PACKAGE_waterExchange.infiltration_condition = T(GRID.soil.cT_domain_ub)>0 && isempty(GRID.snow.cT_domain_ub); %jjj
                         for j=1:number_of_realizations
                             if j~=index
                                 labSend( PACKAGE_waterExchange, j, 2);
