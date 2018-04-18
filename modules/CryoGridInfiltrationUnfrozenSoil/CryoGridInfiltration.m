@@ -47,7 +47,7 @@ if isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0   %no snow cov
         end
 
         if actualWater>h
-            disp('infiltration - removing excess water from upper cell');
+            fprintf('infiltration - removing excess water from upper cell\n');
             wc(1)=h./cellSize;
             surface_runoff = surface_runoff + actualWater-h;
         end
@@ -67,7 +67,7 @@ end
     %         JAN:recalculate lookup tables when water content of freezing grid cells
     %         has changed (infiltrated cells can freeze --> LUT is updated)
     if sum(double(wc~=GRID.soil.cT_water & T(GRID.soil.cT_domain)<=0))>0
-        disp('infiltration - reinitializing LUT - freezing of infiltrated cell(s)');
+        fprintf('infiltration - reinitializing LUT - freezing of infiltrated cell(s)\n');
         GRID.soil.cT_water = wc;
         GRID = initializeSoilThermalProperties(GRID, PARA);   
     end

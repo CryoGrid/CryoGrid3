@@ -229,7 +229,7 @@ spmd
     [t, TEMPORARY] = generateTemporary(T, PARA);
     OUT = generateOUT();
     
-    disp('initialization successful');
+    fprintf('initialization successful\n');
     iSaveSettings(  [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_settings.mat'] , FORCING, PARA, GRID)
     
     
