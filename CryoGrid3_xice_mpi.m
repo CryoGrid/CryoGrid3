@@ -438,6 +438,8 @@ spmd
                             assert( lacking_water < 1e-9, 'CryoGrid3 - lateral exchange - lacking water>0');    % there should be no lacking water as this was checked for
                         catch
                             fprintf(' Lacking water = %f m\n', lacking_water );
+                            diary off
+                            assert( lacking_water < 1e-9, 'CryoGrid3 - lateral exchange - lacking water>0');
                         end
                         
                         % Store and display
