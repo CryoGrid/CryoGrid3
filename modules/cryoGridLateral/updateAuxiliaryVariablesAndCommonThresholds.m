@@ -1,8 +1,8 @@
-function [PARA] = updateAuxiliaryVariablesAndCommonThresholds( T, wc, GRID, PARA)    
+function [PARA, GRID] = updateAuxiliaryVariablesAndCommonThresholds( T, wc, GRID, PARA)    
 
     PARA.ensemble.surface_altitude(labindex) = getSurfaceAltitude( PARA, GRID );
     PARA.ensemble.altitude(labindex) = getAltitude( PARA, GRID );
-	PARA.ensemble.water_table_altitude(labindex) = getWaterTableAltitudeFC(T, wc, GRID, PARA );% use getWaterTabelFC to account for non-saturated cells above fieldCapacity
+	[PARA.ensemble.water_table_altitude(labindex), GRID.soil.flag] = getWaterTableAltitudeFC(T, wc, GRID, PARA );% use getWaterTabelFC to account for non-saturated cells above fieldCapacity
 	PARA.ensemble.soil_altitude(labindex) = getSoilAltitude( PARA, GRID );
 	[ PARA.ensemble.infiltration_altitude(labindex), PARA.location.bottomBucketSoilcTIndex ] = getInfiltrationAltitude(PARA, GRID, T);
 

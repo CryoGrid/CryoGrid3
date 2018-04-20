@@ -13,7 +13,6 @@ delete(gcp('nocreate')) % useful to restart from a crash
 
 add_modules;  %adds required modules
 
-
 % Number or realizations
 number_of_realizations=2;
 if number_of_realizations>1
@@ -21,29 +20,28 @@ if number_of_realizations>1
 end
 
 % Name, Forcing and saving directory
-run_numberi='April12_tryJanreserv2';
-forcingname='samoylov_ERA_obs_fitted_1979_2014_spinup.mat';
+run_numberi='April20_FigFull';
+forcingname='Suossjavri_WRF_Norstore_adapted5yr';
 saveDir = './runs';
 
 diary(['./runs/' run_numberi '_log.txt'])
 
-
 spmd
     % Name of the run
-    run_number=[run_numberi '_real' num2str(labindex)];
+    % run_number=[run_numberi '_real' num2str(labindex)];
+    run_number = run_numberi;
     index=labindex;   %number identifying the process; change this to e.g. 1 for single realization (non-parallel) run
     
     %---------------define input parameters------------------------------------
     % here you provide the ground stratigraphy
     % z     w/i     m       o     type porosity
     % default stratigraphy used in publication:
-    PARA.soil.layer_properties=[ 0.0   0.60    0.10    0.15    1   0.75;...
-        0.15  0.65    0.3     0.05    2   0.4;...
-        0.9   0.65    0.3     0.05    1   0.65;...
-        9.0   0.30    0.70    0.00    1   0.30     ];
+    PARA.soil.layer_properties=[    0.0     0.55    0.05    0.15    1   0.80    ;...
+                                    0.5     0.80    0.05    0.15    1   0.80    ;...
+                                    3.0     0.50    0.50    0.00    2   0.50    ;...
+                                   10.0     0.03    0.97    0.00    1   0.03    ];
     % soil stratigraphy
-    % column 1: start depth of layer (first layer must start with 0) - each layer extends until the beginning of the next layer, the last layer
-    % extends until the end of the model domain
+    % column 1: start depth of layer (first layer must start with 0) - each layer extends until the beginning of the next layer, the last layer extends until the end of the model domain
     % column 2: volumetric water+ice content
     % column 3: volumetric mineral content
     % column 4: volumetric organic content
@@ -60,18 +58,18 @@ spmd
     PARA.soil.kh_bedrock=3.0;   % thermal conductivity of the mineral soil fraction [W/mK]
     
     % parameters related to hydrology scheme
-    PARA.soil.fieldCapacity=0.5;    %water holding capacity of the soil - this must be adapted to fit the upperlost layers!!
-    PARA.soil.evaporationDepth=0.10; %depth to which evaporation occurs - place on grid cell boundaries
+    PARA.soil.fieldCapacity=0.55;    %water holding capacity of the soil - this must be adapted to fit the upperlost layers!!
+    PARA.soil.evaporationDepth=0.05; %depth to which evaporation occurs - place on grid cell boundaries
     PARA.soil.rootDepth=0.2;        %depth affected by transpiration - place on grid cell boundaries
     %    PARA.soil.wiltingPoint=0.2;     %point at which transpiration shuts off
     %    PARA.soil.residualWC=0.05;      %water always remaining in the soil, not accessible to evaporation
     PARA.soil.ratioET=0.5;          % 1: only transpiration; 0: only evaporation, values in between must be made dependent on LAI, etc.
     PARA.soil.externalWaterFlux=0;  %external water flux / drainage in [m/day]
     PARA.soil.convectiveDomain=[];       % soil domain where air convection due to buoyancy is possible -> start and end [m] - if empty no convection is possible
-    PARA.soil.mobileWaterDomain=[0 10.0];      % soil domain where water from excess ice melt is mobile -> start and end [m] - if empty water is not mobile
+    PARA.soil.mobileWaterDomain=[];      % soil domain where water from excess ice melt is mobile -> start and end [m] - if empty water is not mobile
     PARA.soil.relative_maxWater=0;              % depth at which a water table will form [m] - above excess water is removed, below it pools up
     PARA.soil.hydraulic_conductivity = 1e-5;
-    PARA.soil.infiltration_limit_depth=1.25;     % depth [m] from the surface at wich the infiltration bucket scheme is stopped if no permafrost.
+    PARA.soil.infiltration_limit_depth=1.5;     % depth [m] from the surface at wich the infiltration bucket scheme is stopped if no permafrost.
     PARA = loadSoilTypes( PARA );
     
     % parameters related to snow
@@ -84,8 +82,8 @@ spmd
     PARA.snow.tau_1=86400.0;        % time constants of snow albedo change (according to ECMWF reanalysis) [sec]
     PARA.snow.tau_a=0.008;          % [per day]
     PARA.snow.tau_f=0.24;           % [per day]
-    PARA.snow.relative_maxSnow= 1.0; 	% maximum snow depth that can be reached [m] - excess snow is removed in the model - if empty, no snow threshold
-    PARA.snow.extinction=25.0;      % light extinction coefficient of snow
+    PARA.snow.relative_maxSnow= 0.13; 	% maximum snow depth that can be reached [m] - excess snow is removed in the model - if empty, no snow threshold
+    PARA.snow.extinction=30.0;      % light extinction coefficient of snow
     
     % parameters related to water body on top of soil domain
     PARA.water.albedo=0.07;     % albedo water (parameterization after Wayne and Burt (1954) in surfaceCondition.m)
@@ -103,23 +101,23 @@ spmd
     PARA.technical.SWEperCell=0.005;            % SWE per grid cell in [m] - determines size of snow grid cells
     PARA.technical.maxSWE=0.4;                  % in [m] SWE
     PARA.technical.arraySizeT=5002;             % number of values in the look-up tables for conductivity and capacity
-    PARA.technical.starttime=datenum(1979, 7, 1);       % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum(1979, 7, 10);         % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.starttime=[];       % starttime of the simulation - if empty start from first value of time series
+    PARA.technical.endtime=[];         % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;   % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;   % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;            % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
     PARA.technical.outputTimestep= 3 ./ 24.0 ;          % output time step in [days] - here three hours
     PARA.technical.syncTimeStep = 12 ./ 24.0 ;          % output time step in [days] - here three hours
-    PARA.technical.saveDate='01.01.';           % date of year when output file is written - no effect if "saveInterval" is empty
+    PARA.technical.saveDate='01.08.';           % date of year when output file is written - no effect if "saveInterval" is empty
     PARA.technical.saveInterval=1;             % interval [years] in which output files are written - if empty the entire time series is written - minimum is 1 year
     PARA.technical.waterCellSize=0.02;          % default size of a newly added water cell when water ponds below water table [m]
     
     %default grid used for publications and testing of water balance:
-    PARA.technical.subsurfaceGrid = [0:0.02:4, 4.1:0.1:10, 10.2:0.2:20, 21:1:30, 35:5:50, 60:10:100, 200:100:1000]'; % the subsurface K-grid in [m]
+    PARA.technical.subsurfaceGrid = [0:0.05:2 2.1:0.5:8 8.2:0.2:20 21:1:30 35:5:50 60:10:100 200:100:1000]'; % the subsurface K-grid in [m]
     %PARA.technical.subsurfaceGrid = [[0:0.02:10], [10.1:0.1:20], [20.2:0.2:30], [31:1:40], [45:5:60], [70:10:100], [200:100:1000]]'; % the subsurface K-grid in [m]
-    
+                                       
     PARA.location.area=1.0;
-    PARA.location.initial_altitude=20.0;
+    PARA.location.initial_altitude=300.0;
     % dynamic auxiliary varaibles
     PARA.location.altitude = PARA.location.initial_altitude; 	% used to generate pressure forcing based on barometric altitude formula, if pressure forcing is not given; excluding snow domain
     PARA.location.surface_altitude=PARA.location.initial_altitude;		% this is dynamic and refers to the surface including snow
@@ -137,14 +135,14 @@ spmd
     end
     
     %initial temperature profile -> first column depth [m] -> second column temperature [degree C]
-    PARA.Tinitial = [  -2     5   ;...
-        0     0   ;...
-        2    -2   ;...
-        5    -7   ;...
-        10    -9  ;...
-        25    -9   ;...
-        100    -8   ;...
-        1100    10.2   ];      % the geothermal gradient for Qgeo=0.05W/m^2 and K=2.746W/Km is about 18.2 K/km
+    PARA.Tinitial = [   -2     5    ;...
+                         0     0    ;...
+                         2    -2    ;...
+                         5    -7    ;...
+                        10    -9    ;...
+                        25    -9    ;...
+                       100    -8    ;...
+                      1100    10.2  ];      % the geothermal gradient for Qgeo=0.05W/m^2 and K=2.746W/Km is about 18.2 K/km
     
     
     PARA = loadConstants( PARA );
@@ -211,6 +209,8 @@ spmd
     GRID.soil.E_lb = find(PARA.soil.evaporationDepth==GRID.soil.soilGrid(:,1))-1;
     GRID.soil.T_lb= find(PARA.soil.rootDepth==GRID.soil.soilGrid(:,1))-1;
     GRID.soil.water2pool=0; % Leo : cannot find a good initialize function to put it in
+    GRID.soil.flag.dry2permafrost=0; % Flag to keep track of the existence of a water table above the permafrost 
+    GRID.soil.flag.noWTnoPF=0; % Flag to keep track of cases where there is no permafrost and no water table
     
     %---- preallocate temporary arrays for capacity and conductivity-----------
     [c_cTgrid, k_cTgrid, k_Kgrid, lwc_cTgrid] = initializeConductivityCapacity(T,wc, GRID, PARA); % this is basically the same as "getThermalProperties" during integration, but without interpolation to K grid
@@ -238,6 +238,7 @@ spmd
     %                                                                         I
     %_________________________________________________________________________I
     
+    PARA.count=0;
     while t<PARA.technical.endtime
         
         %------ interpolate forcing data to time t ----------------------------
@@ -319,7 +320,7 @@ spmd
         PARA.location.surface_altitude = getSurfaceAltitude( PARA, GRID );
         PARA.location.soil_altitude = getSoilAltitude( PARA, GRID );
         [PARA.location.infiltration_altitude, PARA.location.bottomBucketSoilcTIndex] = getInfiltrationAltitude( PARA, GRID, T);
-        PARA.location.water_table_altitude = getWaterTableAltitudeFC(T, wc, GRID, PARA);
+        [PARA.location.water_table_altitude, GRID.soil.flag] = getWaterTableAltitudeFC(T, wc, GRID, PARA);
         PARA.soil.infiltration_limit_altitude = PARA.location.soil_altitude - PARA.soil.infiltration_limit_depth;
         
         %------- update threshold variables if no lateral exchange processes occur, otherwise updated at sync time
@@ -346,7 +347,7 @@ spmd
             if t==TEMPORARY.syncTime %communication between workers
                 fprintf('\n\t\t\tCryoGridLateral: sync - start (Worker %1.0f)\n', labindex);
                 labBarrier(); %common start
-                PARA = updateAuxiliaryVariablesAndCommonThresholds(T, wc, GRID, PARA) ;
+                [PARA, GRID] = updateAuxiliaryVariablesAndCommonThresholds(T, wc, GRID, PARA) ;
                 
                 % heat exchange module
                 if PARA.modules.exchange_heat
@@ -513,10 +514,10 @@ spmd
                 end
                 
                 labBarrier();
-                PARA = updateAuxiliaryVariablesAndCommonThresholds(T, wc, GRID, PARA) ;
+                [PARA, GRID] = updateAuxiliaryVariablesAndCommonThresholds(T, wc, GRID, PARA) ;
                 
                 TEMPORARY.syncTime=round((TEMPORARY.syncTime + PARA.technical.syncTimeStep)./PARA.technical.syncTimeStep).*PARA.technical.syncTimeStep;
-                fprintf('sync - done\n');
+                fprintf('\t\t\tsync - done\n');
             end
         end
         
@@ -526,6 +527,7 @@ spmd
         %---------- sum up + OUTPUT -------------------------------------------
         [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc_cTgrid(GRID.soil.cT_domain), timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, saveDir, run_number);
         
+    PARA.count=PARA.count+1;   
     end
     
     % save final state and output at t=endtime
