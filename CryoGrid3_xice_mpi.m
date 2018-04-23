@@ -6,8 +6,11 @@
 %
 % -------------------------------------------------------------------------
     clear all
-    close all
-
+    close all    
+ 
+%ttt    fileID1 = fopen('log_updateGridInfil_1.txt','w')
+%    fileID2 = fopen('log_updateGridInfil_2.txt','w')
+    
     par_mode = 1;  % parallel mode off/on
     
 if(par_mode==1) 
@@ -27,7 +30,7 @@ if number_of_realizations>1
 end
 
 %nnn
-spmd
+spmd %zzz use function calls to calls below to enable debugging in par mode!
     index=labindex;   %number identifying the process; change this to e.g. 1 for single realization (non-parallel) run
 %nnn    index=1
     
@@ -40,6 +43,11 @@ spmd
                                     0.15  0.65    0.3     0.05    2   0.65;...
                                     0.9   0.65    0.3     0.05    1   0.65;...
                                     9.0   0.30    0.70    0.00    1   0.30     ];
+                                
+%     disp('new stratigraphy........')
+%    PARA.soil.layer_properties = [0.0    0.2    0.7    0.00   1   0.30 ;...           
+%                                  1.0    0.2    0.7    0.00   1   0.30 ;...
+%                                 10.0    0.1    0.8    0.00   1   0.2     ];
     % simple stratigraphy with excess ice used to test water balance:
     % PARA.soil.layer_properties=[ 0.0     0.5    0.5     0.00   1   0.50;...
     %                              0.4     0.8    0.2     0.00   1   0.40;...
@@ -115,8 +123,8 @@ spmd
     PARA.technical.SWEperCell=0.005;            % SWE per grid cell in [m] - determines size of snow grid cells
     PARA.technical.maxSWE=0.4;                  % in [m] SWE
     PARA.technical.arraySizeT=5002;             % number of values in the look-up tables for conductivity and capacity
-    PARA.technical.starttime=datenum(1979, 6, 10);       % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum(1980, 7, 1);         % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.starttime=datenum(1979, 6, 1);       % starttime of the simulation - if empty start from first value of time series
+    PARA.technical.endtime=datenum(1980, 12, 31);         % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;   % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;   % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;            % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
@@ -175,11 +183,12 @@ spmd
     
     %FORCING data mat-file
     PARA.forcing.filename='samoylov_ERA_obs_fitted_1979_2014_spinup.mat';  %must be in subfolder "forcing" and follow the conventions for CryoGrid 3 forcing files
+    %PARA.forcing.filename='CG3_CCLM_forcing_90_101';
     PARA.forcing.rain_fraction=1;
     PARA.forcing.snow_fraction=1;
     
     % switches for modules
-    PARA.modules.infiltration=1;   % true if infiltration into unfrozen ground occurs
+    PARA.modules.infiltration=0;   % true if infiltration into unfrozen ground occurs
     PARA.modules.xice=0;           % true if thaw subsicdence is enabled
 	PARA.modules.lateral=1;		   % true if adjacent realizations are run (this does not require actual lateral fluxes)
 %tsvd  extended for lateral switched off
@@ -200,7 +209,7 @@ spmd
         PARA = get_parallel_variables( PARA );
     end
 
-    disp('Running experiment with xxxx -> give switches here')
+    disp('Running experiment with xxxx -> indicate switches here')
     % ------make output directory (name depends on parameters) ----------------
 %     run_number = sprintf( [ 'Lake-MPI_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' ) , ...
 %          PARA.modules.exchange_heat, PARA.modules.exchange_water, PARA.modules.exchange_snow, PARA.forcing.rain_fraction, PARA.forcing.snow_fraction, index ] )
@@ -276,8 +285,7 @@ spmd
     
     disp('initialization successful');
     %%% nnn 
-    iSaveSettings(  [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_settings.mat'] , FORCING, PARA, GRID)
-    
+    iSaveSettings(  [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_settings.mat'] , FORCING, PARA, GRID) %tsvd non-interpolated forcing data saved!
     
     %% ________________________________________________________________________
     % Time Integration Routine                                                I
@@ -295,7 +303,7 @@ spmd
 
         %------ interpolate forcing data to time t ----------------------------
         FORCING = interpolateForcingData(t, FORCING);
-        
+                
         %------determine the thermal properties of the model domains ----------
         [c_cTgrid, k_cTgrid, k_Kgrid, lwc_cTgrid] = getThermalPropertiesInfiltration(T, wc, c_cTgrid, k_cTgrid, k_Kgrid, lwc_cTgrid, GRID, PARA);
         
@@ -582,3 +590,4 @@ if number_of_realizations>1
 end
 
 disp('Done.');
+

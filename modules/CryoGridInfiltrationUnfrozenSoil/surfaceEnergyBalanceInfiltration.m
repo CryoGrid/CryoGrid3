@@ -21,11 +21,11 @@ Qsolar=GRID.general.cT_grid.*0;
     dE_dt(GRID.air.cT_domain_lb+1,1)=(1-PARA.surf.albedo).*FORCING.i.Sin;
 %------ snow surface (solid state green house effect) ---------------------
 if ~isempty(GRID.snow.cT_domain_ub)
-    beta=PARA.snow.extinction;
+    beta=PARA.snow.extinction; % zzz also consider lake ice extinction...
     Qsolar(GRID.snow.cT_domain_ub:GRID.snow.cT_domain_lb+1) = dE_dt(GRID.snow.cT_domain_ub) .* exp(-beta.*(GRID.general.K_grid(GRID.snow.cT_domain_ub:GRID.snow.cT_domain_lb+1)-GRID.general.K_grid(GRID.snow.cT_domain_ub)));
     dE_dt(GRID.snow.cT_domain_ub:GRID.snow.cT_domain_lb) = -Qsolar(GRID.snow.cT_domain_ub+1:GRID.snow.cT_domain_lb+1) + Qsolar(GRID.snow.cT_domain_ub:GRID.snow.cT_domain_lb);
     %put the rest to cell below snow
-    dE_dt(GRID.snow.cT_domain_lb+1) = Qsolar(GRID.snow.cT_domain_lb+1);
+    dE_dt(GRID.snow.cT_domain_lb+1) = Qsolar(GRID.snow.cT_domain_lb+1); %mmm zzz can be too much dE if thin lake ice?
 end
 
 %tsvd
@@ -49,7 +49,7 @@ if  ~isempty(GRID.lake.water.cT_domain_ub)
     %put the rest to cell below water body    
     dE_dt(GRID.lake.water.cT_domain_lb+1) = Qsolar(GRID.lake.water.cT_domain_lb+1);
     %SW output for FLAKE radiation scheme    
-    Sin_water = Qsolar(GRID.lake.water.cT_domain_ub);    
+    Sin_water = Qsolar(GRID.lake.water.cT_domain_ub);    %mmm Sin_ice missing above?
 end
 %__________________________________________________________________________
 Sout = PARA.surf.albedo*FORCING.i.Sin;
@@ -78,7 +78,7 @@ if PARA.modules.infiltration
             fraction_E=getET_fraction(T(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_ub+GRID.soil.E_lb-1), wc(1:GRID.soil.E_lb), PARA.soil.fieldCapacity, PARA.soil.residualWC);
             fraction_ET = fraction_T.*PARA.soil.ratioET;
             fraction_ET(1:GRID.soil.E_lb) = fraction_ET(1:GRID.soil.E_lb) + fraction_E.*(1-PARA.soil.ratioET);
-            
+
             Qe=sum(fraction_ET.*GRID.general.K_delta(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_ub+GRID.soil.T_lb-1))./sum(GRID.general.K_delta(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_ub+GRID.soil.T_lb-1)).*Qe_pot;
             fraction_ET=fraction_ET.*GRID.general.K_delta(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_ub+GRID.soil.T_lb-1)./sum(fraction_ET.*GRID.general.K_delta(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_ub+GRID.soil.T_lb-1));
             % sum(fraction_ET) is always 1
@@ -88,6 +88,7 @@ if PARA.modules.infiltration
             dwc_dt(1)=-Qe./L; %in m water per sec, put everything in uppermost grid cell
         end
     end
+    
 else % this is identical to case with snow cover or frozen ground
     Qe=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, PARA.surf.rs, FORCING.i.p, PARA));
 end
@@ -113,6 +114,10 @@ SEB.Sout = Sout;
 SEB.Lout = Lout;
 %tsvd
 SEB.Sin_water=Sin_water;
+
+assert(~isnan(SEB.Qe),'Qe is NAN!')
+assert(~isnan(SEB.Qh),'Qh is NAN!')
+assert(~isnan(SEB.Qnet),'Qnet is NAN!')
 
 end
 

@@ -2,7 +2,8 @@ function [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRI
 
 %   if isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0   %no snow cover and uppermost grid cell unfrozen
 % zzz check whether it helps to exclude lake case
-    if isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0 || ~isempty (GRID.lake.water.cT_domain_ub) || ~isempty (GRID.lake.ice.cT_domain_ub)  %no snow cover and uppermost grid cell unfrozen
+%lll    if isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0 || ~isempty (GRID.lake.water.cT_domain_ub) || ~isempty (GRID.lake.ice.cT_domain_ub)  %no snow cover and uppermost grid cell unfrozen
+    if (isempty (GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0 ) || (~isempty (GRID.lake.water.cT_domain_ub) && isempty (GRID.lake.ice.cT_domain_ub) )  %no snow cover and uppermost grid cell unfrozen
 
     % possible contribution from xice meltwater, snowmelt, rain on frozen ground
     residualWater = GRID.lake.residualWater;
@@ -39,8 +40,7 @@ function [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRI
     
     % remove water above water table in case of ponding, e.g. through rain (independent of xice module)
     if GRID.soil.cT_mineral(1)+GRID.soil.cT_organic(1)<1e-6 && ...
-            PARA.location.initial_altitude-GRID.general.K_grid(GRID.soil.cT_domain_ub)>PARA.location.absolute_maxWater_altitude
-        
+            PARA.location.initial_altitude-GRID.general.K_grid(GRID.soil.cT_domain_ub)>PARA.location.absolute_maxWater_altitude %zzz check for lake...
         
         cellSize = GRID.general.K_delta(GRID.soil.cT_domain_ub);
         actualWater = wc(1)*cellSize;

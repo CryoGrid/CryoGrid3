@@ -46,7 +46,7 @@ function PARA = get_parallel_variables(PARA)
 	% location-specific dynamic auxiliary variables
     PARA.location.area = PARA.ensemble.area(index);
     PARA.location.altitude = PARA.ensemble.altitude(index);
-    PARA.location.surface_altitude = PARA.ensemble.surface_altitude(index)
+    PARA.location.surface_altitude = PARA.ensemble.surface_altitude(index);
     PARA.location.water_table_altitude = PARA.ensemble.water_table_altitude(index);
 	PARA.location.active_layer_depth_altitude = PARA.ensemble.active_layer_depth_altitude(index);
 	% location-specific dynamic common thresholds
@@ -64,13 +64,24 @@ function PARA = get_parallel_variables(PARA)
 %                                    0.1     0.8    0.2     0.00   1   0.50;...
 %                                   10.0    0.25   0.75    0.00   1   0.25     ]};
 
-  PARA.soil.layer_properties = {[0.0    0.5    0.5    0.00   1   0.50 ;...            % lake stratigraphy (no excess ice)
-                                   1.0    0.5    0.5    0.00   1   0.50 ;...
-                                  10.0    0.25   0.75   0.00   1   0.25     ] , ...
-                                  [0.0    0.5    0.5    0.00   1   0.50 ;...          % non-lake stratigraphy (identical to lake stratigraphy) 
-                                   1.0    0.5    0.5    0.00   1   0.50 ;...
-                                  10.0    0.25   0.75   0.00   1   0.25     ]};
-%     PARA.soil.layer_properties = {[0.0     0.5    0.5    0.00   1   0.50 ;...            % lake stratigraphy (no excess ice)
+
+%   PARA.soil.layer_properties = {[0.0    0.5    0.5    0.00   1   0.50 ;...            % lake stratigraphy (no excess ice)
+%                                    1.0    0.5    0.5    0.00   1   0.50 ;...
+%                                   10.0    0.25   0.75   0.00   1   0.25     ] , ...
+%                                   [0.0    0.5    0.5    0.00   1   0.50 ;...          % non-lake stratigraphy (identical to lake stratigraphy) 
+%                                    1.0    0.5    0.5    0.00   1   0.50 ;...
+%                                   10.0    0.25   0.75   0.00   1   0.25     ]};
+ 
+disp(' new stratigraphy ...............................')
+  PARA.soil.layer_properties = {[0.0    0.2    0.7    0.00   1   0.30 ;...            % lake stratigraphy (no excess ice)
+                                 1.0    0.2    0.7    0.00   1   0.30 ;...
+                                10.0    0.1    0.8    0.00   1   0.2     ] , ...
+                                [0.0    0.2    0.7    0.00   1   0.30 ;...          % non-lake stratigraphy (identical to lake stratigraphy) 
+                                 1.0    0.2    0.7    0.00   1   0.30 ;...
+                                10.0    0.1    0.8    0.00   1   0.2     ]};
+
+                              
+                              %     PARA.soil.layer_properties = {[0.0     0.5    0.5    0.00   1   0.50 ;...            % lake stratigraphy (no excess ice)
 %                                    0.02    0.5    0.5    0.00   1   0.50 ;... 
 %                                    0.04    0.5    0.5    0.00   1   0.50 ;... 
 %                                    0.06    0.5    0.5    0.00   1   0.50 ;... 
@@ -113,6 +124,6 @@ function PARA = get_parallel_variables(PARA)
      PARA.Tinitial=[PARA.Tinitial(:,1) PARA.Tinitial(:, 1+index)];
      
 %     PARA.water.depth = [1.,0.]; 
-     PARA.water.depth = [0.,1.] %ttt
+     PARA.water.depth = [0.,1.]; %ttt
      PARA.water.depth = PARA.water.depth(index); 
 end

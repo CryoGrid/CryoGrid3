@@ -15,6 +15,7 @@ L_i=PARA.constants.L_sg;  %[J/kg] %1e3.*2834.1; %latent heat of sublimation
 
 
 
+assert(~isnan(Lstar),'Lstar is NAN!')
 
 if T_surf<=273.15
     Q_e = -rho.*L_i.*kappa.*uz.*kappa./(log(z./z0)- psi_M(z./Lstar, z0./Lstar)).*(q-satPresIce(T_surf)./p)./(log(z./z0)- psi_H(z./Lstar, z0./Lstar));
@@ -23,4 +24,6 @@ else
         + rs.*uz.*kappa.^2./(log(z./z0)- psi_M(z./Lstar, z0./Lstar)));
 end
 
+assert(~isnan(Q_e),'Q_e is NAN!')
+    
 %Q_e = -rho.*L.*kappa.*uz.*kappa./(log(z./z0)).*(RH.*satPresIce(Tz)-satPresIce(T_surf))./p./(log(z./z0));

@@ -1,6 +1,11 @@
 function [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, surface_runoff)
 
-    %%% step 2: GRID update
+% create log files before run execution manually...
+
+%    fileID = fopen('exp.txt','w');
+%    logfile=['log_updateGridInfil_',num2str(labindex)];
+   
+%%% step 2: GRID update
     %%% TODO: add a function updateGRID_infiltration
 
     soilGRIDsizeOld = sum(GRID.soil.cT_domain); %zzz use grid + lake?
@@ -9,8 +14,14 @@ function [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, 
  
     if(isempty(GRID.lake.water.cT_domain_ub)) %tsvd only update grid when no lake exists   zzz include case when lake level is dynamic!
         while (GRID.soil.cT_mineral(1)+GRID.soil.cT_organic(1)+wc(1)<=0)  
-            disp('infiltration - update GRID - updating air cell')  
-
+%ttt             disp('infiltration - update GRID - updating air cell')  
+%             if labindex==1
+%                 disp('fileID1')
+%                 fileID1
+%                 fprintf(fileID1,['infiltration - update GRID - updating air cell for worker ',num2str(labindex)]) 
+%             elseif labindex==2
+%                 fprintf(fileID2,['infiltration - update GRID - updating air cell for worker ',num2str(labindex)]) 
+%             end
             % adjust air and soil domains and boundaries   zzz check how to adapt for lake...
             GRID.air.cT_domain(GRID.soil.cT_domain_ub)=1;
             GRID.air.K_domain(GRID.soil.K_domain_ub)=1;
@@ -78,12 +89,31 @@ function [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, 
         GRID.soil.soilGrid = [ GRID.general.K_grid(GRID.soil.cT_domain_ub) ; GRID.soil.soilGrid ];
     end   
     
-    %%% step 2c)  check if soil/air domains changed --> LUT update
+%     %%% step 2c)  check if soil/air domains changed --> LUT update
+%     soilGRIDsizeNew = sum(GRID.soil.cT_domain);
+%     if soilGRIDsizeOld~=soilGRIDsizeNew
+%         disp(['infiltration - reinitializing LUT - soil/air domains changed  on worker ',num2str(labindex)]);
+%         GRID.soil.cT_water = wc;
+%         GRID = initializeSoilThermalProperties(GRID, PARA);   
+%     end
+
+%tsvd       %%% step 2c)  check if soil/air domains changed --> LUT update
     soilGRIDsizeNew = sum(GRID.soil.cT_domain);
-    if soilGRIDsizeOld~=soilGRIDsizeNew
-        disp(['infiltration - reinitializing LUT - soil/air domains changed  on worker ',num2str(labindex)]);
+    cellsChanged = soilGRIDsizeNew - soilGRIDsizeOld;
+    if cellsChanged > 0
+        disp('infiltration - reinitializing LUT - new water cell(s)');
         GRID.soil.cT_water = wc;
         GRID = initializeSoilThermalProperties(GRID, PARA);   
+    elseif cellsChanged < 0
+        disp('infiltration - shortening LUT - removed water cell(s)');
+        GRID.soil.cT_water(1) = [];
+        GRID.soil.cT_frozen(1) = [];
+        GRID.soil.cT_thawed(1) = [];
+        GRID.soil.K_frozen(1) = [];
+        GRID.soil.K_thawed(1) = [];
+        GRID.soil.conductivity(1,:) = [];
+        GRID.soil.capacity(1,:) = [];
+        GRID.soil.liquidWaterContent(1,:) = [];
     end
-
+    
 end
