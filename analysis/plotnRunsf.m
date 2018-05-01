@@ -1,62 +1,52 @@
 function Coupled = plotnRunsf( run_name )
 % Function used to plot results from Leo's version (March 2017)
 
-%% Adjust names
-while  isnan(str2double(run_name(end)))==0;
-    run_name(end)=[];
-end
+assert(7==exist(run_name,'dir'),'The folder does not exist chico')
 
 close all
 clearvars -except run_name
 
 %% Load data and display degree day statistics
+
+% Retrieve file content
 addpath \\lagringshotell\geofag\projects\coup\Leo\toolbox
-Coupled(100).OUT='Gerard';
-nbreal=1;
-while 7==exist([run_name num2str(nbreal)],'dir') == 1;
-    filename=[run_name num2str(nbreal)];
-    Names=dir(['.\' filename]);
-    dirFlags=[Names.isdir];
-    Names=Names(logical(1-dirFlags));
-    Names={Names.name}';
-    i_final=1;
-    i_out=1;
-    for i=1:length(Names);
-        if  isempty(strfind(Names{i},'final'))==0;
-            Names_final{i_final,1}=Names{i};
-            i_final=i_final+1;
-        elseif isempty(strfind(Names{i},'output'))==0;
-            Names_out{i_out,1}=Names{i};
-            i_out=i_out+1;
-        else
-            Names_settings=Names{i};
-        end
-    end
-    n_stack=5;% Number of years stacked ---------------------------<<<<
-    if n_stack>length(Names_out);
-        n_stack=length(Names_out);
-    end
+[ name_str ] = runFiles( ['.\' run_name] );
+nbreal=length(name_str);
+nbyear=length(name_str(1).output);
+Coupled(nbreal).OUT='Gerard';
+
+% Prepare stacking
+n_stack=1;% Number of years stacked ---------------------------<<<<
+if n_stack>nbyear;
+    n_stack=nbyear;
+end
+
+for ireal=1:nbreal
+    
+    % Stack
     for i=1:n_stack;
-        name_out = fullfile(filename,Names_out{end-n_stack+i});
-        name_fin = fullfile(filename,Names_final{end-n_stack+i});
+        name_out = fullfile(run_name,name_str(ireal).output{end-n_stack+i});
+        name_fin = fullfile(run_name,name_str(ireal).final{end-n_stack+i});
         load(name_out)
         load(name_fin)
         OUTf(i)=OUT;
         FINALf(i)=FINAL;
     end
-    Coupled(nbreal).OUT=OUTf;
-    Coupled(nbreal).FINAL=FINALf;
-    name_set = fullfile(filename,Names_settings);
+    
+    % Store
+    Coupled(ireal).OUT=OUTf;
+    Coupled(ireal).FINAL=FINALf;
+    name_set = fullfile(run_name,name_str(ireal).settings);
     load(name_set)
-    Coupled(nbreal).GRID=GRID;
-    Coupled(nbreal).PARA=PARA;
-    nbreal=nbreal+1;
-    DDf_1yr( '.',filename,1 );
+    Coupled(ireal).GRID=GRID;
+    Coupled(ireal).PARA=PARA;
+    
+    % Display DD values
+    DDf_1yr_direct( run_name, name_str(ireal).output{end}, name_str(ireal).settings, 1 );
+    
 end
-Coupled(nbreal:end)=[];
-nbreal=nbreal-1;
 
-clear GRID PARA OUT filename name_out name_set run_number dirFlags Names ans
+clear FORCING GRID PARA FINAL FINALf OUT OUTf i ireal name_out name_set name_fin ans
 
 %% Plot all data in 1 figure
 
@@ -66,16 +56,16 @@ for real=1:nbreal;
     Coupled(real).PLOT.timestamp=[];
     Coupled(real).PLOT.cryoGrid3=[];
     Coupled(real).PLOT.water_table_altitude=[];
-    Coupled(real).PLOT.active_layer_depth_altitude=[];
-    Coupled(real).PLOT.dr_lateral=[];
+    Coupled(real).PLOT.infiltration_altitude=[];
+    Coupled(real).PLOT.dr_lateralWater=[];
     Coupled(real).PLOT.dr_DarcyReservoir=[];
     Coupled(real).PLOT.dr_lateralExcess=[];
     for year=1:length(Coupled(real).OUT)
         Coupled(real).PLOT.timestamp=[Coupled(real).PLOT.timestamp ; Coupled(real).OUT(year).timestamp];
         Coupled(real).PLOT.cryoGrid3=[Coupled(real).PLOT.cryoGrid3 Coupled(real).OUT(year).cryoGrid3];
         Coupled(real).PLOT.water_table_altitude=[Coupled(real).PLOT.water_table_altitude ; Coupled(real).OUT(year).location.water_table_altitude];
-        Coupled(real).PLOT.active_layer_depth_altitude=[Coupled(real).PLOT.active_layer_depth_altitude ; Coupled(real).OUT(year).location.active_layer_depth_altitude];
-        Coupled(real).PLOT.dr_lateral=[Coupled(real).PLOT.dr_lateral ; Coupled(real).OUT(year).WB.dr_lateral];
+        Coupled(real).PLOT.infiltration_altitude=[Coupled(real).PLOT.infiltration_altitude ; Coupled(real).OUT(year).location.infiltration_altitude];
+        Coupled(real).PLOT.dr_lateralWater=[Coupled(real).PLOT.dr_lateralWater ; Coupled(real).OUT(year).WB.dr_lateralWater];
         Coupled(real).PLOT.dr_DarcyReservoir=[Coupled(real).PLOT.dr_DarcyReservoir ; Coupled(real).OUT(year).WB.dr_DarcyReservoir];
         Coupled(real).PLOT.dr_lateralExcess=[Coupled(real).PLOT.dr_lateralExcess ; Coupled(real).OUT(year).WB.dr_lateralExcess];
     end
@@ -113,7 +103,7 @@ for i=1:nbreal;
     hold on
     datetick
     title('Water table and bottom bucket (masl)')
-    plot(Coupled(i).PLOT.timestamp,Coupled(i).PLOT.active_layer_depth_altitude,'k')
+    plot(Coupled(i).PLOT.timestamp,Coupled(i).PLOT.infiltration_altitude,'k')
     ylabel('Elevation (masl)')
     hold off
 end
@@ -121,8 +111,8 @@ end
 % Worker fluxes and boundary condition fluxes
 for i=1:nbreal;
     subplot(3,nbreal,i+2*nbreal)
-    % nonnul=Coupled(i).PLOT.dr_lateral~=0;
-    plot(Coupled(i).PLOT.timestamp,cumsum(Coupled(i).PLOT.dr_lateral),'.')
+    % nonnul=Coupled(i).PLOT.dr_lateralWater~=0;
+    plot(Coupled(i).PLOT.timestamp,cumsum(Coupled(i).PLOT.dr_lateralWater),'.')
     hold on
     datetick
     title('Network and BC water (mm water change)')
