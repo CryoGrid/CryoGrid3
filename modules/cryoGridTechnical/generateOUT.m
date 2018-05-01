@@ -54,6 +54,7 @@ function OUT = generateOUT()
     % storage
     OUT.WB.dW_soil = [];
     OUT.WB.dW_snow = [];
+    OUT.WB.water2pool = [];
     % precipitation
     OUT.WB.dp_rain=[];
     OUT.WB.dp_snow=[]; % SWE

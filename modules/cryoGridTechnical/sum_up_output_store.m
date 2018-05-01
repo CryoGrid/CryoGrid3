@@ -13,6 +13,7 @@ TEMPORARY.dE_dt_cond_sum = TEMPORARY.dE_dt_cond_sum + SEB.dE_dt_cond * timestep;
 
 TEMPORARY.waterTableElevation_sum = TEMPORARY.waterTableElevation_sum + PARA.location.water_table_altitude * timestep;
 TEMPORARY.bottomBucketSoilDepth_sum = TEMPORARY.bottomBucketSoilDepth_sum + PARA.location.infiltration_altitude * timestep;
+TEMPORARY.water2pool_sum=TEMPORARY.water2pool_sum + GRID.soil.water2pool * timestep;
 
 %----store in output table --------------------------------------------
 if  t==TEMPORARY.outputTime
@@ -36,7 +37,7 @@ if  t==TEMPORARY.outputTime
 
 	TEMPORARY.waterTableElevation=TEMPORARY.waterTableElevation_sum ./ TEMPORARY.dt_out; % This is already stored in OUT.location. But is done here to compare if an average is useful
     TEMPORARY.bottomBucketSoilDepth=TEMPORARY.bottomBucketSoilDepth_sum ./ TEMPORARY.dt_out; % This is already stored in OUT.location. But is done here to compare if an average is useful
-        
+    TEMPORARY.water2pool=TEMPORARY.water2pool_sum ./ TEMPORARY.dt_out;    
 
     TEMPORARY.timestep_out=TEMPORARY.timestep_sum./TEMPORARY.dt_out;             
     
@@ -53,6 +54,7 @@ if  t==TEMPORARY.outputTime
 
     TEMPORARY.waterTableElevation_sum=0;
     TEMPORARY.bottomBucketSoilDepth_sum=0;
+    TEMPORARY.water2pool_sum=0;
     
     TEMPORARY.timestep_sum=0;
     
@@ -134,6 +136,7 @@ if  t==TEMPORARY.outputTime
     % storage
     OUT.WB.dW_soil = [ OUT.WB.dW_soil; BALANCE.water.dW_soil ];
     OUT.WB.dW_snow = [ OUT.WB.dW_snow; BALANCE.water.dW_snow ];
+    OUT.WB.water2pool= [OUT.WB.water2pool; TEMPORARY.water2pool * 1000]; % Non additive variable. Times 1000 to have it in mm
     % precipitation
     OUT.WB.dp_rain = [ OUT.WB.dp_rain; BALANCE.water.dp_rain ];
     OUT.WB.dp_snow = [ OUT.WB.dp_snow; BALANCE.water.dp_snow ]; % SWE
@@ -211,8 +214,8 @@ if  t==TEMPORARY.outputTime
  
     %write output files      
     if  round((t-TEMPORARY.saveTime).*48)==0   
-        iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_output' datestr(t,'yyyy')  '.mat' ], OUT);
-        iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_finalState'  datestr(t,'yyyy') '.mat' ], T, wc, t, SEB, PARA, GRID);
+        iSaveOUT( [ saveDir '/' run_number '/' run_number '_real' num2str(labindex) '_output' datestr(t,'yyyy')  '.mat' ], OUT);
+        iSaveState( [ saveDir '/' run_number '/' run_number '_real' num2str(labindex) '_finalState'  datestr(t,'yyyy') '.mat' ], T, wc, t, SEB, PARA, GRID);
         OUT = generateOUT();  
         TEMPORARY.saveTime=datenum(str2num(datestr(t,'yyyy'))+1, str2num(datestr(t,'mm')), str2num(datestr(t,'dd')), str2num(datestr(t,'HH')), str2num(datestr(t,'MM')), 0);
     end

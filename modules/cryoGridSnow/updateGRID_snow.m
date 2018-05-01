@@ -145,6 +145,7 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
 
            % for water balance: add snow of last grid cell to runoff
            BALANCE.water.dr_snowmelt = BALANCE.water.dr_snowmelt - ( GRID.snow.Snow_i(GRID.snow.cT_domain_ub) + GRID.snow.Snow_w(GRID.snow.cT_domain_ub) ).*1000;
+           GRID.soil.water2pool = GRID.soil.water2pool + ( GRID.snow.Snow_i(GRID.snow.cT_domain_ub) + GRID.snow.Snow_w(GRID.snow.cT_domain_ub) ); % TRY FROM LEO FOR WATER BUDGET
 
            %------ modify snow and air grid ----------------------------------
            GRID.snow.cT_domain(GRID.snow.cT_domain_ub)=0;
