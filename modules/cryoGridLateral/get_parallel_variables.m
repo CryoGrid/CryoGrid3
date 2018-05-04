@@ -7,9 +7,9 @@ index = labindex;
 % auxiliary calculations for geometry
 % input: typical total polygon area + areal weights (as integers) of center/rim/troughs
 area_tot = 140.0; % typical area of polygon center [Cresto Aleina / Muster ]
-f_C = 0.3;
-f_R = 0.6;
-f_T = 0.1;
+f_C = SETUP.f_C;
+f_R = SETUP.f_R;
+f_T = SETUP.f_T;
 PARA.ensemble.weight = round( [f_C, f_R, f_T], 1 ) .* 10;  % make sure to have integers as weights
 
 PARA.ensemble.area = PARA.ensemble.weight ./ sum(PARA.ensemble.weight) .* area_tot ; % in m^2
@@ -31,8 +31,8 @@ perimeter_RT = 6. * sqrt( 2 .* (area_C+area_R) ./ (3 .* sqrt(3) ) ); % assuming 
 
 % topographical relations
 altitude_C = 20.0;
-elevation_R = 0.4;
-elevation_T = 0.4;
+elevation_R = SETUP.e_R;
+elevation_T = SETUP.e_T;
 altitude_R = altitude_C + elevation_R;
 altitude_T = altitude_C + elevation_T;
 elevation_Reservoir = SETUP.e_Reservoir;

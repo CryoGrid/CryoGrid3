@@ -146,12 +146,12 @@ if cellsChanged > 0
     GRID = initializeSoilThermalProperties(GRID, PARA);   
 elseif cellsChanged < 0
     disp('xice - shortening LUT - removed water cell(s)');
-    GRID.soil.cT_frozen(1) = [];
-    GRID.soil.cT_thawed(1) = [];
-    GRID.soil.K_frozen(1) = [];
-    GRID.soil.K_thawed(1) = [];
-    GRID.soil.conductivity(1,:) = [];
-    GRID.soil.capacity(1,:) = [];
-    GRID.soil.liquidWaterContent(1,:) = [];
+    GRID.soil.cT_frozen(1:-cellsChanged) = [];
+    GRID.soil.cT_thawed(1:-cellsChanged) = [];
+    GRID.soil.K_frozen(1:-cellsChanged) = [];
+    GRID.soil.K_thawed(1:-cellsChanged) = [];
+    GRID.soil.conductivity(1:-cellsChanged,:) = [];
+    GRID.soil.capacity(1:-cellsChanged,:) = [];
+    GRID.soil.liquidWaterContent(1:-cellsChanged,:) = [];
 end
 

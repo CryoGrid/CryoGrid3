@@ -16,9 +16,9 @@ saveDir = SETUP.saveDir; %'./runs';
 
 number_of_realizations=SETUP.numRealizations;
 
-% if number_of_realizations>1
-%     parpool(number_of_realizations);
-% end
+if number_of_realizations>1 && isempty( gcp('nocreate') )
+    parpool(number_of_realizations);
+end
 
 spmd
     index=labindex;   %number identifying the process; change this to e.g. 1 for single realization (non-parallel) run
