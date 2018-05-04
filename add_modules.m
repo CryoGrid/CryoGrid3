@@ -1,10 +1,10 @@
 % %clear all
-if ~paraFromFile
-    clearvars -except paraFromFile     %added by JAN to enable running with or without config file from same script
-end
+% if ~paraFromFile
+%     clearvars -except paraFromFile     %added by JAN to enable running with or without config file from same script
+% end
 close all
 profile off
-dbclear if error
+%dbclear if error
 %dbstop if error
 
 %import CryoGrid modules (matlab functions)

@@ -3,24 +3,23 @@
 
 add_modules_function;
 
-startDate=datenum( 1979, 6, 1);
-endDate=datenum( 2014, 6, 1);
+startDate=datenum( 1985, 10, 1);
+endDate=datenum( 1986, 10, 1);
 
 rainFrac=1;
-rainFracs=[1,2];
 snowFrac=1;
 maxSnow = 1.0;
-maxSnows = [ 0.2, 0.4 ];
-snowDens = 200;
-snowDensities = [ 200, 250 ];
+snowDens = 225;
 extFlux = 0;
-externalFluxes = [  -5e-3, -2e-3, 0, 2e-3 ];
-fieldCapacity = 0.4;
+externalFluxes = [  -2e-3, 0, 2e-3 ];
+fieldCapacity = 0.5;
 fieldCapacities = [0.3, 0.5];
 exices = [ 0.9, 0.8, 0.7, 0.6, 0.5, 0.4];
 natPor = 0.4;
 maxWater = 0.;
 maxWaters = [ 0.5 ];
+
+saturations=[ 0., 0.2, 0.4, 0.6, 0.8, 1.0 ];
 
 
 % combinations = {};
@@ -38,14 +37,10 @@ maxWaters = [ 0.5 ];
 combinations = {};
 
 i=1;
-for rf=rainFracs
-    for mw=maxWaters
-        for fc=fieldCapacities
-            for ex=externalFluxes
-                combinations{i}= [mw,fc,ex,rf];
-                i=i+1;
-            end
-        end
+for sat=saturations
+    for ex=externalFluxes
+        combinations{i}= [sat, ex];
+        i=i+1;
     end
 end
 
@@ -63,15 +58,13 @@ disp( [datestr(now) ': created job ' jobName ] );
 
 tasks = {};
 for i=1:numTasks
-    maxWater=combinations{i}(1);
-    fieldCapacity=combinations{i}(2);
-    extFlux = combinations{i}(3);
-    rainFrac = combinations{i}(4);
+    saturation=combinations{i}(1);
+    extFlux=combinations{i}(2);
     
-    taskName = sprintf(  [ jobName '_' datestr( startDate, 'yyyymm' ) '-' datestr( endDate, 'yyyymm' ) '_stratSam_rf%d_sf%d_maxSnow%0.1f_snowDens=%0.1f_maxWater%0.1f_extFlux%0.4f_fc%0.2f' ], ...
+    taskName = sprintf(  [ jobName '_' datestr( startDate, 'yyyymm' ) '-' datestr( endDate, 'yyyymm' ) '_rf%d_sf%d_maxSnow%0.1f_snowDens=%0.1f_maxWater%0.1f_extFlux%0.4f_fc%0.2f_' ], ...
                   [ rainFrac, snowFrac, maxSnow, snowDens, ...
                     maxWater, extFlux, fieldCapacity ] );
-    tasks{i} = createTask( job , @CryoGrid3_function, 0 , { taskName, startDate, endDate, rainFrac, snowFrac, maxWater, maxSnow, snowDens, extFlux, fieldCapacity }, 'CaptureDiary', true, 'Name', taskName );
+    tasks{i} = createTask( job , @CryoGrid3_function, 0 , { taskName, startDate, endDate, rainFrac, snowFrac, maxWater, maxSnow, snowDens, extFlux, fieldCapacity, evapDepth, ETversion, saturation }, 'CaptureDiary', true, 'Name', taskName );
     disp( [ datestr(now) ': created task ' taskName ] );
 end
 
