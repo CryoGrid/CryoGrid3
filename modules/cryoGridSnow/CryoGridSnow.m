@@ -1,7 +1,8 @@
 function [T, GRID, PARA, SEB, BALANCE] = CryoGridSnow(T, GRID, FORCING, SEB, PARA, c_temp, timestep, BALANCE)
 
-    if(~isempty(GRID.lake.water.cT_domain_ub)) %ttt
-        assert(GRID.lake.water.cT_domain(GRID.lake.water.cT_domain_ub)+GRID.snow.cT_domain(GRID.lake.water.cT_domain_ub-1)<2,'snow on lake!');
+    if(~isempty(GRID.lake.water.cT_domain_ub))
+         assert(GRID.lake.water.cT_domain(GRID.lake.water.cT_domain_ub)+GRID.snow.cT_domain(GRID.lake.water.cT_domain_ub-1)<2,'snow on lake!');
+%        assert(GRID.lake.water.cT_domain_ub-GRID.snow.cT_domain_lb>1,'snow on lake!')
     end
     if ~isempty(GRID.snow.cT_domain_ub) %snow cover already exitis
 
@@ -94,7 +95,8 @@ function [T, GRID, PARA, SEB, BALANCE] = CryoGridSnow(T, GRID, FORCING, SEB, PAR
         SEB.newSnow=0;
     end
     
-    if(~isempty(GRID.lake.water.cT_domain_ub)) %ttt
+    if(~isempty(GRID.lake.water.cT_domain_ub))
         assert(GRID.lake.water.cT_domain(GRID.lake.water.cT_domain_ub)+GRID.snow.cT_domain(GRID.lake.water.cT_domain_ub-1)<2,'snow on lake (2)!');
+%        assert(GRID.lake.water.cT_domain_ub-GRID.snow.cT_domain_lb>1,'snow on lake (2)!')
     end    
 end

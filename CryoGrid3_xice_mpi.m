@@ -3,36 +3,33 @@
 % main script for running the model
 %
 % Developed by: S. Westermann and M. Langer 2015
+
 %
-% -------------------------------------------------------------------------
-    clear all
-    close all    
- 
-%ttt    fileID1 = fopen('log_updateGridInfil_1.txt','w')
-%    fileID2 = fopen('log_updateGridInfil_2.txt','w')
-    
-    par_mode = 1;  % parallel mode off/on
-    
+% Extended by J. Nitzborn (infiltration of soils, lateral exchange of heat, water, snow)
+
+% Extended by T. Schneider von Deimling (coupling with FLAKE (based on version M. Langer)
+% ----------------------------------------------------------------------------------------
+clear all
+close all    
+
+% runs modes
+debug_mode=0              % if set to 1, timestep = timestepMin for debugging (avoid of NaN for timestep calculation)
+par_mode = 1;  % parallel mode off/on
+
 if(par_mode==1) 
     delete(gcp('nocreate')) % useful to restart from a crash
 end
+
 add_modules;  %adds required modules
 
-%dbstop if error;
-
-number_of_realizations=2;
-debug_mode=0   % if set to 1, timestep = timestepMin for debugging (avoid of NaN for timestep calculation)
-
-saveDir = './runs';
-
+number_of_realizations=2; % specify number of workers
 if number_of_realizations>1
     parpool(number_of_realizations);
 end
 
-%nnn
 spmd %zzz use function calls to calls below to enable debugging in par mode!
     index=labindex;   %number identifying the process; change this to e.g. 1 for single realization (non-parallel) run
-%nnn    index=1
+%nnn    index=1 
     
 %---------------define input parameters------------------------------------
     % here you provide the ground stratigraphy
@@ -43,25 +40,9 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
                                     0.15  0.65    0.3     0.05    2   0.65;...
                                     0.9   0.65    0.3     0.05    1   0.65;...
                                     9.0   0.30    0.70    0.00    1   0.30     ];
-                                
-%     disp('new stratigraphy........')
-%    PARA.soil.layer_properties = [0.0    0.2    0.7    0.00   1   0.30 ;...           
-%                                  1.0    0.2    0.7    0.00   1   0.30 ;...
-%                                 10.0    0.1    0.8    0.00   1   0.2     ];
-    % simple stratigraphy with excess ice used to test water balance:
-    % PARA.soil.layer_properties=[ 0.0     0.5    0.5     0.00   1   0.50;...
-    %                              0.4     0.8    0.2     0.00   1   0.40;...
-    %                              10.0    0.25   0.75    0.00   1   0.25     ];
-    % very simply stratigraphy without excess ice used to test energy balance
-    % PARA.soil.layer_properties=[ 0.0    0.5    0.5    0.00      soilType  0.5 ;...
-    %                             1.0    0.5    0.5    0.00       1   0.5 ;...
-    %                             10.0    0.25   0.75   0.00      1   0.25     ];
     % soil stratigraphy
-    % column 1: start depth of layer (first layer must start with 0) - each layer extends until the beginning of the next layer, the last layer
-    % extends until the end of the model domain
-    % column 2: volumetric water+ice content
-    % column 3: volumetric mineral content
-    % column 4: volumetric organic content
+    % column 1: start depth of layer (first layer must start with 0) - each layer extends until the beginning of the next layer, the last layer extends until the end of the model domain
+    % column 2: volumetric water+ice content; column 3: volumetric mineral content; column 4: volumetric organic content;
     % column 5: code for soil type: 1: sand, 2: silt
     % column 6: natural porosity - should be the same as 1-mineral-organic if no ground subsidence/thermokarst occurs
     
@@ -85,10 +66,10 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
     PARA.soil.externalWaterFlux=0.;  %external water flux / drainage in [m/day]
     PARA.soil.convectiveDomain=[];       % soil domain where air convection due to buoyancy is possible -> start and end [m] - if empty no convection is possible
     PARA.soil.mobileWaterDomain=[0 10.0];      % soil domain where water from excess ice melt is mobile -> start and end [m] - if empty water is not mobile
-    PARA.soil.relative_maxWater=0.;              % depth at which a water table will form [m] - above excess water is removed, below it pools up
+    PARA.soil.relative_maxWater=0.;              % depth at which a water table will form [m] - above excess water is removed, below it pools up   jjj zzz
     PARA.soil.hydraulic_conductivity = 1e-5;
     PARA = loadSoilTypes( PARA );
-    
+       
     % parameters related to snow
     PARA.snow.max_albedo=0.85;      % albedo of fresh snow
     PARA.snow.min_albedo=0.5;       % albedo of old snow
@@ -123,7 +104,7 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
     PARA.technical.SWEperCell=0.005;            % SWE per grid cell in [m] - determines size of snow grid cells
     PARA.technical.maxSWE=0.4;                  % in [m] SWE
     PARA.technical.arraySizeT=5002;             % number of values in the look-up tables for conductivity and capacity
-    PARA.technical.starttime=datenum(1979, 6, 1);       % starttime of the simulation - if empty start from first value of time series
+    PARA.technical.starttime=datenum(1979, 7, 1);       % starttime of the simulation - if empty start from first value of time series
     PARA.technical.endtime=datenum(1980, 12, 31);         % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;   % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;   % largest possible time step in [days] - here 300 seconds
@@ -188,7 +169,7 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
     PARA.forcing.snow_fraction=1;
     
     % switches for modules
-    PARA.modules.infiltration=0;   % true if infiltration into unfrozen ground occurs
+    PARA.modules.infiltration=1;   % true if infiltration into unfrozen ground occurs
     PARA.modules.xice=0;           % true if thaw subsicdence is enabled
 	PARA.modules.lateral=1;		   % true if adjacent realizations are run (this does not require actual lateral fluxes)
 %tsvd  extended for lateral switched off
@@ -200,7 +181,7 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
         % in par mode this is replaced by PARA.ensemble.immobile_snow_height 
     elseif PARA.modules.lateral
     % switches for lateral processes
-        PARA.modules.exchange_heat = 1; %ttt
+        PARA.modules.exchange_heat = 1; 
         PARA.modules.exchange_water = 0; %ttt
         PARA.modules.exchange_snow = 0;  %ttt
         
@@ -211,9 +192,10 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
 
     disp('Running experiment with xxxx -> indicate switches here')
     % ------make output directory (name depends on parameters) ----------------
+    saveDir = './runs';
 %     run_number = sprintf( [ 'Lake-MPI_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' ) , ...
 %          PARA.modules.exchange_heat, PARA.modules.exchange_water, PARA.modules.exchange_snow, PARA.forcing.rain_fraction, PARA.forcing.snow_fraction, index ] )
-    run_number= sprintf( 'LAKE-MPI_xH%d_xW%d_xS%d_infil%d_xice%d_rF%d_sF%d_i%d' , ...
+    run_number= sprintf( 'LAKE-MPI-new _xH%d_xW%d_xS%d_infil%d_xice%d_rF%d_sF%d_i%d' , ...
         [ PARA.modules.exchange_heat, PARA.modules.exchange_water, PARA.modules.exchange_snow, ...
           PARA.modules.infiltration, PARA.modules.xice, PARA.forcing.rain_fraction, PARA.forcing.snow_fraction , index ] )
     mkdir([ saveDir '/' run_number]);
@@ -237,7 +219,7 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
     
     %----------------create and initialize the grids --------------------------
     GRID=makeGrids(PARA);  %create all grids
-    GRID=createStratigraphy(PARA,GRID);   %interpolate input stratigraphy to the soil grid
+    GRID=createStratigraphy(PARA,GRID);   %interpolate input stratigraphy to the soil grid (GRID.soil.*)
     
     %----- initializie excess ground ice --------------------------------------
     [GRID,PARA] = initializeExcessIce2(GRID,PARA);
@@ -261,7 +243,6 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
     
     %---- modification for infiltration
     wc=GRID.soil.cT_water;  
-    %tsvd wc=GRID.general.cT_water;    
     GRID.soil.E_lb = find(PARA.soil.evaporationDepth==GRID.soil.soilGrid(:,1))-1;
     GRID.soil.T_lb= find(PARA.soil.rootDepth==GRID.soil.soilGrid(:,1))-1;
     
@@ -293,7 +274,6 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
     %_________________________________________________________________________I
     
     while t<PARA.technical.endtime
-%tsvd  zzz
     % store old STATE for energy / water balance checks
     T_old = T;
     lwc_old = lwc_cTgrid(GRID.soil.cT_domain);
@@ -330,17 +310,18 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
         % energy change due to advection of heat through water fluxes is still excluded.
         % timestep in [days]
 
- %tsvd new timestep calculation to avoid problems with lateral mode switched off
         timestep = min( [ max( [ min( [ 0.5 * nanmin(GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain ) ) ./ (24.*3600), ...
                     PARA.technical.targetDeltaE .* nanmin(abs(GRID.general.K_delta ./ SEB.dE_dt ) ) ./ (24.*3600), ...
                     PARA.technical.maxTimestep ] ), ...
                     PARA.technical.minTimestep ] ), ...
                     TEMPORARY.outputTime-t ] );                
+ %tsvd update timestep calculation, this implementation avoids problems with lateral mode switched off
         if PARA.modules.lateral
           timestep = min(timestep,TEMPORARY.syncTime-t);
         end
+ %tsvd timestep calculation for debugging mode to avoid NaN problem       
         if(debug_mode)
-            timestep =  PARA.technical.minTimestep; % use for debugging to avoid NaN... zzz
+            timestep =  PARA.technical.minTimestep; 
         end
         % give a warning when timestep required by CFT criterion is below the minimum timestep specified
         if timestep > 0.5 * min( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain) ) ./ (24.*3600)
@@ -483,7 +464,7 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
                         % calculate lateral water fluxes
                         PACKAGE_waterExchange.water_table_altitude = PARA.ensemble.water_table_altitude(index);
                         PACKAGE_waterExchange.active_layer_depth_altitude = PARA.ensemble.active_layer_depth_altitude(index);
-                        PACKAGE_waterExchange.infiltration_condition = T(GRID.soil.cT_domain_ub)>0 && isempty(GRID.snow.cT_domain_ub); %jjj
+                        PACKAGE_waterExchange.infiltration_condition = T(GRID.soil.cT_domain_ub)>0 && isempty(GRID.snow.cT_domain_ub); %jjj zzz
                         for j=1:number_of_realizations
                             if j~=index
                                 labSend( PACKAGE_waterExchange, j, 2);
@@ -574,15 +555,10 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
       [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc_cTgrid(GRID.soil.cT_domain), timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, saveDir, run_number, water_fluxes, snow_fluxes, heat_fluxes);
     end
     
-    % save final state and output at t=endtime
-%nnn    
-iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_output' datestr(t,'yyyy') '.mat'], OUT)
-%nnn    
+    % save final state and output at t=endtime    
+iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_output' datestr(t,'yyyy') '.mat'], OUT)    
 iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_finalState' datestr(t,'yyyy') '.mat'], T, wc, t, SEB, PARA, GRID)
-%nnn    
 %iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_altitudes_vs_time_' datestr(t,'yyyy')  '.png'], OUT, PARA );
-
-%nnn 
 end
 
 if number_of_realizations>1

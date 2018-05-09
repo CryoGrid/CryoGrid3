@@ -40,7 +40,6 @@ if GRID.snow.cT_domain(GRID.air.cT_domain_lb+1)==1
 % end
 
 %tsvd  check if lake exists
-%lll if  GRID.lake.water.cT_domain(GRID.air.cT_domain_lb+1)==1 % water surface  
 elseif  GRID.lake.water.cT_domain(GRID.air.cT_domain_lb+1)==1 % water surface  
     % GRID.lake.unfrozenWaterSurface = true; %tsvd not needed any more
     %note SolarAzEl.m delivers only an approximation of sun position / t must be in UTC 

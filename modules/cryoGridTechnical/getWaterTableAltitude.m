@@ -1,4 +1,5 @@
 function waterTable = getWaterTableAltitude(T, wc, GRID, PARA)
+%jjj zzz if lake -> watertable = lake surface
 
     T=T(GRID.soil.cT_domain);
     K_delta=GRID.general.K_delta(GRID.soil.cT_domain);  %in m

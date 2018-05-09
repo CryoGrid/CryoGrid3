@@ -29,7 +29,7 @@ if PARA.ensemble.hydraulic_contact_length(index,j)>0
         
 
         % Decipher between cases
-        [waterpotWindex, hasWater_index] = nanmax([wt_index, ald_index ] );
+        [waterpotWindex, hasWater_index] = nanmax([wt_index, ald_index ] ); %jjj
         [waterpotWj, hasWater_j]         = nanmax([wt_j,     ald_j     ] );
         
      

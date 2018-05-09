@@ -65,20 +65,20 @@ function PARA = get_parallel_variables(PARA)
 %                                   10.0    0.25   0.75    0.00   1   0.25     ]};
 
 
-%   PARA.soil.layer_properties = {[0.0    0.5    0.5    0.00   1   0.50 ;...            % lake stratigraphy (no excess ice)
-%                                    1.0    0.5    0.5    0.00   1   0.50 ;...
-%                                   10.0    0.25   0.75   0.00   1   0.25     ] , ...
-%                                   [0.0    0.5    0.5    0.00   1   0.50 ;...          % non-lake stratigraphy (identical to lake stratigraphy) 
-%                                    1.0    0.5    0.5    0.00   1   0.50 ;...
-%                                   10.0    0.25   0.75   0.00   1   0.25     ]};
+  PARA.soil.layer_properties = {[0.0    0.5    0.5    0.00   1   0.50 ;...            % lake stratigraphy (no excess ice)
+                                   1.0    0.5    0.5    0.00   1   0.50 ;...
+                                  10.0    0.25   0.75   0.00   1   0.25     ] , ...
+                                  [0.0    0.5    0.5    0.00   1   0.50 ;...          % non-lake stratigraphy (identical to lake stratigraphy) 
+                                   1.0    0.5    0.5    0.00   1   0.50 ;...
+                                  10.0    0.25   0.75   0.00   1   0.25     ]};
  
-disp(' new stratigraphy ...............................')
-  PARA.soil.layer_properties = {[0.0    0.2    0.7    0.00   1   0.30 ;...            % lake stratigraphy (no excess ice)
-                                 1.0    0.2    0.7    0.00   1   0.30 ;...
-                                10.0    0.1    0.8    0.00   1   0.2     ] , ...
-                                [0.0    0.2    0.7    0.00   1   0.30 ;...          % non-lake stratigraphy (identical to lake stratigraphy) 
-                                 1.0    0.2    0.7    0.00   1   0.30 ;...
-                                10.0    0.1    0.8    0.00   1   0.2     ]};
+% disp(' new stratigraphy ...............................')
+%   PARA.soil.layer_properties = {[0.0    0.2    0.7    0.00   1   0.30 ;...            % lake stratigraphy (no excess ice)
+%                                  1.0    0.2    0.7    0.00   1   0.30 ;...
+%                                 10.0    0.1    0.8    0.00   1   0.2     ] , ...
+%                                 [0.0    0.2    0.7    0.00   1   0.30 ;...          % non-lake stratigraphy (identical to lake stratigraphy) 
+%                                  1.0    0.2    0.7    0.00   1   0.30 ;...
+%                                 10.0    0.1    0.8    0.00   1   0.2     ]};
 
                               
                               %     PARA.soil.layer_properties = {[0.0     0.5    0.5    0.00   1   0.50 ;...            % lake stratigraphy (no excess ice)
@@ -123,7 +123,8 @@ disp(' new stratigraphy ...............................')
 
      PARA.Tinitial=[PARA.Tinitial(:,1) PARA.Tinitial(:, 1+index)];
      
+%tsvd  set lake depths for workers     
 %     PARA.water.depth = [1.,0.]; 
-     PARA.water.depth = [0.,1.]; %ttt
+     PARA.water.depth = [0.,1.]; 
      PARA.water.depth = PARA.water.depth(index); 
 end

@@ -9,7 +9,7 @@ function [GRID] = updateGRID_excessiceInfiltration2(meltwaterGroundIce, GRID)
 %tsvd    if GRID.soil.cT_organic(1)+GRID.soil.cT_mineral(1)<=1e-6  % upper soil cell pure air/water   (and no lake exists)
     if GRID.soil.cT_organic(1)+GRID.soil.cT_mineral(1)<=1e-6 && isempty(GRID.lake.water.cT_domain_ub) && isempty(GRID.lake.ice.cT_domain_ub)   % upper soil cell pure air/water  or no lake
 
-        % general water body extent
+        % general water body extent  zzz
         cT_waterBody = GRID.soil.cT_organic+GRID.soil.cT_mineral<=1e-6;
         GRID.lake.water.cT_domain(logical(GRID.air.cT_domain+GRID.snow.cT_domain)) = 0;
         GRID.lake.water.cT_domain(GRID.soil.cT_domain) = cT_waterBody;

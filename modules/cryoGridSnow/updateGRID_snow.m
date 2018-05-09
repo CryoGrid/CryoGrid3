@@ -41,10 +41,10 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
         GRID.general.K_grid(GRID.snow.cT_domain_ub) = GRID.general.K_grid(GRID.snow.cT_domain_ub+1) -...
             ( GRID.snow.Snow_i(GRID.snow.cT_domain_ub) + GRID.snow.Snow_w(GRID.snow.cT_domain_ub) + GRID.snow.Snow_a(GRID.snow.cT_domain_ub)); %updates the position of the uppermost snow grid cell                
             assert( ~isnan( GRID.general.K_grid(GRID.snow.cT_domain_ub) ), 'updateGRID_snow - error in uppermost snow cell position' );
-        %   assert(GRID.lake.water.cT_domain(GRID.lake.water.cT_domain_ub)+GRID.snow.cT_domain(GRID.snow.cT_domain_lb)<2,'snow on lake!');
-        if(~isempty(GRID.lake.water.cT_domain_ub)) 
-            assert(GRID.lake.water.cT_domain(GRID.lake.water.cT_domain_ub)+GRID.snow.cT_domain(GRID.lake.water.cT_domain_ub-1)<2,'snow on lake!');
-        end
+            if(~isempty(GRID.lake.water.cT_domain_ub)) 
+                assert(GRID.lake.water.cT_domain(GRID.lake.water.cT_domain_ub)+GRID.snow.cT_domain(GRID.lake.water.cT_domain_ub-1)<2,'snow on lake!');
+                % assert(GRID.lake.water.cT_domain_ub-GRID.snow.cT_domain_lb>1,'snow on lake in updateGRID_snow.m!')
+            end
         
         if GRID.snow.Snow_i(GRID.snow.cT_domain_ub)>=1.5.*PARA.technical.SWEperCell  %create new grid cell
 
@@ -133,7 +133,7 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
             assert( sum( sum( isnan(GRID.snow.Snow_i(GRID.snow.cT_domain) + GRID.snow.Snow_w(GRID.snow.cT_domain) + GRID.snow.Snow_a(GRID.snow.cT_domain)) ) ) == 0 , 'updateGRID_snow - error in Snow_i/a/w grid' );
             
             % snow grid
-            soilTop = GRID.general.K_grid(GRID.snow.cT_domain_lb+1);  %tsvd in case of an lake, soilTop corresponds to lakeTop
+            soilTop = GRID.general.K_grid(GRID.snow.cT_domain_lb+1);  %tsvd in case of a lake, soilTop corresponds to lakeTop
             GRID.general.K_grid(GRID.snow.cT_domain)= soilTop - flipud(cumsum(flipud(GRID.snow.Snow_i(GRID.snow.cT_domain) + GRID.snow.Snow_w(GRID.snow.cT_domain) + GRID.snow.Snow_a(GRID.snow.cT_domain))));
             GRID.general.K_grid(GRID.air.cT_domain)=[GRID.general.K_grid(GRID.air.cT_domain_lb)+(-snowCellSize)*(GRID.air.cT_domain_lb-1):snowCellSize:GRID.general.K_grid(GRID.air.cT_domain_lb)]';
  
@@ -184,7 +184,7 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
     GRID.general.K_delta=(- GRID.general.K_grid(1:end-1,1)+ GRID.general.K_grid(2:end,1));
 
 
-    %bugfix as still situations may occur where K_delta<0  mmm ...
+    %bugfix as still situations may occur where K_delta<0  ... zzz also if lake level changes !?
     if ( sum( GRID.general.K_delta < 0 ) > 0 ) 
         disp('updateGRID_snow - bugfix K grid');
         %update grid spacings
@@ -192,15 +192,15 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
         if ~isempty(GRID.snow.cT_domain_ub) % snow cover
             GRID.general.K_grid(GRID.snow.cT_domain) = GRID.general.K_grid(GRID.snow.cT_domain_lb+1) - flipud(cumsum(flipud(GRID.snow.Snow_i(GRID.snow.cT_domain) + GRID.snow.Snow_w(GRID.snow.cT_domain) + GRID.snow.Snow_a(GRID.snow.cT_domain))));        
             surfaceTop = GRID.general.K_grid(GRID.snow.cT_domain_ub);
-            % now snow cover
-%tsvd        else 
-%            surfaceTop = GRID.general.K_grid(GRID.soil.cT_domain_ub);
-        elseif(~isempty(GRID.lake.ice.cT_domain_ub) ) % lake ice
-            surfaceTop = GRID.general.K_grid(GRID.ice.water.cT_domain_ub);
-        elseif(~isempty(GRID.lake.water.cT_domain_ub) && isempty(GRID.lake.ice.cT_domain_ub) ) % open lake
-            surfaceTop = GRID.general.K_grid(GRID.lake.water.cT_domain_ub);
-        else
-            surfaceTop = GRID.general.K_grid(GRID.soil.cT_domain_ub);    % soil
+       else %lll no snow cover
+%tsvd  LAKE cases added       surfaceTop = GRID.general.K_grid(GRID.soil.cT_domain_ub);
+            if(~isempty(GRID.lake.ice.cT_domain_ub) ) % lake ice
+                surfaceTop = GRID.general.K_grid(GRID.ice.water.cT_domain_ub);
+            elseif(~isempty(GRID.lake.water.cT_domain_ub) ) % open lake
+                surfaceTop = GRID.general.K_grid(GRID.lake.water.cT_domain_ub);
+            else
+                surfaceTop = GRID.general.K_grid(GRID.soil.cT_domain_ub);    % soil
+            end
         end
         % air grid
         numAirCells = sum( GRID.air.cT_domain );

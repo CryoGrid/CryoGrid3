@@ -5,7 +5,7 @@ function [ ald_altitude ] = getActiveLayerDepthAltitude( PARA, GRID, T)
     if isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0; % Condition to work on infiltration
         T=T(GRID.soil.cT_domain);
         i=1;
-        i_max=200;
+        i_max=200; %jjj
         while  T(i)>0 && i<=i_max
             i=i+1;
         end

@@ -8,10 +8,10 @@ dz=10; % increment used to plot vertical levels
 %% Non_Lake
 
 % no infil no ex no lake
-% outputfile1 = '../runs/LAKE-MPI_xH0_xW0_xS0_infil0_xice0_rF1_sF1_i1/LAKE-MPI_xH0_xW0_xS0_infil0_xice0_rF1_sF1_i1_realization1_output1980.mat'
-% configfile1 = '../runs/LAKE-MPI_xH0_xW0_xS0_infil0_xice0_rF1_sF1_i1/LAKE-MPI_xH0_xW0_xS0_infil0_xice0_rF1_sF1_i1_realization1_settings.mat'
-% outputfile2 = '../runs/LAKE-MPI_xH0_xW0_xS0_infil0_xice0_rF1_sF1_i2/LAKE-MPI_xH0_xW0_xS0_infil0_xice0_rF1_sF1_i2_realization2_output1980.mat'
-% configfile2 = '../runs/LAKE-MPI_xH0_xW0_xS0_infil0_xice0_rF1_sF1_i2/LAKE-MPI_xH0_xW0_xS0_infil0_xice0_rF1_sF1_i2_realization2_settings.mat'
+% outputfile1 = '../runs/LAKE-MPI_xH1_xW0_xS0_infil0_xice0_rF1_sF1_i1/LAKE-MPI_xH1_xW0_xS0_infil0_xice0_rF1_sF1_i1_realization1_output1980.mat'
+% configfile1 = '../runs/LAKE-MPI_xH1_xW0_xS0_infil0_xice0_rF1_sF1_i1/LAKE-MPI_xH1_xW0_xS0_infil0_xice0_rF1_sF1_i1_realization1_settings.mat'
+% outputfile2 = '../runs/LAKE-MPI_xH1_xW0_xS0_infil0_xice0_rF1_sF1_i2/LAKE-MPI_xH1_xW0_xS0_infil0_xice0_rF1_sF1_i2_realization2_output1980.mat'
+% configfile2 = '../runs/LAKE-MPI_xH1_xW0_xS0_infil0_xice0_rF1_sF1_i2/LAKE-MPI_xH1_xW0_xS0_infil0_xice0_rF1_sF1_i2_realization2_settings.mat'
 % 
 outputfile1 = '../runs/LAKE-MPI_xH1_xW0_xS0_infil1_xice0_rF1_sF1_i1/LAKE-MPI_xH1_xW0_xS0_infil1_xice0_rF1_sF1_i1_realization1_output1980.mat'
 configfile1 = '../runs/LAKE-MPI_xH1_xW0_xS0_infil1_xice0_rF1_sF1_i1/LAKE-MPI_xH1_xW0_xS0_infil1_xice0_rF1_sF1_i1_realization1_settings.mat'
@@ -25,6 +25,8 @@ load(outputfile1); load(configfile1);
 zsoil = GRID.general.cT_grid(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_lb);
 tstamp=OUT.timestamp;
 T=OUT.cryoGrid3; TSoil=T(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_lb,:); %TLakeWater=T(GRID.lake.water.cT_domain_ub:GRID.lake.water.cT_domain_lb,:);  TLakeIce=T(GRID.lake.ice.cT_domain_ub:GRID.lake.ice.cT_domain_lb,:); 
+%OUT.soil.topPosition
+
 %TAir=T(GRID.air.cT_domain_ub:GRID.air.cT_domain_lb,:); 
 
 TSnow=T(GRID.snow.cT_domain_ub:GRID.snow.cT_domain_lb,:);
@@ -36,12 +38,11 @@ TSnow_lb=T(GRID.lake.water.cT_domain_ub-1,:);
 tstamp_forcing=FORCING.data.t_span(idx1:idx2);
 Tair=FORCING.data.Tair(idx1:idx2);
 
-    figure(1)
 txt_setting=['Infil: ',num2str(PARA.modules.infiltration),' Xice: ',num2str(PARA.modules.xice),' heat ex: ',num2str(PARA.modules.exchange_heat),' water ex: ',num2str(PARA.modules.exchange_water),' snow ex: ',num2str(PARA.modules.exchange_snow), ' LakeDepth: ',num2str(PARA.water.depth)];
 txt_forcing=[PARA.forcing.filename(1:end-4),' (',num2str(PARA.forcing.rain_fraction),' ',num2str(PARA.forcing.snow_fraction),')'];
-%plot(tstamp,T(ub_soil:end,:))
+
+    figure(1)
 plot(tstamp,T)
-%hold on; plot(tstamp,Tair,'LineWidth',2); hold off
 grid on; datetick; xlabel('timestamp'); ylabel('T (°C)'); grid on;
 xxx=xlim; yyy=ylim; text(xxx(1),0.9*yyy(2),txt_setting)
 title(txt_forcing, 'Interpreter', 'none')
@@ -86,8 +87,9 @@ if(~isempty(GRID.lake.water.cT_domain_ub)); plot(tstamp,TLake(1:dz:end,:),'b'); 
 %if(~isempty(GRID.lake.water.cT_domain_ub)); plot(tstamp,TLakeWater(1:dz:end,:),'b'); end
 %if(~isempty(GRID.lake.ice.cT_domain_ub)); plot(tstamp,TLakeIce(1:dz:end,:),'c'); end
 hold off
-grid on; datetick; xlabel('timestamp'); ylabel('T (°C)'); grid on; 
-
+grid on; datetick; xlabel('timestamp'); ylabel('T (°C)'); 
+xxx=xlim; yyy=ylim; text(xxx(1),0.9*yyy(2),txt_setting)
+title(txt_forcing, 'Interpreter', 'none')
  
 %%
 %[ ~ ,idx ] = min( abs( datenum(1979, 7, 1 ) - OUT.timestamp() )) % find index of date
@@ -107,6 +109,9 @@ legend(datestr(tstamp(tJan)),datestr(tstamp(tFeb)),datestr(tstamp(tMar)),datestr
 
 figure(99)
 hold on
-plot(tstamp,TLake,'b',tstamp,Tx1,'g',tstamp,Tx2,'r')
+plot(tstamp,TLake(1:49:end,:),'b',tstamp,Tx1,'g',tstamp,Tx2,'r')
 grid on; datetick
 hold off
+grid on; datetick; xlabel('timestamp'); ylabel('T (°C)'); 
+xxx=xlim; yyy=ylim; text(xxx(1),0.9*yyy(2),txt_setting)
+title(txt_forcing, 'Interpreter', 'none')
