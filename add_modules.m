@@ -2,8 +2,8 @@
 %     clearvars -except paraFromFile     % enable running with or without config file from same script
 % end
 
-clear all
-close all
+%clear all
+%close all
 
 profile off
 

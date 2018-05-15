@@ -89,14 +89,32 @@ function [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, 
         GRID = initializeSoilThermalProperties(GRID, PARA);   
     elseif cellsChanged < 0
         disp('infiltration - shortening LUT - removed water cell(s)');
-        GRID.soil.cT_water(1) = [];
-        GRID.soil.cT_frozen(1) = [];
-        GRID.soil.cT_thawed(1) = [];
-        GRID.soil.K_frozen(1) = [];
-        GRID.soil.K_thawed(1) = [];
-        GRID.soil.conductivity(1,:) = [];
-        GRID.soil.capacity(1,:) = [];
-        GRID.soil.liquidWaterContent(1,:) = [];
+        GRID.soil.cT_water(1:-cellsChanged) = [];
+        GRID.soil.cT_frozen(1:-cellsChanged) = [];
+        GRID.soil.cT_thawed(1:-cellsChanged) = [];
+        GRID.soil.K_frozen(1:-cellsChanged) = [];
+        GRID.soil.K_thawed(1:-cellsChanged) = [];
+        GRID.soil.conductivity(1:-cellsChanged,:) = [];
+        GRID.soil.capacity(1:-cellsChanged,:) = [];
+        GRID.soil.liquidWaterContent(1:-cellsChanged,:) = [];
+    end
+    
+    % step 2d) update GRID domains of water body / lake
+    if GRID.soil.cT_organic(1)+GRID.soil.cT_mineral(1)<=1e-6    % upper soil cell pure air/water
+        % general water body extent
+        cT_waterBody = GRID.soil.cT_organic+GRID.soil.cT_mineral<=1e-6;
+        GRID.lake.cT_domain(logical(GRID.air.cT_domain+GRID.snow.cT_domain)) = 0;
+        GRID.lake.cT_domain(GRID.soil.cT_domain) = cT_waterBody;
+        [GRID.lake.cT_domain_lb, GRID.lake.cT_domain_ub] = LayerIndex(GRID.lake.cT_domain);
+        GRID.lake.K_domain(logical(GRID.air.K_domain+GRID.snow.K_domain)) = 0;
+        GRID.lake.K_domain(GRID.lake.cT_domain_ub:GRID.lake.cT_domain_lb+1) = 1;
+        GRID.lake.K_domain(GRID.lake.cT_domain_lb+2:end) = 0;
+        [GRID.lake.K_domain_lb, GRID.lake.K_domain_ub] = LayerIndex(GRID.lake.K_domain);
+    else
+        GRID.lake.cT_domain = false(size(GRID.general.cT_grid));
+        GRID.lake.K_domain = false(size(GRID.general.K_grid));
+        [GRID.lake.cT_domain_lb, GRID.lake.cT_domain_ub] = LayerIndex(GRID.lake.cT_domain);
+        [GRID.lake.K_domain_lb, GRID.lake.K_domain_ub] = LayerIndex(GRID.lake.K_domain);
     end
 
 

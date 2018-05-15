@@ -10,9 +10,9 @@ function CryoGrid3_xice_mpi(SETUP)
 
 %delete(gcp('nocreate')) % useful to restart from a crash
 
-%add_modules;  %adds required modules
+add_modules;  %adds required modules
 
-saveDir = SETUP.saveDir; %'./runs';
+saveDir = SETUP.saveDir;
 
 number_of_realizations=SETUP.numRealizations;
 
