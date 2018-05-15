@@ -20,7 +20,7 @@ water=GRID.general.K_delta(GRID.soil.cT_domain).*wc;
 K_delta=GRID.general.K_delta(GRID.soil.cT_domain);
 
 mobileWater = double(T(GRID.soil.cT_domain)>0) .* (water-natPor) .* double(water>natPor);
-[startCell ~]= LayerIndex(mobileWater~=0);
+[startCell, ~]= LayerIndex(mobileWater~=0);
 
 %move solids down
 for i=startCell:-1:1
@@ -106,7 +106,7 @@ GRID.soil.cT_mineral=mineral./K_delta;
 GRID.soil.cT_organic=organic./K_delta;
 GRID.soil.cT_natPor=natPor./K_delta;
 GRID.soil.cT_actPor=actPor./K_delta;
-GRID.soil.cT_soilType( (GRID.soil.cT_mineral+GRID.soil.cT_organic)<=1e-6 )=1;  %sets sand freeze curve for all water grid cells
+GRID.soil.cT_soilType( (GRID.soil.cT_mineral+GRID.soil.cT_organic)<=1e-6 )=3;  %sets pond as soil type (sand freeze curve) for all water grid cells
 
 soilGRIDsizeOld = sum( GRID.soil.cT_domain );   % to check if LUT update necessary
 
