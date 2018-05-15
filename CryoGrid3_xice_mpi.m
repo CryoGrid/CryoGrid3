@@ -151,9 +151,9 @@ spmd
     
 	if PARA.modules.lateral
 		% switches for lateral processes
-		PARA.modules.exchange_heat = 1;
-		PARA.modules.exchange_water = 1;
-		PARA.modules.exchange_snow = 1;
+		PARA.modules.exchange_heat = SETUP.xH;
+		PARA.modules.exchange_water = SETUP.xW;
+		PARA.modules.exchange_snow = SETUP.xS;
 
 		%---------overwrites variables for each realization--------------------
 		% this function must define everything that is realization-specific or dependent of all realizations

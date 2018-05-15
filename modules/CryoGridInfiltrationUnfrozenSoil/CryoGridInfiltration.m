@@ -52,13 +52,13 @@ if isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0   %no snow cov
         end
     end
 
-        %%% step 2: update GRID including reomval of excess water above water table and ponding below water table
-        [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, surface_runoff);
+    %%% step 2: update GRID including reomval of excess water above water table and ponding below water table
+    [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, surface_runoff);
 
 
-        % store remaining surface runoff
-        BALANCE.water.dr_surface = BALANCE.water.dr_surface - surface_runoff*1000; % in [mm]
-        BALANCE.water.dm_lacking = BALANCE.water.dm_lacking + lacking_water*1000;
+    % store remaining surface runoff
+    BALANCE.water.dr_surface = BALANCE.water.dr_surface - surface_runoff*1000; % in [mm]
+    BALANCE.water.dm_lacking = BALANCE.water.dm_lacking + lacking_water*1000;
 end
 
 
