@@ -50,7 +50,7 @@ spmd
     PARA.soil.kh_bedrock=3.0;   % thermal conductivity of the mineral soil fraction [W/mK]
 
     % parameters related to hydrology scheme
-    PARA.soil.fieldCapacity=0.5;    %water holding capacity of the soil - this must be adapted to fit the upperlost layers!!
+    PARA.soil.fieldCapacity=SETUP.fieldCapacity;    %water holding capacity of the soil - this must be adapted to fit the upperlost layers!!
     PARA.soil.evaporationDepth=0.10; %depth to which evaporation occurs - place on grid cell boundaries
     PARA.soil.rootDepth=0.20;        %depth affected by transpiration - place on grid cell boundaries
 %    PARA.soil.wiltingPoint=0.2;     %point at which transpiration shuts off 

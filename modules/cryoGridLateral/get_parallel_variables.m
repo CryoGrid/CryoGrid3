@@ -76,7 +76,7 @@ PARA.ensemble.terrain_index_snow = calculateTerrainIndexSnow(PARA.ensemble.altit
 % parameters related to infiltration scheme
 PARA.ensemble.external_water_flux=[0, 0, 0 ];
 PARA.ensemble.rootDepth = [ 0.2, 0.1, 0.2 ];
-PARA.ensemble.fieldCapacity = [ 0.5, 0.5, 0.5 ];
+PARA.ensemble.fieldCapacity = [ PARA.soil.fieldCapacity, PARA.soil.fieldCapacity, PARA.soil.fieldCapacity ];
 
 % location-specific fix parameter values
 PARA.location.initial_altitude = PARA.ensemble.initial_altitude(index);
@@ -105,7 +105,7 @@ depth_xice_T1 = SETUP.d_xice_T1;
 depth_xice_T2 = SETUP.d_xice_T2;
 vwc_xice_T1 = 0.75;
 vwc_xice_T2 = 0.90;
-natPor = 0.5;
+natPor = SETUP.natPor;
 stratigraphyMap= containers.Map( { 'DEFAULT', 'WET', 'DRY', 'CENTER', 'RIM', 'TROUGH' }, ...
     { [ 0.0   0.40    0.10    0.15    1   0.75;...
     0.15  0.65    0.30    0.05    1   0.65;...
