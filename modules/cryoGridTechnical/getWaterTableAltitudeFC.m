@@ -18,9 +18,10 @@ else
     end
     waterTable=PARA.location.altitude;
     water=wc;
-    porosity=(1 - GRID.soil.cT_mineral - GRID.soil.cT_organic);
+    porosity=GRID.soil.cT_actPor;%(1 - GRID.soil.cT_mineral - GRID.soil.cT_organic);
     i=1;
-    while water(i)<porosity(i) && T(i)>0
+    eps=1e-9; % this is to prevent rounding errors which lead to wrong water table --> if water>=porosity-eps this is considered saturated
+    while water(i)<porosity(i)-eps && T(i)>0
         waterTable = waterTable - K_delta(i);
         i=i+1;
     end

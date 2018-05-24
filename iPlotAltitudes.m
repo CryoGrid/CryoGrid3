@@ -35,7 +35,7 @@ function [ ] = iPlotAltitudes( filename, OUT, PARA )
     datetick('x','mmm');     
     xlabel('time');
     ylabel('altitude [m asl]');
-
+	title(datestr(ts(1), 'yyyy'));
     legend('show', 'Location', 'southeast');
     grid('on');
     

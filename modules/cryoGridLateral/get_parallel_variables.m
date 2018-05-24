@@ -89,6 +89,7 @@ PARA.location.altitude = PARA.ensemble.altitude(index);
 PARA.location.surface_altitude = PARA.ensemble.surface_altitude(index);
 PARA.location.water_table_altitude = PARA.ensemble.water_table_altitude(index);
 PARA.location.infiltration_altitude = PARA.ensemble.infiltration_altitude(labindex);
+PARA.location.soil_altitude = PARA.ensemble.soil_altitude(index);
 % location-specific dynamic common thresholds
 PARA.location.absolute_maxWater_altitude = [max( PARA.ensemble.altitude ) + PARA.soil.relative_maxWater];
 PARA.location.absolute_maxSnow_altitude = [max( PARA.ensemble.altitude ) + PARA.snow.relative_maxSnow];

@@ -146,7 +146,7 @@ spmd
     
     % switches for modules
     PARA.modules.infiltration=1;   % true if infiltration into unfrozen ground occurs
-    PARA.modules.xice=1;           % true if thaw subsicdence is enabled
+    PARA.modules.xice=SETUP.xice;           % true if thaw subsicdence is enabled
 	PARA.modules.lateral=1;		   % true if adjacent realizations are run (this does not require actual lateral fluxes)
     
 	if PARA.modules.lateral
