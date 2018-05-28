@@ -10,7 +10,7 @@ area_tot = 140.0; % typical area of polygon center [Cresto Aleina / Muster ]
 f_C = SETUP.f_C;
 f_R = SETUP.f_R;
 f_T = SETUP.f_T;
-PARA.ensemble.weight = round( [f_C, f_R, f_T], 1 ) .* 10;  % make sure to have integers as weights
+PARA.ensemble.weight = round( [f_C, f_R, f_T], 1 ) .* 100;  % make sure to have integers as weights
 
 PARA.ensemble.area = PARA.ensemble.weight ./ sum(PARA.ensemble.weight) .* area_tot ; % in m^2
 area_C = PARA.ensemble.area(1);
