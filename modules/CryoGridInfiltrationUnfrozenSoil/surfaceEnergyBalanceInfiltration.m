@@ -26,6 +26,7 @@ if ~isempty(GRID.snow.cT_domain_ub)
     dE_dt(GRID.snow.cT_domain_lb+1) = Qsolar(GRID.snow.cT_domain_lb+1);
 end
 
+
 %__________________________________________________________________________
 Sout = PARA.surf.albedo*FORCING.i.Sin;
 Lout = PARA.surf.epsilon.*sigma.*(T(GRID.air.cT_domain_lb+1)+273.15).^4 + (1-PARA.surf.epsilon).*FORCING.i.Lin;
@@ -39,24 +40,35 @@ if PARA.modules.infiltration
     % snow cover or uppermost grid cell frozen --> no ET ; this includes the case of a frozen water body
     if ~isempty(GRID.snow.cT_domain_ub) || T(GRID.soil.cT_domain_ub)<=0
         Qe=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, PARA.surf.rs, FORCING.i.p, PARA));
-    % unfrozen water body at surface
+        % unfrozen water body at surface
     elseif GRID.lake.unfrozenWaterSurface
         Qe=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, PARA.surf.rs, FORCING.i.p, PARA));
         dwc_dt(1)=-Qe./L; %in m water per sec, this can be evaporation or condensation
         
-    % unfrozen soil surface
+        % unfrozen soil surface
     else
         Qe_pot=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, 0, FORCING.i.p, PARA));  %potential ET
         if Qe_pot>0
-            fraction_T=getET_fraction(T(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_ub+GRID.soil.T_lb-1), wc(1:GRID.soil.T_lb), PARA.soil.fieldCapacity, 0);%PARA.soil.wiltingPoint);
-            fraction_E=getET_fraction(T(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_ub+GRID.soil.E_lb-1), wc(1:GRID.soil.E_lb), PARA.soil.fieldCapacity, 0);%PARA.soil.residualWC);
-            fraction_ET = fraction_T.*PARA.soil.ratioET;
-            fraction_ET(1:GRID.soil.E_lb) = fraction_ET(1:GRID.soil.E_lb) + fraction_E.*(1-PARA.soil.ratioET);
             
-            Qe=sum(fraction_ET.*GRID.general.K_delta(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_ub+GRID.soil.T_lb-1))./sum(GRID.general.K_delta(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_ub+GRID.soil.T_lb-1)).*Qe_pot;
-            fraction_ET=fraction_ET.*GRID.general.K_delta(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_ub+GRID.soil.T_lb-1)./sum(fraction_ET.*GRID.general.K_delta(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_ub+GRID.soil.T_lb-1));
+            fraction_T=getET_fraction(T(GRID.soil.cT_domain), wc, PARA.soil.fieldCapacity, 0);%PARA.soil.wiltingPoint);
+            fraction_E=getET_fraction(T(GRID.soil.cT_domain), wc, PARA.soil.fieldCapacity, 0);%PARA.soil.residualWC);
+            
+            depth_weighting_E=exp(-1./PARA.soil.evaporationDepth.*GRID.general.cT_grid(GRID.soil.cT_domain));  %exponential decrease with depth
+            depth_weighting_E(depth_weighting_E<0.05)=0;
+            depth_weighting_E=depth_weighting_E.*GRID.general.K_delta(GRID.soil.cT_domain)./sum(depth_weighting_E.*GRID.general.K_delta(GRID.soil.cT_domain),1); %normalize
+            
+            depth_weighting_T=exp(-1./PARA.soil.rootDepth.*GRID.general.cT_grid(GRID.soil.cT_domain));
+            depth_weighting_T(depth_weighting_T<0.05)=0;
+            depth_weighting_T=depth_weighting_T.*GRID.general.K_delta(GRID.soil.cT_domain)./sum(depth_weighting_T.*GRID.general.K_delta(GRID.soil.cT_domain),1);
+            
+            fraction_ET = fraction_T.*depth_weighting_T.*PARA.soil.ratioET + fraction_E.*depth_weighting_E.*(1-PARA.soil.ratioET);
+            
+            Qe=sum(fraction_ET, 1).*Qe_pot; 
+            
+            fraction_ET=fraction_ET./sum(fraction_ET, 1);
+            
             % sum(fraction_ET) is always 1
-            dwc_dt(1:GRID.soil.T_lb)=-Qe./L.*fraction_ET;    %in m water per sec
+            dwc_dt=-Qe./L.*fraction_ET;    %in m water per sec
         else  %condensation
             Qe=Qe_pot;
             dwc_dt(1)=-Qe./L; %in m water per sec, put everything in uppermost grid cell
