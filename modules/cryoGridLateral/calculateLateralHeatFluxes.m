@@ -12,7 +12,8 @@ function [dE_dt, BALANCE] = calculateLateralHeatFluxes(T_index, k_index, PACKAGE
         weight_index = PARA.ensemble.weight(index);
         weight_j = PARA.ensemble.weight(j);
         contact_length_index_j = PARA.ensemble.thermal_contact_length(j, index);
-        contact_altitude = min( [ PARA.ensemble.altitude(j), PARA.ensemble.altitude(index) ] ) - distance_index_j;  %below this depth, grid cells will exchange heat
+%tsvd allow for heat exchange over full vertical profile    contact_altitude = min( [ PARA.ensemble.altitude(j), PARA.ensemble.altitude(index) ] ) - distance_index_j;  %below this depth, grid cells will exchange heat
+        contact_altitude = min( [ PARA.ensemble.altitude(j), PARA.ensemble.altitude(index) ] );  %below this depth, grid cells will exchange heat
         contact_domain = altitude_cTgrid_index <= contact_altitude;  %all cells in the current ensemble member
 
         % interpolate j-values to index-grid   
@@ -48,9 +49,10 @@ function [dE_dt, BALANCE] = calculateLateralHeatFluxes(T_index, k_index, PACKAGE
         dE_dt(contact_domain) = k_eff(contact_domain) .* (T_interp_j(contact_domain)-T_index(contact_domain)) ./ distance_index_j .* contact_length_index_j ./ PARA.ensemble.area(index) ; % in [ J / m^3 / s ]
               
 %        T_index(contact_domain) = T_index(contact_domain) +  dE_dt_j ./ c_index(contact_domain) .* PARA.technical.syncTimeStep .* 24 .* 3600;
-
+ 
         % balance is not correct
-        BALANCE.energy.Q_lateral(contact_domain) = BALANCE.energy.Q_lateral(contact_domain) + dE_dt(contact_domain) .* PARA.technical.syncTimeStep .* 24 .* 3600 .* GRID.general.K_delta(contact_domain); % in [ J / m^2 ]
+       %tsvd  BALANCE.energy.Q_lateral(contact_domain) = BALANCE.energy.Q_lateral(contact_domain) + dE_dt(contact_domain) .* PARA.technical.syncTimeStep .* 24 .* 3600 .* GRID.general.K_delta(contact_domain); % in [ J / m^2 ]
+        BALANCE.energy.Q_lateral(contact_domain) = k_eff(contact_domain) .* (T_interp_j(contact_domain)-T_index(contact_domain)) ./ distance_index_j; % in W/m2 
         
     end
 end

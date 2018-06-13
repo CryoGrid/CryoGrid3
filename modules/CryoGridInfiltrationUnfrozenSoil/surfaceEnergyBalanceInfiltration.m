@@ -30,8 +30,8 @@ end
 
 %tsvd  also consider LAKE case
 %------- ice surface (solid state green house effect) ---------------------
-%if ~isempty(GRID.lake.ice.cT_domain_ub)   lll
-if GRID.lake.ice.z_ice>0
+if ~isempty(GRID.lake.ice.cT_domain_ub) 
+%%%if GRID.lake.ice.z_ice>0
     beta=PARA.ice.extinction;
 %     if GRID.lake.ice.melt_flag
 %         %increse light extinction coeff under melt conditions
@@ -62,8 +62,8 @@ Qnet = FORCING.i.Sin-Sout + FORCING.i.Lin - Lout ;
     %snow cover or uppermost grid cell frozen, or lake ice --> no ET
 %tsvd LAKE case added 
 if PARA.modules.infiltration 
-    %lll    if ~isempty(GRID.snow.cT_domain_ub) || T(GRID.soil.cT_domain_ub)<=0  || ~isempty(GRID.lake.ice.cT_domain_ub)    % water replaced by ice  %snow cover or uppermost grid cell frozen --> no ET      tsvd: LAKE case added
-    if ~isempty(GRID.snow.cT_domain_ub) || T(GRID.soil.cT_domain_ub)<=0  || GRID.lake.ice.z_ice>0  % snow or lake ice cover, or uppermost grid cell frozen --> no ET     zzz case of flooding of basin not captured correctly...
+    if ~isempty(GRID.snow.cT_domain_ub) || T(GRID.soil.cT_domain_ub)<=0  || ~isempty(GRID.lake.ice.cT_domain_ub)    % water replaced by ice  %snow cover or uppermost grid cell frozen --> no ET      tsvd: LAKE case added
+%%%    if ~isempty(GRID.snow.cT_domain_ub) || T(GRID.soil.cT_domain_ub)<=0  || GRID.lake.ice.z_ice>0  % snow or lake ice cover, or uppermost grid cell frozen --> no ET     zzz case of flooding of basin not captured correctly...
         Qe=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, PARA.surf.rs, FORCING.i.p, PARA));
  % unfrozen water body at surface
     %tsvd elseif GRID.lake.unfrozenWaterSurface 

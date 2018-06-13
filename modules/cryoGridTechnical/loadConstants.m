@@ -29,5 +29,5 @@ function PARA = loadConstants( PARA )
     % mineral
     %PARA.constants.rho_m = 1; % n.a.
     PARA.constants.c_m = 2.0e6; %[J/(K m^3)]                          % volumetric heat capacity of minearal material [J/(K m^3)]  
-    PARA.constants.k_m = PARA.soil.kh_bedrock;                      % heat conductivity of mineral material / bedrock [ W/(mK)] (specified above) %km=3.8 %mineral [Hillel(1982)]    
+    PARA.constants.k_m = PARA.soil.kh_bedrock;                      % heat conductivity of mineral material / bedrock [ W/(mK)] (specified above) %km=3.8 %mineral [Hillel(1982)]   tsvd:  km=3.0! 
 end

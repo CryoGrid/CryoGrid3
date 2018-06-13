@@ -51,7 +51,7 @@ elseif  GRID.lake.water.cT_domain(GRID.air.cT_domain_lb+1)==1 % water surface
     PARA.surf.z0=real(PARA.surf.z0);
     PARA.surf.rs              = PARA.water.rs;
 
-elseif GRID.lake.ice.z_ice>0 %GRID.lake.ice.cT_domain(GRID.air.cT_domain_lb+1)==1 % ice surface
+elseif GRID.lake.ice.cT_domain(GRID.air.cT_domain_lb+1)==1 % ice surface
     PARA.surf.albedo          = PARA.ice.albedo;
     PARA.surf.epsilon         = PARA.ice.epsilon;
     [PARA.surf.z0, z0t, z0q]  = flake_roughnessLength(PARA.water.fetch, FORCING.i.wind, SEB.u_star, 1);

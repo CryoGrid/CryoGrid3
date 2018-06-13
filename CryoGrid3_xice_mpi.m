@@ -1,3 +1,4 @@
+
 % -------------------------------------------------------------------------
 % CryoGRID3
 % main script for running the model
@@ -9,8 +10,9 @@
 
 % Extended by T. Schneider von Deimling (coupling with FLAKE (based on version M. Langer)
 % ----------------------------------------------------------------------------------------
-clear all
-close all    
+
+%clear all
+%close all  
 
 % runs modes
 debug_mode=0              % if set to 1, timestep = timestepMin for debugging (avoid of NaN for timestep calculation)
@@ -105,12 +107,14 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
     PARA.technical.maxSWE=0.4;                  % in [m] SWE
     PARA.technical.arraySizeT=5002;             % number of values in the look-up tables for conductivity and capacity
     PARA.technical.starttime=datenum(1979, 7, 1);       % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum(1980, 12, 31);         % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.endtime=datenum(1980, 6, 30);         % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;   % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;   % largest possible time step in [days] - here 300 seconds
-    PARA.technical.targetDeltaE=1e5;            % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
+   %tsvd  PARA.technical.targetDeltaE=1e5;            % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
+    PARA.technical.targetDeltaE=1e6;            % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K      lll DeltaE increased by 1 order of M
     PARA.technical.outputTimestep= 3 ./ 24.0 ;          % output time step in [days] - here three hours
-    PARA.technical.syncTimeStep = 12 ./ 24.0 ;          % output time step in [days] - here three hours
+%    PARA.technical.syncTimeStep = 12 ./ 24.0 ;          % output time step in [days] - here three hours
+    PARA.technical.syncTimeStep = 3 ./ 24.0 ;          % output time step in [days] - here three hours
     PARA.technical.saveDate='01.01.';           % date of year when output file is written - no effect if "saveInterval" is empty
     PARA.technical.saveInterval=[];             % interval [years] in which output files are written - if empty the entire time series is written - minimum is 1 year
     PARA.technical.waterCellSize=0.02;          % default size of a newly added water cell when water ponds below water table [m]
@@ -163,7 +167,8 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
     PARA = loadConstants( PARA );
     
     %FORCING data mat-file
-    PARA.forcing.filename='samoylov_ERA_obs_fitted_1979_2014_spinup.mat';  %must be in subfolder "forcing" and follow the conventions for CryoGrid 3 forcing files
+    %PARA.forcing.filename='samoylov_ERA_obs_fitted_1979_2014_spinup.mat';  %must be in subfolder "forcing" and follow the conventions for CryoGrid 3 forcing files
+    PARA.forcing.filename='Samoylov_rcp85_1901_2300_CryoGrid_windModified.mat';
     %PARA.forcing.filename='CG3_CCLM_forcing_90_101';
     PARA.forcing.rain_fraction=1;
     PARA.forcing.snow_fraction=1;
@@ -195,9 +200,12 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
     saveDir = './runs';
 %     run_number = sprintf( [ 'Lake-MPI_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' ) , ...
 %          PARA.modules.exchange_heat, PARA.modules.exchange_water, PARA.modules.exchange_snow, PARA.forcing.rain_fraction, PARA.forcing.snow_fraction, index ] )
-    run_number= sprintf( 'LAKE-MPI-new _xH%d_xW%d_xS%d_infil%d_xice%d_rF%d_sF%d_i%d' , ...
-        [ PARA.modules.exchange_heat, PARA.modules.exchange_water, PARA.modules.exchange_snow, ...
+    %run_number= sprintf( 'SSW-NL_xH%d_xW%d_xS%d_infil%d_xice%d_rF%d_sF%d_i%d' , ...
+
+    run_number= sprintf( 'TEST_xH%d_xW%d_xS%d_infil%d_xice%d_rF%d_sF%d_i%d' , ...
+         [PARA.modules.exchange_heat, PARA.modules.exchange_water, PARA.modules.exchange_snow, ...
           PARA.modules.infiltration, PARA.modules.xice, PARA.forcing.rain_fraction, PARA.forcing.snow_fraction , index ] )
+      
     mkdir([ saveDir '/' run_number]);
     
    %tsvd ------redirect command line output to logfile ---------------------------
@@ -303,8 +311,12 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
         SEB = heatConduction(T, k_Kgrid, GRID, PARA, SEB);
         
         %------ sum up heat fluxes --------------------------------------------
-        SEB.dE_dt = SEB.dE_dt_cond + SEB.dE_dt_SEB;
-        
+%tsvd   account also for lateral heat exchange
+% Julia Implementationfrom Moritz:      SEB["dE_dt"] = SEB["dE_dt_cond"] + SEB["dE_dt_SEB"] + (dE_dt_lateral.*GRID["general"]["K_delta"]);
+%original       SEB.dE_dt = SEB.dE_dt_cond + SEB.dE_dt_SEB;
+                SEB.dE_dt = SEB.dE_dt_cond + SEB.dE_dt_SEB + dE_dt_lateral.*GRID.general.K_delta;
+        %  dE_dt_lateral./c_cTgrid.*timestep.*24.*3600;
+
         %------ determine optimal timestep ------------------------------------
         % account for min and max timesteps specified, max. energy change per grid cell and the CFT stability criterion.
         % energy change due to advection of heat through water fluxes is still excluded.
@@ -327,7 +339,7 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
         if timestep > 0.5 * min( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain) ) ./ (24.*3600)
             warning( 'numerical stability not guaranteed' );
         end
-        
+
         %------ update T array ------------------------------------------------
         % account for vertical heat fluxes from ground heat flux and heat conduction
         T = T + SEB.dE_dt./c_cTgrid./GRID.general.K_delta.*timestep.*24.*3600;

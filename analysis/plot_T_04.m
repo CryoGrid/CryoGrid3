@@ -12,11 +12,11 @@ dz=10; % increment used to plot vertical levels
 % configfile1 = '../runs/LAKE-MPI_xH1_xW0_xS0_infil0_xice0_rF1_sF1_i1/LAKE-MPI_xH1_xW0_xS0_infil0_xice0_rF1_sF1_i1_realization1_settings.mat'
 % outputfile2 = '../runs/LAKE-MPI_xH1_xW0_xS0_infil0_xice0_rF1_sF1_i2/LAKE-MPI_xH1_xW0_xS0_infil0_xice0_rF1_sF1_i2_realization2_output1980.mat'
 % configfile2 = '../runs/LAKE-MPI_xH1_xW0_xS0_infil0_xice0_rF1_sF1_i2/LAKE-MPI_xH1_xW0_xS0_infil0_xice0_rF1_sF1_i2_realization2_settings.mat'
-% 
-outputfile1 = '../runs/LAKE-MPI_xH1_xW0_xS0_infil1_xice0_rF1_sF1_i1/LAKE-MPI_xH1_xW0_xS0_infil1_xice0_rF1_sF1_i1_realization1_output1980.mat'
-configfile1 = '../runs/LAKE-MPI_xH1_xW0_xS0_infil1_xice0_rF1_sF1_i1/LAKE-MPI_xH1_xW0_xS0_infil1_xice0_rF1_sF1_i1_realization1_settings.mat'
-outputfile2 = '../runs/LAKE-MPI_xH1_xW0_xS0_infil1_xice0_rF1_sF1_i2/LAKE-MPI_xH1_xW0_xS0_infil1_xice0_rF1_sF1_i2_realization2_output1980.mat'
-configfile2 = '../runs/LAKE-MPI_xH1_xW0_xS0_infil1_xice0_rF1_sF1_i2/LAKE-MPI_xH1_xW0_xS0_infil1_xice0_rF1_sF1_i2_realization2_settings.mat'
+%
+outputfile1 = '../runs/LAKE-NonLake _xH1_xW0_xS0_infil1_xice0_rF1_sF1_i1/LAKE-NonLake _xH1_xW0_xS0_infil1_xice0_rF1_sF1_i1_realization1_output1980.mat'
+configfile1 = '../runs/LAKE-NonLake _xH1_xW0_xS0_infil1_xice0_rF1_sF1_i1/LAKE-NonLake _xH1_xW0_xS0_infil1_xice0_rF1_sF1_i1_realization1_settings.mat'
+outputfile2 = '../runs/LAKE-NonLake _xH1_xW0_xS0_infil1_xice0_rF1_sF1_i2/LAKE-NonLake _xH1_xW0_xS0_infil1_xice0_rF1_sF1_i2_realization2_output1980.mat'
+configfile2 = '../runs/LAKE-NonLake _xH1_xW0_xS0_infil1_xice0_rF1_sF1_i2/LAKE-NonLake _xH1_xW0_xS0_infil1_xice0_rF1_sF1_i2_realization2_settings.mat'
 
 load(outputfile1); load(configfile1);
 
