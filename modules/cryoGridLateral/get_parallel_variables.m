@@ -3,14 +3,20 @@ function PARA = get_parallel_variables(PARA)
 	index = labindex;
     
     % auxiliary calculations for circular geometry
-    diameter=10; % in [m]
-    area = pi.*(diameter./2)^2; % in [m^2]
-    perimeter = 2*pi.*(diameter./2); % in [m]
-
+    F_L = 0.5; % landscape Lake Fraction
+    radius = 10; % in [m]
+    perimeter = 2*pi.*radius; % in [m]
+    distance =  sqrt(pi./(4*F_L)) * radius; % in [m]
     % geometric relations
-    PARA.ensemble.distanceBetweenPoints= diameter .* ( ones(numlabs) - eye(numlabs) );% [0, 4, 4; 4, 0, 4 ; 4, 4, 0];  %in m; put 0 for all non-connected ensemble members
+%    PARA.ensemble.distanceBetweenPoints = diameter .* ( ones(numlabs) - eye(numlabs) );% [0, 4, 4; 4, 0, 4 ; 4, 4, 0];  %in m; put 0 for all non-connected ensemble members
+    PARA.ensemble.distanceBetweenPoints = distance .* ( ones(numlabs) - eye(numlabs) );  %in m; put 0 for all non-connected ensemble members;     %zzz needed?
     PARA.ensemble.weight = [1, 1];%[2, 1, 1];  
-    PARA.ensemble.area = PARA.ensemble.weight.*area; % in m^2
+%    PARA.ensemble.weight = [radius/(PARA.ensemble.distanceBetweenPoints+radius),PARA.ensemble.distanceBetweenPoints/(PARA.ensemble.distanceBetweenPoints+radius)]; % weight keff by length radius and distance  
+
+ %  area = pi.*(diameter./2)^2; % in [m^2]
+    %area = [pi.*radius^2 , pi.*(PARA.ensemble.distanceBetweenPoints^2-radius^2); % in [m^2]
+%    PARA.ensemble.area = PARA.ensemble.weight.*area; % in m^2  zzz jjj ???
+    PARA.ensemble.area = [pi.*radius^2 , pi.*(distance^2-radius^2)]; % in [m^2]
 
     % topographical relations
     %tsvd PARA.ensemble.initial_altitude = [20.0, 20.5]; %[20.0, 21.0, 20.5];                            %in m a.s.l., this is the reference for the "zero" position of the grids

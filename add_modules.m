@@ -6,7 +6,7 @@
 %clear all
 %close all
 
-profile off
+%profile off
 
 
 %import CryoGrid modules (matlab functions)

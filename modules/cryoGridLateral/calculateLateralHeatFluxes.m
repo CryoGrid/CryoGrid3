@@ -1,5 +1,4 @@
-function [dE_dt, BALANCE] = calculateLateralHeatFluxes(T_index, k_index, PACKAGE_heatExchange_j, GRID, PARA, BALANCE, j)
-    
+function [dE_dt, BALANCE] = calculateLateralHeatFluxes(T_index, k_index, PACKAGE_heatExchange_j, GRID, PARA, BALANCE, j)    
     index = labindex;
     dE_dt = zeros( length(GRID.general.cT_grid), 1);
     if PARA.ensemble.thermal_contact_length(index,j)>0  % calculate lateral heat flux only for laterally connected workers

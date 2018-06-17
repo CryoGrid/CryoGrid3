@@ -1,4 +1,3 @@
-
 % -------------------------------------------------------------------------
 % CryoGRID3
 % main script for running the model
@@ -11,8 +10,7 @@
 % Extended by T. Schneider von Deimling (coupling with FLAKE (based on version M. Langer)
 % ----------------------------------------------------------------------------------------
 
-%clear all
-%close all  
+%clear all; close all; profile off  
 
 % runs modes
 debug_mode=0              % if set to 1, timestep = timestepMin for debugging (avoid of NaN for timestep calculation)

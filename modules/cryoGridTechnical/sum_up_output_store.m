@@ -8,7 +8,6 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
 	TEMPORARY.Qh_sum=TEMPORARY.Qh_sum+SEB.Qh.*timestep;
 	TEMPORARY.Qnet_sum=TEMPORARY.Qnet_sum+SEB.Qnet.*timestep;
     TEMPORARY.Qg_sum=TEMPORARY.Qg_sum+SEB.Qg.*timestep;
-    
     TEMPORARY.Qsurf_sum = TEMPORARY.Qsurf_sum + SEB.Qsurf * timestep;
     TEMPORARY.dE_dt_SEB_sum = TEMPORARY.dE_dt_SEB_sum + SEB.dE_dt_SEB * timestep;
     TEMPORARY.dE_dt_cond_sum = TEMPORARY.dE_dt_cond_sum + SEB.dE_dt_cond * timestep;
@@ -159,6 +158,7 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
         OUT.EB.Qh = [OUT.EB.Qh; TEMPORARY.Qh];         % sensible heat flux (positive into ground)
         OUT.EB.Qnet = [OUT.EB.Qnet; TEMPORARY.Qnet];
         OUT.EB.Qgeo = [OUT.EB.Qgeo; PARA.soil.Qgeo];       % geothermal heat flux
+        
 		OUT.EB.dE_soil_sens = [OUT.EB.dE_soil_sens; BALANCE.energy.dE_soil_sens ];
         BALANCE.energy.dE_soil_sens = 0;
         OUT.EB.dE_soil_lat = [OUT.EB.dE_soil_lat; BALANCE.energy.dE_soil_lat ];
