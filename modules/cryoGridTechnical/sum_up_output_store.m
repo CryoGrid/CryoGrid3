@@ -183,13 +183,11 @@ function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep
         disp([datestr(now,'yyyy-mm-dd HH:MM:SS'),':  at ', datestr(t), ',  Average timestep: ',  num2str(TEMPORARY.timestep_out), ' seconds'])
       
         TEMPORARY.outputTime=round((TEMPORARY.outputTime+PARA.technical.outputTimestep)./PARA.technical.outputTimestep).*PARA.technical.outputTimestep;
-     
-        %ooo  index=1
-        
+             
         %write output files      
         if  round((t-TEMPORARY.saveTime).*48)==0   
-            iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_output' datestr(t,'yyyy')  '.mat' ], OUT);
-            iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_finalState'  datestr(t,'yyyy') '.mat' ], T, wc, t, SEB, PARA, GRID);
+            iSaveOUT( [ saveDir '/' run_number '/' run_number '_' datestr(t,'yyyy')  '.mat' ], OUT);
+            iSaveState( [ saveDir '/' run_number '/' run_number '_finalState'  datestr(t,'yyyy') '.mat' ], T, wc, t, SEB, PARA, GRID);
        %ttt iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_altitudes_vs_time_' datestr(t,'yyyy')  '.png' ], OUT, PARA );
             OUT = generateOUT();  
             TEMPORARY.saveTime=datenum(str2num(datestr(t,'yyyy'))+1, str2num(datestr(t,'mm')), str2num(datestr(t,'dd')), str2num(datestr(t,'HH')), str2num(datestr(t,'MM')), 0);

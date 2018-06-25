@@ -1,5 +1,8 @@
 function terrain_index_snow_final = calculateTerrainIndexSnow(altitudes, weight)
-%
+%tsvd   
+weight_fix = [1, 1]; % temporal fix  zzz ttt
+weight=weight_fix;
+
 snowCellSize = 0.025;
 allAltitudes=[];
 for i=1:size(weight,2)

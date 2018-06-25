@@ -6,14 +6,19 @@ function [dE_dt, BALANCE] = calculateLateralHeatFluxes(T_index, k_index, PACKAGE
         % change to absolute altitude grid
         altitude_cTgrid_index = -GRID.general.cT_grid + PARA.ensemble.initial_altitude(index);
 
-        % determine the contact domain
         distance_index_j = PARA.ensemble.distanceBetweenPoints(j, index);
         weight_index = PARA.ensemble.weight(index);
         weight_j = PARA.ensemble.weight(j);
         contact_length_index_j = PARA.ensemble.thermal_contact_length(j, index);
 %tsvd allow for heat exchange over full vertical profile    contact_altitude = min( [ PARA.ensemble.altitude(j), PARA.ensemble.altitude(index) ] ) - distance_index_j;  %below this depth, grid cells will exchange heat
-        contact_altitude = min( [ PARA.ensemble.altitude(j), PARA.ensemble.altitude(index) ] );  %below this depth, grid cells will exchange heat
+        % determine the contact domain
+%        contact_altitude = min( [ PARA.ensemble.altitude(j), PARA.ensemble.altitude(index) ] );  %below this depth, grid cells will exchange heat
+        contact_altitude = 0.;  % ttt temporal fix zzz
         contact_domain = altitude_cTgrid_index <= contact_altitude;  %all cells in the current ensemble member
+        
+%        save uuu.mat contact_domain
+%        assert( 1==0, 'stop here') 
+
 
         % interpolate j-values to index-grid   
         altitude_cTgrid_j = -PACKAGE_heatExchange_j.cT_grid + PARA.ensemble.initial_altitude(j);

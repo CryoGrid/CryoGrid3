@@ -22,7 +22,7 @@ FLAKE.i_bot_flk=0;
 FLAKE.q_w_flk=0;
 FLAKE.q_bot_flk=0;
 
-FLAKE.fetch=100;
+%tsvd FLAKE.fetch=100; not used anymore
 FLAKE.depth_w=PARA.water.depth;
 FLAKE.d_h_ice_dt  = 0;
 FLAKE.q_ice_water = 0;
