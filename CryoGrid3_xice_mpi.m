@@ -70,7 +70,7 @@ spmd
     PARA.snow.epsilon=0.99;         % surface emissivity snow
     PARA.snow.z0=5e-4;              % roughness length surface [m]
     PARA.snow.rs=0.0;               % surface resistance -> should be 0 for snow
-    PARA.snow.rho_snow=200.0;       % density in [kg/m3]
+    PARA.snow.rho_snow=SETUP.snowDens;       % density in [kg/m3]
     PARA.snow.tau_1=86400.0;        % time constants of snow albedo change (according to ECMWF reanalysis) [sec]
     PARA.snow.tau_a=0.008;          % [per day]
     PARA.snow.tau_f=0.24;           % [per day]
@@ -140,7 +140,7 @@ spmd
     PARA = loadConstants( PARA );
 
     %FORCING data mat-file
-    PARA.forcing.filename='samoylov_ERA_obs_fitted_1979_2014_spinup.mat';  %must be in subfolder "forcing" and follow the conventions for CryoGrid 3 forcing files
+    PARA.forcing.filename=SETUP.forcingFile;  %must be in subfolder "forcing" and follow the conventions for CryoGrid 3 forcing files
     PARA.forcing.rain_fraction=1;
     PARA.forcing.snow_fraction=1;
     

@@ -9,42 +9,57 @@ close all;
 
 SETUP = {};
 
-%startYear=2012;
+%startYear=2011;
 
 % parameters
 SETUP.numRealizations = 3;
 SETUP.syncTimestep=6./24;
-SETUP.startDate = datenum( 2007, 10, 1 );
-SETUP.endDate = datenum( 2008, 12, 31);
+SETUP.startDate = datenum( 1979, 10, 1 );
+SETUP.endDate = datenum( 2044, 12, 31);
 SETUP.xH=1;
 SETUP.xW=1;
 SETUP.xS=1;
-SETUP.xice=1;
-SETUP.f_C = 0.3;
-SETUP.f_R = 0.6;
+SETUP.xice=0;
+
+SETUP.fieldCapacity = 0.50;
+
+
+
+SETUP.e_Reservoir = 0.0;
+SETUP.snowDens = 200;%200..250
+SETUP.e_R = 0.4;%0.2..0.4
+
+
+SETUP.thetaWcenterOrganicLayer = 0.85;%SETUP.fieldCapacity; % set to 0.85 for saturated
+SETUP.f_C = 0.3;%0.3..0.5
+
 SETUP.f_T = 0.1;
-SETUP.e_R = 0.4;
+SETUP.f_R = 1.0-SETUP.f_T-SETUP.f_C;
 SETUP.e_T = SETUP.e_R-0.1;
 SETUP.d_xice_C=0.9;
 SETUP.d_xice_R=0.6;
-SETUP.d_xice_T1=0.4;
-SETUP.d_xice_T2=0.5;%SETUP.d_xice_R-abs(SETUP.e_R-SETUP.e_T); % intermediate layer with reduced excess ice between T1 and T2, # T2 should be at the same altitude as d_xice_R
-SETUP.e_Reservoir = 0.0;
-SETUP.K_Reservoir = 1e-8;
+SETUP.d_xice_T1=0.2;
+SETUP.d_xice_T2=SETUP.d_xice_R-abs(SETUP.e_R-SETUP.e_T); % intermediate layer with reduced excess ice between T1 and T2, # T2 should be at the same altitude as d_xice_R
+SETUP.K_Reservoir = 5e-5;
 SETUP.K=1e-5;
 SETUP.relMaxWater = 1.;
 SETUP.heatExchangeAltitudeFactor = 0.;
 SETUP.natPor = 0.55;
-SETUP.fieldCapacity = 0.50;
+
+SETUP.forcingFile = 'samoylov_ERA_obs_fitted_1979_2014_spinup_extended2044.mat';
 
 % output directory
 SETUP.saveDir = '/data/scratch/nitzbon/CryoGrid/CryoGrid3_infiltration_xice_mpi_polygon/runs';
 
 % compose runname
-SETUP.runName = sprintf( [ 'POLYGON_' datestr( SETUP.startDate, 'yyyymm' ) '-' datestr(SETUP.endDate, 'yyyymm' ) '_xice%d_xH%d_xW%d_xS%d_fC%0.1f_fR%0.1f_fT%0.1f_eR%0.2f_eT%0.2f_dxiceC%0.2f_dxiceR%0.2f_dxiceTa%0.2f_dxiceTb%0.2f_K%0.1e_KRes%0.1e_eRes%0.2f_fc%0.2f_natPor%0.2f' ], ...
-    SETUP.xice, SETUP.xH, SETUP.xW, SETUP.xS, ...
-    SETUP.f_C, SETUP.f_R, SETUP.f_T, SETUP.e_R, SETUP.e_T, SETUP.d_xice_C, SETUP.d_xice_R, SETUP.d_xice_T1, SETUP.d_xice_T2, ...
-    SETUP.K, SETUP.K_Reservoir, SETUP.e_Reservoir, SETUP.fieldCapacity, SETUP.natPor) ;
+%SETUP.runName = sprintf( [ 'VALIDATION_' datestr( SETUP.startDate, 'yyyymm' ) '-' datestr(SETUP.endDate, 'yyyymm' ) '_xice%d_xH%d_xW%d_xS%d_fC%0.1f_fR%0.1f_fT%0.1f_eR%0.2f_eT%0.2f_K%0.1e_KRes%0.1e_eRes%0.2f_fc%0.2f_snowDens%d' ], ...
+ %   SETUP.xice, SETUP.xH, SETUP.xW, SETUP.xS, ...
+  %  SETUP.f_C, SETUP.f_R, SETUP.f_T, SETUP.e_R, SETUP.e_T, ...
+   % SETUP.K, SETUP.K_Reservoir, SETUP.e_Reservoir, SETUP.fieldCapacity, SETUP.snowDens) ;
+SETUP.runName = sprintf( [ 'LONGTERM_' datestr( SETUP.startDate, 'yyyymm' ) '-' datestr(SETUP.endDate, 'yyyymm' ) '_xice%d_xH%d_xW%d_xS%d_fC%0.1f_fR%0.1f_fT%0.1f_eR%0.2f_eT%0.2f_dxiceC%0.2f_dxiceR%0.2f_dxiceTa%0.2f_dxiceTb%0.2f_K%0.1e_KRes%0.1e_eRes%0.2f_snowDens%d' ], ...
+     SETUP.xice, SETUP.xH, SETUP.xW, SETUP.xS, ...
+     SETUP.f_C, SETUP.f_R, SETUP.f_T, SETUP.e_R, SETUP.e_T, SETUP.d_xice_C, SETUP.d_xice_R, SETUP.d_xice_T1, SETUP.d_xice_T2, ...
+     SETUP.K, SETUP.K_Reservoir, SETUP.e_Reservoir, SETUP.snowDens) ;
 
 [~, SETUP.git_commit_hash] = system('git rev-parse HEAD');
 
