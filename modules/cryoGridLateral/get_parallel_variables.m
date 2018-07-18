@@ -3,7 +3,7 @@ function PARA = get_parallel_variables(PARA)
 	index = labindex;
     
     % auxiliary calculations for circular geometry
-    F_L = 0.5; % landscape Lake Fraction
+    F_L = 0.25; % landscape Lake Fraction
     radius = 10; % in [m]
     perimeter = 2*pi.*radius; % in [m]
     distance =  sqrt(pi./(4*F_L)) * radius; % in [m]
@@ -187,7 +187,7 @@ function PARA = get_parallel_variables(PARA)
 
      PARA.Tinitial=[PARA.Tinitial(:,1) PARA.Tinitial(:, 1+index)];
      
-     PARA.water.depth = [0.,1.]; % non-lake and small-sized water body (SSW) 
+     PARA.water.depth = [0.,5.]; % non-lake and small-sized water body (SSW) 
      %PARA.water.depth = [0.,6.]; % non-lake and medium-sized water body (MSW) 
 
      PARA.water.depth = PARA.water.depth(index); 
