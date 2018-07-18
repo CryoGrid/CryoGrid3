@@ -1,4 +1,3 @@
-% -------------------------------------------------------------------------
 % CryoGRID3
 % main script for running the model
 %
@@ -17,14 +16,15 @@ debug_mode=0              % if set to 1, timestep = timestepMin for debugging (a
 par_mode = 1;  % parallel mode off/on
 
 if(par_mode==1) 
-    delete(gcp('nocreate')) % useful to restart from a crash
+    delete(gcp('nocreate')) % must be off in batch mode
 end
 
 add_modules;  %adds required modules
 
 number_of_realizations=2; % specify number of workers
-if number_of_realizations>1
-    parpool(number_of_realizations);
+
+if number_of_realizations>1 && isempty( gcp('nocreate') )
+    parpool(number_of_realizations);  % must not be invoked here in batch mode
 end
 
 spmd %zzz use function calls to calls below to enable debugging in par mode!
@@ -68,8 +68,7 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
     PARA.soil.mobileWaterDomain=[0 10.0];      % soil domain where water from excess ice melt is mobile -> start and end [m] - if empty water is not mobile
     PARA.soil.relative_maxWater=0.;              % depth at which a water table will form [m] - above excess water is removed, below it pools up   jjj zzz
     PARA.soil.hydraulic_conductivity = 1e-5;
-    PARA = loadSoilTypes( PARA );
-       
+    PARA = loadSoilTypes( PARA );        
     % parameters related to snow
     PARA.snow.max_albedo=0.85;      % albedo of fresh snow
     PARA.snow.min_albedo=0.5;       % albedo of old snow
@@ -104,9 +103,10 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
     PARA.technical.SWEperCell=0.005;            % SWE per grid cell in [m] - determines size of snow grid cells
     PARA.technical.maxSWE=0.4;                  % in [m] SWE
     PARA.technical.arraySizeT=5002;             % number of values in the look-up tables for conductivity and capacity
-    PARA.technical.starttime=datenum(1970, 6, 1);       % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum(1999, 12, 31);         % endtime of the simulation - if empty end at last value of time series
-    PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;   % smallest possible time step in [day- here 0.1 seconds
+    PARA.technical.starttime=datenum(2010, 6, 1);       % starttime of the simulation - if empty start from first value of time series
+    PARA.technical.endtime=datenum(2099, 12, 30);         % endtime of the simulation - if empty end at last value of time series
+    %PARA.technical.endtime = SETUP.endtime;         % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;   % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;   % largest possible time step in [days] - here 300 seconds
    %tsvd  PARA.technical.targetDeltaE=1e5;            % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
     PARA.technical.targetDeltaE=1e6;            % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K      lll DeltaE increased by 1 order of M
@@ -118,7 +118,7 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
     PARA.technical.waterCellSize=0.02;          % default size of a newly added water cell when water ponds below water table [m]
     
     %default grid used for publications and testing of water balance:
-    %PARA.technical.subsurfaceGrid = [[0:0.02:4], [4.1:0.1:10], [10.2:0.2:20], [21:1:30], [35:5:50], [60:10:100], [200:100:1000]]'; % the subsurface K-grid in [m]
+   %tsvd PARA.technical.subsurfaceGrid = [[0:0.02:4], [4.1:0.1:10], [10.2:0.2:20], [21:1:30], [35:5:50], [60:10:100], [200:100:1000]]'; % the subsurface K-grid in [m]
     PARA.technical.subsurfaceGrid = [[0:0.04:4], [4.1:0.1:10], [10.2:0.2:20], [21:1:30], [35:5:50], [60:10:100], [200:100:1000]]'; % the subsurface K-grid in [m]
     
     PARA.location.area=1.0;
@@ -192,24 +192,21 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
         %---------overwrites variables for each realization--------------------
 		% this function must define everything that is realization-specific or dependent of all realizations
         PARA = get_parallel_variables( PARA );
+        %PARA = get_parallel_variables_batch( PARA,SETUP );
     end
 
     disp('Running experiment with xxxx -> indicate switches here')
     % ------make output directory (name depends on parameters) ----------------
-    saveDir = './runs';
-%     run_number = sprintf( [ 'Lake-MPI_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' ) , ...
-%          PARA.modules.exchange_heat, PARA.modules.exchange_water, PARA.modules.exchange_snow, PARA.forcing.rain_fraction, PARA.forcing.snow_fraction, index ] )
-    %run_number= sprintf( 'SSW-NL_xH%d_xW%d_xS%d_infil%d_xice%d_rF%d_sF%d_i%d' , ...
+    saveDir = './runs_RCP85';
+    run_number= sprintf( 'WD%d_LD%d_LR%d_LF%d',[PARA.water.depth,5,10,25] ) % water depth in m, lake coverage in %
+    %run_number= sprintf( 'WD%d_LD%d_LR%d_LF%d',[PARA.water.depth, PARA.water.depth, SETUP.LR, 100*SETUP.LF] ) % water depth in m, lake coverage in %    
+    %run_number= sprintf( 'WD%1.0f_xH%d',[PARA.water.depth,PARA.modules.exchange_heat] )
 
-    run_number= sprintf( 'WD%1.0f_xH%d',[PARA.water.depth,PARA.modules.exchange_heat] )
-%    run_number= sprintf( 'SSW_xH%d_WD%3.1f_i%d',[PARA.modules.exchange_heat,PARA.water.depth,index ] );
-     
     mkdir([ saveDir '/' run_number]);
     
-   %tsvd ------redirect command line output to logfile ---------------------------
+   %tsvd ------redirect command line output to logfile (does not work here in batch/parallel mode (use diary(job{jobnumber}) instead)
    % if createLogFile
-%        diary(['./' run_number '/' run_number '_log.mat']);
-        diary([ saveDir '/' run_number '/' run_number '_log.mat']);
+   %     diary([ saveDir '/' run_number '/' run_number '_log.mat']);
         % end
 
     %--------------------------------------------------------------------------
@@ -579,8 +576,7 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
                 disp('sync - done');
             end
         end
-        
-        
+                
         %------- next time step -----------------------------------------------
         t=t+timestep;
         %---------- sum up + OUTPUT -------------------------------------------
@@ -602,7 +598,7 @@ if number_of_realizations>1
     delete(gcp('nocreate'))
 end
 %tsvd
-dsave('Workspace') % save all distributed variables
+%dsave([ saveDir '/' run_number '/' run_number '_Workspace']) % save all distributed variables
 
 disp('Done.');
 

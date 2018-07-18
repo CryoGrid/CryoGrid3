@@ -20,15 +20,13 @@ if(par_mode==1)
 %    delete(gcp('nocreate')) % must be off in batch mode
 end
 
-% add_modules;  %adds required modules
+add_modules;  %adds required modules
 
 number_of_realizations=2; % specify number of workers
 
 if number_of_realizations>1 && isempty( gcp('nocreate') )
     parpool(number_of_realizations);  % must not be invoked here in batch mode
 end
-
-% zzz  addAttachedFiles(gcp,'
 
 spmd %zzz use function calls to calls below to enable debugging in par mode!
     index=labindex;   %number identifying the process; change this to e.g. 1 for single realization (non-parallel) run
@@ -72,10 +70,6 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
     PARA.soil.relative_maxWater=0.;              % depth at which a water table will form [m] - above excess water is removed, below it pools up   jjj zzz
     PARA.soil.hydraulic_conductivity = 1e-5;
     PARA = loadSoilTypes( PARA );   
-%%%% tsvd  now done here as otherwise problem in batch mode      specify one soil type per row: residualWC [%], fieldCapacity [%], alpha [1/m], n
-% 	PARA.soil.soilTypes = [ [ 0.00, PARA.soil.fieldCapacity, 4.00, 2.0 ]; ...	% sand
-% 							[ 0.05, PARA.soil.fieldCapacity, 0.65, 1.7 ]; ...	% silt
-%                             [ 0.00, 0.00                   , 4.00, 2.0 ] ];     % pond (freeze curve of sand but fieldCapacity = 0)
        
     % parameters related to snow
     PARA.snow.max_albedo=0.85;      % albedo of fresh snow
@@ -111,8 +105,9 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
     PARA.technical.SWEperCell=0.005;            % SWE per grid cell in [m] - determines size of snow grid cells
     PARA.technical.maxSWE=0.4;                  % in [m] SWE
     PARA.technical.arraySizeT=5002;             % number of values in the look-up tables for conductivity and capacity
-    PARA.technical.starttime=datenum(1970, 6, 1);       % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum(1970, 6, 10);         % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.starttime=datenum(2000, 6, 1);       % starttime of the simulation - if empty start from first value of time series
+    %PARA.technical.endtime=datenum(1970, 6, 10);         % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.endtime = SETUP.endtime;         % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;   % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;   % largest possible time step in [days] - here 300 seconds
    %tsvd  PARA.technical.targetDeltaE=1e5;            % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
@@ -205,14 +200,14 @@ spmd %zzz use function calls to calls below to enable debugging in par mode!
     disp('Running experiment with xxxx -> indicate switches here')
     % ------make output directory (name depends on parameters) ----------------
     saveDir = './runs';
-    run_number= sprintf( 'WD%1.0f_LC%d_xH%d',[PARA.water.depth, 100*SETUP.LF, PARA.modules.exchange_heat] ) % water depth in m, lake coverage in %
+    run_number= sprintf( 'WD%d_LD%d_LR%d_LF%d',[PARA.water.depth, SETUP.LD, SETUP.LR, 100*SETUP.LF] ) % water depth in m, lake coverage in %
  
     mkdir([ saveDir '/' run_number]);
     
    %tsvd ------redirect command line output to logfile ---------------------------
    % if createLogFile
 %        diary(['./' run_number '/' run_number '_log.mat']);
-        diary([ saveDir '/' run_number '/' run_number '_log.mat']);
+%        diary([ saveDir '/' run_number '/' run_number '_log.mat']);
         % end
 
     %--------------------------------------------------------------------------
@@ -605,7 +600,7 @@ if number_of_realizations>1
     delete(gcp('nocreate'))
 end
 %tsvd
-dsave('Workspace') % save all distributed variables
+%dsave([ saveDir '/' run_number '/' run_number '_Workspace']) % save all distributed variables
 
 disp('Done.');
 
