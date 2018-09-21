@@ -25,12 +25,12 @@ SETUP.fieldCapacity = 0.50;
 
 
 
-SETUP.e_Reservoir = 0.0;
+SETUP.e_Reservoir = -1.5;
 SETUP.snowDens = 200;%200..250
 SETUP.e_R = 0.4;%0.2..0.4
 
 
-SETUP.thetaWcenterOrganicLayer = 0.85;%SETUP.fieldCapacity; % set to 0.85 for saturated
+SETUP.thetaWcenterOrganicLayer = 0.85;%SETUP.fieldCapacity (VALIDATION); % set to 0.85 for saturated (LONGTERM)
 SETUP.f_C = 0.3;%0.3..0.5
 
 SETUP.f_T = 0.1;
