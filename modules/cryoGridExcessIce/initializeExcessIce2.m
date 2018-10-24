@@ -1,5 +1,6 @@
 function [GRID,PARA] = initializeExcessIce2(GRID,PARA) 
 
+<<<<<<< HEAD
 GRID.soil.excessGroundIce = GRID.soil.cT_water>GRID.soil.cT_natPor;
 
 
@@ -21,3 +22,6 @@ GRID.soil.excessGroundIce = GRID.soil.cT_water>GRID.soil.cT_natPor;
 %                             sum((1 - GRID.soil.cT_water(1:firstCellExcessIce-1) - GRID.soil.cT_mineral(1:firstCellExcessIce-1) - GRID.soil.cT_organic(1:firstCellExcessIce-1))...
 %                             .*GRID.general.K_delta(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_ub+firstCellExcessIce-2)));
 %end
+=======
+GRID.soil.excessGroundIce = GRID.soil.cT_water>GRID.soil.cT_natPor;
+>>>>>>> origin/xice_mpi_polygon_TC

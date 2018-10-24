@@ -1,8 +1,16 @@
+<<<<<<< HEAD
 function [PARA, GRID] = updateAuxiliaryVariablesAndCommonThresholds( T, wc, GRID, PARA)    
 
     PARA.ensemble.surface_altitude(labindex) = getSurfaceAltitude( PARA, GRID );
     PARA.ensemble.altitude(labindex) = getAltitude( PARA, GRID );
 	[PARA.ensemble.water_table_altitude(labindex), GRID.soil.flag] = getWaterTableAltitudeFC(T, wc, GRID, PARA );% use getWaterTabelFC to account for non-saturated cells above fieldCapacity
+=======
+function [PARA] = updateAuxiliaryVariablesAndCommonThresholds( T, wc, GRID, PARA)    
+
+    PARA.ensemble.surface_altitude(labindex) = getSurfaceAltitude( PARA, GRID );
+    PARA.ensemble.altitude(labindex) = getAltitude( PARA, GRID );
+	PARA.ensemble.water_table_altitude(labindex) = getWaterTableAltitudeFC(T, wc, GRID, PARA );% use getWaterTabelFC to account for non-saturated cells above fieldCapacity
+>>>>>>> origin/xice_mpi_polygon_TC
 	PARA.ensemble.soil_altitude(labindex) = getSoilAltitude( PARA, GRID );
 	[ PARA.ensemble.infiltration_altitude(labindex), PARA.location.bottomBucketSoilcTIndex ] = getInfiltrationAltitude(PARA, GRID, T);
 
@@ -38,9 +46,13 @@ function [PARA, GRID] = updateAuxiliaryVariablesAndCommonThresholds( T, wc, GRID
     PARA.location.soil_altitude = PARA.ensemble.soil_altitude(labindex);
     PARA.location.water_table_altitude = PARA.ensemble.water_table_altitude(labindex);
 	PARA.location.infiltration_altitude = PARA.ensemble.infiltration_altitude(labindex);
+<<<<<<< HEAD
     PARA.soil.infiltration_limit_altitude = PARA.location.soil_altitude - PARA.soil.infiltration_limit_depth;
     
     %JAN: I think the absolute infiltration limit should be
     %realization-specific, e.g. if we think of an aquiclude underlying the terrain but following its topography
     %PARA.ensemble.infiltration_limit_altitude=min(PARA.ensemble.altitude-PARA.soil.infiltration_limit_depth);
     %PARA.soil.infiltration_limit_altitude=PARA.ensemble.infiltration_limit_altitude;
+=======
+    PARA.soil.infiltration_limit_altitude = PARA.location.soil_altitude - PARA.soil.infiltration_limit_depth;
+>>>>>>> origin/xice_mpi_polygon_TC

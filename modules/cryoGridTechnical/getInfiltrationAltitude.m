@@ -8,8 +8,11 @@ if isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0; % Condition t
     i=1;
     [~,i_max]=min(abs((PARA.location.altitude - GRID.soil.soilGrid)-PARA.soil.infiltration_limit_altitude));
 
+<<<<<<< HEAD
     
     % i_max=length(T)-1; %200;
+=======
+>>>>>>> origin/xice_mpi_polygon_TC
     while  T(i)>0 && i<=i_max
         i=i+1;
     end

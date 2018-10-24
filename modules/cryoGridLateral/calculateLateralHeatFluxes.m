@@ -12,7 +12,11 @@ function [dE_dt, BALANCE] = calculateLateralHeatFluxes(T_index, k_index, PACKAGE
         weight_index = PARA.ensemble.weight(index);
         weight_j = PARA.ensemble.weight(j);
         contact_length_index_j = PARA.ensemble.thermal_contact_length(j, index);
+<<<<<<< HEAD
         contact_altitude = min( [ PARA.ensemble.altitude(j), PARA.ensemble.altitude(index) ] ) - distance_index_j;  %below this depth, grid cells will exchange heat
+=======
+        contact_altitude = min( [ PARA.ensemble.altitude(j), PARA.ensemble.altitude(index) ] ) - PARA.ensemble.thermal_contact_DepthOverDistance * distance_index_j;  %below this depth, grid cells will exchange heat
+>>>>>>> origin/xice_mpi_polygon_TC
         contact_domain = altitude_cTgrid_index <= contact_altitude;  %all cells in the current ensemble member
 
         % interpolate j-values to index-grid   
@@ -37,4 +41,8 @@ function [dE_dt, BALANCE] = calculateLateralHeatFluxes(T_index, k_index, PACKAGE
         BALANCE.energy.Q_lateral(contact_domain) = BALANCE.energy.Q_lateral(contact_domain) + dE_dt(contact_domain) .* PARA.technical.syncTimeStep .* 24 .* 3600 .* GRID.general.K_delta(contact_domain); % in [ J / m^2 ]
         
     end
+<<<<<<< HEAD
 end
+=======
+end
+>>>>>>> origin/xice_mpi_polygon_TC

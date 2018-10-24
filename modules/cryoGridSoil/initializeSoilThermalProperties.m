@@ -22,7 +22,10 @@ c_i = PARA.constants.c_i; %1.9*10^6;%[J/m???K]
 
 %density of water
 rho_w = PARA.constants.rho_w; %1000; %[kg/m???]
+<<<<<<< HEAD
 %rho_i=900;
+=======
+>>>>>>> origin/xice_mpi_polygon_TC
 %latent heat of freezing
 L_si = PARA.constants.L_sl; %334000; % [J/kg]
 deltaT=0.001*ones(size(cT_grid,1),1);
@@ -87,6 +90,7 @@ capacity =[capacity mineral*c_m+organic*c_o+water*c_w];  %capacity matrix for un
 liquidWaterContent = [water_c water]; % water content
 
 %---------- conductivity part ---------------------------------------------
+<<<<<<< HEAD
 % changed to cT-grid since K- interpolation is done external now
 % water=cT_water;
 % mineral=cT_mineral;
@@ -107,13 +111,20 @@ conductivity=water_c;	% initialize to same size as water_c
 % 
 % assert( isequal(water_c, water_c2), 'initializeSoilThermalProperties - water_c not equal for cap and cond calculations');
 
+=======
+conductivity=water_c;	% initialize to same size as water_c
+
+>>>>>>> origin/xice_mpi_polygon_TC
 for i=1:size(a,1)
     ice_c=water(i,1)*ones(1,arraySize-1)-water_c(i,:);
     conductivity(i,:)=conductivity2(water_c(i,:), ice_c, mineral(i,1), organic(i,1), PARA);
 end
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> origin/xice_mpi_polygon_TC
 conductivity=[conductivity conductivity(:,size(conductivity,2))]; %conductivity matrix for soil filled
 
 %----------- write lookup tables to GRID struct
@@ -181,6 +192,7 @@ function waterC =  freezeC(thetaTot, thetaSat, soilType, T, PARA)
     
     %bugfix which allows correct computation if thetaTot=thetaRes
     waterC( isnan(waterC) ) = thetaRes( isnan(waterC) );
+<<<<<<< HEAD
     
     
 %JAN: alternative implementation ( smooth functions )
@@ -189,3 +201,8 @@ function waterC =  freezeC(thetaTot, thetaSat, soilType, T, PARA)
 % 
 %     waterC(T<=273.15)  = thetaRes(T<=273.15)+(thetaSat(T<=273.15)-thetaRes(T<=273.15)).*(1+(-alpha(T<=273.15).*waterPot(T<=273.15)).^n(T<=273.15)).^(-m(T<=273.15));
 % 
+=======
+end
+
+end
+>>>>>>> origin/xice_mpi_polygon_TC

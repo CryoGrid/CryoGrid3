@@ -40,7 +40,10 @@ TEMPORARY.waterTableElevation=0;
 TEMPORARY.bottomBucketSoilDepth=0;
 TEMPORARY.waterTableElevation_sum=0;
 TEMPORARY.bottomBucketSoilDepth_sum=0;
+<<<<<<< HEAD
 TEMPORARY.water2pool_sum=0;
+=======
+>>>>>>> origin/xice_mpi_polygon_TC
 TEMPORARY.water2pool=0;
 
 

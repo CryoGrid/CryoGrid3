@@ -3,6 +3,7 @@ function [T, snow_i, snow_w, snow_a, runoff] = snowMelt(T, snow_i, snow_w, snow_
 %------------melt the snow for cells with T>0------------
     runoff=0;
 
+<<<<<<< HEAD
 %energyC=sum(T.*c_temp.*(snow_i+snow_w+snow_a))+(sum(snow_w)+water_flux).*3.34e8;
 
     poreSpace=(snow_w+snow_a)./(snow_i+snow_w+snow_a);
@@ -24,18 +25,37 @@ function [T, snow_i, snow_w, snow_a, runoff] = snowMelt(T, snow_i, snow_w, snow_
     maxWater=maxLiqWater(T(pS>0), snow_i(pS>0), snow_w(pS>0), snow_a(pS>0), poreSpace(pS>0), c_temp(pS>0));
     
  
+=======
+    poreSpace=(snow_w+snow_a)./(snow_i+snow_w+snow_a);
+    poreSpace(isnan(poreSpace(:,1)),1)=300/1000;
+
+    [T, snow_i, snow_w, snow_a]=melt(T, snow_i, snow_w, snow_a, poreSpace, c_temp, PARA);
+     
+    pS=(snow_w+snow_a)./(snow_i+snow_w+snow_a);
+    pS(isnan(pS(:,1)),1)=300/1000;
+
+%-----------calculate how much water (in m) a snow cell can hold-----
+      
+    maxWater=maxLiqWater(T(pS>0), snow_i(pS>0), snow_w(pS>0), snow_a(pS>0), poreSpace(pS>0), c_temp(pS>0), PARA);
+>>>>>>> origin/xice_mpi_polygon_TC
         
     if water_flux>0 || (~isempty(maxWater) && min(maxWater)<0)   %infiltration occurs
       
 %------------infiltrate from top to bottom--------------------
+<<<<<<< HEAD
         
 
         [snow_w(pS>0), snow_a(pS>0), water_flux] = infiltrateTop2Bottom(snow_i(pS>0), snow_w(pS>0), snow_a(pS>0), poreSpace(pS>0), maxWater, water_flux);
+=======
+
+    [snow_w(pS>0), snow_a(pS>0), water_flux] = infiltrateTop2Bottom(snow_i(pS>0), snow_w(pS>0), snow_a(pS>0), poreSpace(pS>0), maxWater, water_flux);
+>>>>>>> origin/xice_mpi_polygon_TC
     
    
   
 %------------infiltrate bottom to top----------------------
 
+<<<<<<< HEAD
  % energyC3=sum(T.*c_temp.*(snow_i+snow_w+snow_a))+(sum(snow_w)+water_flux).*3.34e8;
 
 
@@ -48,10 +68,17 @@ function [T, snow_i, snow_w, snow_a, runoff] = snowMelt(T, snow_i, snow_w, snow_
   % energyC4=sum(T.*c_temp.*(snow_i+snow_w+snow_a))+(sum(snow_w)+runoff).*3.34e8;
 
 
+=======
+    if water_flux>0 
+        [snow_w(pS>0), snow_a(pS>0), runoff] = infiltrateBottom2Top(snow_i(pS>0), snow_w(pS>0), snow_a(pS>0), water_flux);
+    end
+    
+>>>>>>> origin/xice_mpi_polygon_TC
 %----------shift energy from water to T due to refreezing---------
     end
     
     [T, snow_i, snow_w] = refreeze(T, snow_i, snow_w, snow_a, c_temp, PARA);
+<<<<<<< HEAD
        
   %  energyC5=sum(T.*c_temp.*(snow_i+snow_w+snow_a))+(sum(snow_w)+runoff).*3.34e8;
     
@@ -60,6 +87,9 @@ function [T, snow_i, snow_w, snow_a, runoff] = snowMelt(T, snow_i, snow_w, snow_
      %   energyC2
         
       %  energyC5
+=======
+    
+>>>>>>> origin/xice_mpi_polygon_TC
 end
     
   

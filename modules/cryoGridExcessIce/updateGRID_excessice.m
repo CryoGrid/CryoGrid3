@@ -4,18 +4,26 @@ function GRID = updateGRID_excessice(GRID)
 % change soil with 100% water to water cell
 soilGRIDsize = sum(GRID.soil.cT_domain);
 
+<<<<<<< HEAD
 
 % JAN: set all cells above without soil to air (water runs off and no snow cover
 % present)
 % this needs to be improved!!!
+=======
+% set all cells above without soil to air (water runs off and no snow cover
+% present)
+>>>>>>> origin/xice_mpi_polygon_TC
 GRID.air.cT_domain(GRID.soil.cT_domain) = (GRID.soil.cT_organic==0 & GRID.soil.cT_mineral==0);
 GRID.air.K_domain(GRID.soil.K_domain) = (GRID.soil.K_organic==0 & GRID.soil.K_mineral==0);
 
 GRID.soil.cT_domain(GRID.soil.cT_domain) = (GRID.soil.cT_organic>0 | GRID.soil.cT_mineral>0);
 GRID.soil.K_domain(GRID.soil.K_domain)   = (GRID.soil.K_organic>0 | GRID.soil.K_mineral>0);
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> origin/xice_mpi_polygon_TC
 if soilGRIDsize ~= sum(GRID.soil.cT_domain)
     
     disp('subsidence - updating grid information');
@@ -29,6 +37,7 @@ if soilGRIDsize ~= sum(GRID.soil.cT_domain)
     
     [GRID.air.cT_domain_lb GRID.air.cT_domain_ub] = LayerIndex(GRID.air.cT_domain);
     [GRID.air.K_domain_lb GRID.air.K_domain_ub]   = LayerIndex(GRID.air.K_domain);
+<<<<<<< HEAD
 
     
 %     GRID.water.cT_domain(max([GRID.air.cT_domain_lb+1 GRID.ice.cT_domain_lb+1]) : GRID.soil.cT_domain_ub-1) = 1;
@@ -41,6 +50,10 @@ if soilGRIDsize ~= sum(GRID.soil.cT_domain)
     
 
 
+=======
+    
+    %-- update all other soil grid infos if size has changed
+>>>>>>> origin/xice_mpi_polygon_TC
     % adjust cT grid fields
     GRID.soil.cT_water = GRID.soil.cT_water(cT_no_water);
     GRID.soil.cT_mineral = GRID.soil.cT_mineral(cT_no_water);
@@ -63,6 +76,7 @@ if soilGRIDsize ~= sum(GRID.soil.cT_domain)
     GRID.soil.K_organic = GRID.soil.K_organic(K_no_water);
     GRID.soil.K_soilType = GRID.soil.K_soilType(K_no_water);
     
+<<<<<<< HEAD
     %     s = fieldnames(GRID.soil);
 %     for i=1:length(s)
 %         if isempty(strfind(char(s(i)),'domain')) && isempty(strfind(char(s(i)),'K_frozen')) && isempty(strfind(char(s(i)),'K_thawed'))% exclude all with name 'domain'
@@ -75,4 +89,6 @@ if soilGRIDsize ~= sum(GRID.soil.cT_domain)
 %             end
 %         end
 %     end
+=======
+>>>>>>> origin/xice_mpi_polygon_TC
 end

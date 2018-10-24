@@ -3,6 +3,7 @@ function [FORCING]= interpolateForcingData(t, FORCING)
 
 posit=floor((t-FORCING.data.t_span(1,1))./(FORCING.data.t_span(2,1)-FORCING.data.t_span(1,1)))+1;
 
+<<<<<<< HEAD
 %.*size(FORCING.data.t_span,1)) + 1;
 
 
@@ -12,6 +13,8 @@ posit=floor((t-FORCING.data.t_span(1,1))./(FORCING.data.t_span(2,1)-FORCING.data
 % end
 
 
+=======
+>>>>>>> origin/xice_mpi_polygon_TC
 
 FORCING.i.snowfall=FORCING.data.snowfall(posit,1)+(FORCING.data.snowfall(posit+1,1)-FORCING.data.snowfall(posit,1)).*(t-FORCING.data.t_span(posit,1))./(FORCING.data.t_span(2,1)-FORCING.data.t_span(1,1));
 
