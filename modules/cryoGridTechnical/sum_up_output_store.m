@@ -36,7 +36,8 @@ if  t==TEMPORARY.outputTime
     TEMPORARY.dE_dt_cond=TEMPORARY.dE_dt_cond_sum./TEMPORARY.dt_out;
 
 	TEMPORARY.waterTableElevation=TEMPORARY.waterTableElevation_sum ./ TEMPORARY.dt_out; % This is already stored in OUT.location. But is done here to compare if an average is useful
-    TEMPORARY.bottomBucketSoilDepth=TEMPORARY.bottomBucketSoilDepth_sum ./ TEMPORARY.dt_out; % This is already stored in OUT.location. But is done here to compare if an average is useful
+    TEMPORARY.bottomBucketSoilDepth=TEMPORARY.bottomBucketSoilDepth_sum ./ TEMPORARY.dt_out; % This is already stored in OUT.location. But is done here to compare if an average is useful        
+
     TEMPORARY.water2pool=TEMPORARY.water2pool_sum ./ TEMPORARY.dt_out;    
 
     TEMPORARY.timestep_out=TEMPORARY.timestep_sum./TEMPORARY.dt_out;             
@@ -214,8 +215,9 @@ if  t==TEMPORARY.outputTime
  
     %write output files      
     if  round((t-TEMPORARY.saveTime).*48)==0   
-        iSaveOUT( [ saveDir '/' run_number '/' run_number '_real' num2str(labindex) '_output' datestr(t,'yyyy')  '.mat' ], OUT);
-        iSaveState( [ saveDir '/' run_number '/' run_number '_real' num2str(labindex) '_finalState'  datestr(t,'yyyy') '.mat' ], T, wc, t, SEB, PARA, GRID);
+        iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_output' datestr(t,'yyyy')  '.mat' ], OUT);
+        iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_finalState'  datestr(t,'yyyy') '.mat' ], T, wc, t, SEB, PARA, GRID);
+        iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_altitudes' datestr(t,'yyyy') '.png'], OUT, PARA );
         OUT = generateOUT();  
         TEMPORARY.saveTime=datenum(str2num(datestr(t,'yyyy'))+1, str2num(datestr(t,'mm')), str2num(datestr(t,'dd')), str2num(datestr(t,'HH')), str2num(datestr(t,'MM')), 0);
     end

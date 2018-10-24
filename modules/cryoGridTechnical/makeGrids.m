@@ -37,7 +37,7 @@ GRID.snow.K_domain=false(size(GRID.general.K_grid));
 [GRID.snow.cT_domain_lb, GRID.snow.cT_domain_ub] = LayerIndex(GRID.snow.cT_domain);
 [GRID.snow.K_domain_lb, GRID.snow.K_domain_ub]   = LayerIndex(GRID.snow.K_domain);
 
-% JAN: currently these are "secondary" domains which belong to the
+% currently these are "secondary" domains which belong to the
 % "primary" soil domain. Lake cells are treated like soil cells during
 % integration of the heat conduction, but the surface properties are
 % different and mixing occurs in summer. Initially, the lake domain is

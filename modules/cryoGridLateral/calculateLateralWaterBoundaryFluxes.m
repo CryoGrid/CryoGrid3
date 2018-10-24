@@ -1,8 +1,8 @@
-function [ boundary_water_fluxes ] = calculateLateralWaterBoundaryFluxes(PARA, GRID, T)
+function [ boundary_water_flux ] = calculateLateralWaterBoundaryFluxes(PARA, GRID, T)
 % Function that calculates the lateral water fluxes created by the boundary
 % conditions of the worker
 
-boundary_water_fluxes=0;
+boundary_water_flux=0;
 
 if double( T(GRID.soil.cT_domain_ub)>0 && isempty(GRID.snow.cT_domain_ub) )==1; % conditions ok for water fluxes
     
@@ -18,15 +18,15 @@ if double( T(GRID.soil.cT_domain_ub)>0 && isempty(GRID.snow.cT_domain_ub) )==1; 
         
         if (waterpot > PARA.ensemble.boundaryCondition(labindex).parameters.elevation && hasWater==1) % worker is loosing water
             
-            boundary_water_fluxes=-waterHeight_change;
+            boundary_water_flux=-waterHeight_change;
             
         elseif waterpot < PARA.ensemble.boundaryCondition(labindex).parameters.elevation;
             
-            boundary_water_fluxes=waterHeight_change;
+            boundary_water_flux=waterHeight_change;
             
         else
             
-            boundary_water_fluxes=0;
+            boundary_water_flux=0;
             
         end
         

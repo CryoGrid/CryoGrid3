@@ -3,8 +3,8 @@ function [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRI
 if isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0   %no snow cover and uppermost grid cell unfrozen
     
     % possible meltwater contribution from excess ice meltwater, snowmelt, rain on frozen ground
-    meltwaterForInfiltration = GRID.lake.residualWater;
-    GRID.lake.residualWater=0;
+    meltwaterForInfiltration = GRID.soil.water2pool;
+    GRID.soil.water2pool=0;
     
     % external flux
     external_flux_rate = PARA.soil.externalWaterFlux;             % in m/day

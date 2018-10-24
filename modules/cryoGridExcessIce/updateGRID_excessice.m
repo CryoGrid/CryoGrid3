@@ -4,17 +4,13 @@ function GRID = updateGRID_excessice(GRID)
 % change soil with 100% water to water cell
 soilGRIDsize = sum(GRID.soil.cT_domain);
 
-
-% JAN: set all cells above without soil to air (water runs off and no snow cover
+% set all cells above without soil to air (water runs off and no snow cover
 % present)
-% this needs to be improved!!!
 GRID.air.cT_domain(GRID.soil.cT_domain) = (GRID.soil.cT_organic==0 & GRID.soil.cT_mineral==0);
 GRID.air.K_domain(GRID.soil.K_domain) = (GRID.soil.K_organic==0 & GRID.soil.K_mineral==0);
 
 GRID.soil.cT_domain(GRID.soil.cT_domain) = (GRID.soil.cT_organic>0 | GRID.soil.cT_mineral>0);
 GRID.soil.K_domain(GRID.soil.K_domain)   = (GRID.soil.K_organic>0 | GRID.soil.K_mineral>0);
-
-
 
 if soilGRIDsize ~= sum(GRID.soil.cT_domain)
     
@@ -29,18 +25,8 @@ if soilGRIDsize ~= sum(GRID.soil.cT_domain)
     
     [GRID.air.cT_domain_lb GRID.air.cT_domain_ub] = LayerIndex(GRID.air.cT_domain);
     [GRID.air.K_domain_lb GRID.air.K_domain_ub]   = LayerIndex(GRID.air.K_domain);
-
-    
-%     GRID.water.cT_domain(max([GRID.air.cT_domain_lb+1 GRID.ice.cT_domain_lb+1]) : GRID.soil.cT_domain_ub-1) = 1;
-%     GRID.water.K_domain(max([GRID.air.K_domain_lb+1 GRID.ice.K_domain_lb+1]) : GRID.soil.K_domain_ub-1) = 1;
-%     
-%     [GRID.water.cT_domain_lb GRID.water.cT_domain_ub] = LayerIndex(GRID.water.cT_domain);
-%     [GRID.water.K_domain_lb GRID.water.K_domain_ub]   = LayerIndex(GRID.water.K_domain);
     
     %-- update all other soil grid infos if size has changed
-    
-
-
     % adjust cT grid fields
     GRID.soil.cT_water = GRID.soil.cT_water(cT_no_water);
     GRID.soil.cT_mineral = GRID.soil.cT_mineral(cT_no_water);
@@ -63,16 +49,4 @@ if soilGRIDsize ~= sum(GRID.soil.cT_domain)
     GRID.soil.K_organic = GRID.soil.K_organic(K_no_water);
     GRID.soil.K_soilType = GRID.soil.K_soilType(K_no_water);
     
-    %     s = fieldnames(GRID.soil);
-%     for i=1:length(s)
-%         if isempty(strfind(char(s(i)),'domain')) && isempty(strfind(char(s(i)),'K_frozen')) && isempty(strfind(char(s(i)),'K_thawed'))% exclude all with name 'domain'
-%             if isempty(strfind(char(s(i)),'K_')) && isempty(strfind(char(s(i)),'soilGrid'))
-%                 %evaluate on cT grid
-%                 eval(['GRID.soil.' char(s(i)) '=' 'GRID.soil.' char(s(i)) '(cT_no_water,:);']);
-%             else
-%                 %evaluate on K grid
-%                 eval(['GRID.soil.' char(s(i)) '=' 'GRID.soil.' char(s(i)) '(K_no_water,:);']);
-%             end
-%         end
-%     end
 end

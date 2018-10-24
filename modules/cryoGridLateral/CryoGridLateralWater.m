@@ -12,6 +12,7 @@ function [wc, GRID, BALANCE] = CryoGridLateralWater( PARA, GRID, BALANCE, T, wc)
         PACKAGE_waterExchange.infiltration_altitude = PARA.ensemble.infiltration_altitude(labindex);
         PACKAGE_waterExchange.infiltration_condition = T(GRID.soil.cT_domain_ub)>0 && isempty(GRID.snow.cT_domain_ub);
 
+
         for j=1:numlabs
             if j~=labindex
                 labSend( PACKAGE_waterExchange, j, 2);
@@ -66,10 +67,9 @@ function [wc, GRID, BALANCE] = CryoGridLateralWater( PARA, GRID, BALANCE, T, wc)
         BALANCE.water.dr_lateralWater = BALANCE.water.dr_lateralWater + (waterflux-excess_water)*1000; % Excess water is removed so that we only keep the net water modification implied by the lateral fluxes
         fprintf('\t\t\tNet wc change :\t%3.2e m\n',waterflux-excess_water)
         if excess_water>1e-9
-            GRID.lake.residualWater= GRID.lake.residualWater+excess_water;
+            GRID.soil.water2pool= GRID.soil.water2pool + excess_water;
             fprintf('\t\t\tExcess water :\t%3.2e m\n',excess_water)
             BALANCE.water.dr_lateralExcess=BALANCE.water.dr_lateralExcess + excess_water*1000;            % Added by Leo to have the lateral fluxes in BALANCE
-            % GRID.lake.residualWater = GRID.lake.residualWater + excess_water;   % for now: store the excess water, later: treat it according to BC for surface water fluxes % L�o : commented
         end
         if strcmp(PARA.ensemble.boundaryCondition(labindex).type,'DarcyReservoir')==1
             BALANCE.water.dr_DarcyReservoir = BALANCE.water.dr_DarcyReservoir + boundary_water_flux*1000;

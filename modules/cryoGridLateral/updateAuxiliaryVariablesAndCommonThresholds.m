@@ -1,4 +1,4 @@
-function [PARA, GRID] = updateAuxiliaryVariablesAndCommonThresholds( T, wc, GRID, PARA)    
+function [PARA] = updateAuxiliaryVariablesAndCommonThresholds( T, wc, GRID, PARA)    
 
     PARA.ensemble.surface_altitude(labindex) = getSurfaceAltitude( PARA, GRID );
     PARA.ensemble.altitude(labindex) = getAltitude( PARA, GRID );
@@ -39,8 +39,3 @@ function [PARA, GRID] = updateAuxiliaryVariablesAndCommonThresholds( T, wc, GRID
     PARA.location.water_table_altitude = PARA.ensemble.water_table_altitude(labindex);
 	PARA.location.infiltration_altitude = PARA.ensemble.infiltration_altitude(labindex);
     PARA.soil.infiltration_limit_altitude = PARA.location.soil_altitude - PARA.soil.infiltration_limit_depth;
-    
-    %JAN: I think the absolute infiltration limit should be
-    %realization-specific, e.g. if we think of an aquiclude underlying the terrain but following its topography
-    %PARA.ensemble.infiltration_limit_altitude=min(PARA.ensemble.altitude-PARA.soil.infiltration_limit_depth);
-    %PARA.soil.infiltration_limit_altitude=PARA.ensemble.infiltration_limit_altitude;

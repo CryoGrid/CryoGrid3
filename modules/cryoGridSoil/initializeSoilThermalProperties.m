@@ -22,7 +22,6 @@ c_i = PARA.constants.c_i; %1.9*10^6;%[J/m???K]
 
 %density of water
 rho_w = PARA.constants.rho_w; %1000; %[kg/m???]
-%rho_i=900;
 %latent heat of freezing
 L_si = PARA.constants.L_sl; %334000; % [J/kg]
 deltaT=0.001*ones(size(cT_grid,1),1);
@@ -87,32 +86,12 @@ capacity =[capacity mineral*c_m+organic*c_o+water*c_w];  %capacity matrix for un
 liquidWaterContent = [water_c water]; % water content
 
 %---------- conductivity part ---------------------------------------------
-% changed to cT-grid since K- interpolation is done external now
-% water=cT_water;
-% mineral=cT_mineral;
-% organic=cT_organic;
-% a=cT_soilType;
-% 
-
-% 
-% %preallocate variables
-% water_c2=ones(length(a),length(1:arraySize-2)+1);
-% water_c2(:,1)=freezeC(water, 1-mineral-organic, a, K_frozen, PARA);      % JAN: this is identical to water_c for 
-
 conductivity=water_c;	% initialize to same size as water_c
-
-% for i=1:arraySize-2
-%     water_c2(:,i+1)=freezeC(water, 1-mineral-organic, a, K_thawed+(K_frozen-K_thawed)*(arraySize-2-i)/(arraySize-2), PARA);
-% end
-% 
-% assert( isequal(water_c, water_c2), 'initializeSoilThermalProperties - water_c not equal for cap and cond calculations');
 
 for i=1:size(a,1)
     ice_c=water(i,1)*ones(1,arraySize-1)-water_c(i,:);
     conductivity(i,:)=conductivity2(water_c(i,:), ice_c, mineral(i,1), organic(i,1), PARA);
 end
-
-
 
 conductivity=[conductivity conductivity(:,size(conductivity,2))]; %conductivity matrix for soil filled
 
@@ -181,11 +160,6 @@ function waterC =  freezeC(thetaTot, thetaSat, soilType, T, PARA)
     
     %bugfix which allows correct computation if thetaTot=thetaRes
     waterC( isnan(waterC) ) = thetaRes( isnan(waterC) );
-    
-    
-%JAN: alternative implementation ( smooth functions )
-%     waterPot(T<=273.15)= waterPotZero(T<=273.15)+(PARA.constants.L_sl./PARA.constants.g./Tstar(T<=273.15).*(T(T<=273.15)-Tstar(T<=273.15))).*(T(T<=273.15)<Tstar(T<=273.15));
-%     %waterPot(T<=273.15)= waterPotZero(T<=273.15)+(3.34e5./9.81./Tstar(T<=273.15).*(T(T<=273.15)-Tstar(T<=273.15))).*(T(T<=273.15)<Tstar(T<=273.15));
-% 
-%     waterC(T<=273.15)  = thetaRes(T<=273.15)+(thetaSat(T<=273.15)-thetaRes(T<=273.15)).*(1+(-alpha(T<=273.15).*waterPot(T<=273.15)).^n(T<=273.15)).^(-m(T<=273.15));
-% 
+end
+
+end

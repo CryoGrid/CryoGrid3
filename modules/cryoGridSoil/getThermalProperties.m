@@ -13,9 +13,6 @@ function [c_temp, k_temp, k_eff] = getThermalProperties(T, c_temp, k_temp, k_eff
     [c_temp(GRID.soil.cT_domain),...
      k_temp(GRID.soil.cT_domain)] = readThermalParameters(T(GRID.soil.cT_domain), GRID, PARA);   
    
-    %-------- set higher conductivity for free water ----------------------
-    %k_temp(GRID.soil.cT_domain) = conductivityFreeWater(k_temp(GRID.soil.cT_domain), T, GRID.soil.cT_water);
-    
     %------- snow domain --------------------------------------------------
     c_temp(GRID.snow.cT_domain) = cap_snow(GRID.snow.Snow_i(GRID.snow.cT_domain),...
                                            GRID.snow.Snow_w(GRID.snow.cT_domain),...

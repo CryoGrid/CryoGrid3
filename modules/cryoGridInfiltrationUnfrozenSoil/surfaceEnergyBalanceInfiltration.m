@@ -3,7 +3,7 @@ function [SEB, dwc_dt]=surfaceEnergyBalanceInfiltration(T, wc, FORCING, GRID, PA
 
 Lstar=mean(SEB.L_star);
 
-sigma=PARA.constants.sigma; %5.67e-8; %Stefan-Boltzmann const.
+sigma=PARA.constants.sigma;
 L=PARA.constants.L_lg.*PARA.constants.rho_w;
 z=PARA.technical.z;
 
@@ -48,30 +48,26 @@ if PARA.modules.infiltration
     else
         Qe_pot=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, 0, FORCING.i.p, PARA));  %potential ET
         if Qe_pot>0
-                % determine index of soil cell to which E and T occur
-                i_ALD = PARA.location.bottomBucketSoilcTIndex; % this corresponds to the ALD or gives a reasonable maximum
-                i_Emax = GRID.soil.E_lb;
-                i_Tmax = GRID.soil.T_lb;
-                i_E = min( i_Emax, i_ALD );
-                i_T = min( i_Tmax, i_ALD );
-                r = PARA.soil.ratioET;
-                % cell-wise "efficiencies"
-                fraction_E = getE_fraction( T(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_ub+i_E-1), wc(1:i_E), PARA.soil.fieldCapacity );
-                fraction_T = getT_fraction( T(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_ub+i_T-1), wc(1:i_T), PARA.soil.fieldCapacity );
-                % grid cell heights for weighting
-                K_delta_E = GRID.general.K_delta(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_ub+i_E-1);
-                K_delta_T = GRID.general.K_delta(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_ub+i_T-1);
-                % total efficiencies
-                efficiency_E = sum( fraction_E .* K_delta_E ) ./ sum( K_delta_E );
-                efficiency_T = sum( fraction_T .* K_delta_T ) ./ sum( K_delta_T );
-                % actual Qe
-                Qe = min( [ efficiency_E + efficiency_T * r / (1-r), 1 ] ) * Qe_pot;
-                % actual Qe_E and Qe_T partition
-                Qe_E = Qe * efficiency_E / ( efficiency_E + efficiency_T * r / (1-r) );
-                Qe_T = Qe * efficiency_T * r / (1-r) / ( efficiency_E + efficiency_T * r / (1-r) );
-                % associated changes of water amounts in [m/s]
-                dwc_dt(1:i_E) = dwc_dt(1:i_E) + -Qe_E ./ L .* fraction_E .* K_delta_E ./ sum( fraction_E .* K_delta_E );
-                dwc_dt(1:i_T) = dwc_dt(1:i_T) + -Qe_T ./ L .* fraction_T .* K_delta_T ./ sum( fraction_T .* K_delta_T );          
+            
+            fraction_T=getT_fraction(T(GRID.soil.cT_domain), wc, PARA.soil.fieldCapacity);
+            fraction_E=getE_fraction(T(GRID.soil.cT_domain), wc, PARA.soil.fieldCapacity);
+            
+            depth_weighting_E=exp(-1./PARA.soil.evaporationDepth.*GRID.general.cT_grid(GRID.soil.cT_domain));  %exponential decrease with depth
+            depth_weighting_E(depth_weighting_E<0.05)=0;
+            depth_weighting_E=depth_weighting_E.*GRID.general.K_delta(GRID.soil.cT_domain)./sum(depth_weighting_E.*GRID.general.K_delta(GRID.soil.cT_domain),1); %normalize
+            
+            depth_weighting_T=exp(-1./PARA.soil.rootDepth.*GRID.general.cT_grid(GRID.soil.cT_domain));
+            depth_weighting_T(depth_weighting_T<0.05)=0;
+            depth_weighting_T=depth_weighting_T.*GRID.general.K_delta(GRID.soil.cT_domain)./sum(depth_weighting_T.*GRID.general.K_delta(GRID.soil.cT_domain),1);
+            
+            fraction_ET = fraction_T.*depth_weighting_T.*PARA.soil.ratioET + fraction_E.*depth_weighting_E.*(1-PARA.soil.ratioET);
+            
+            Qe=sum(fraction_ET, 1).*Qe_pot; 
+            
+            fraction_ET=fraction_ET./sum(fraction_ET, 1);
+            
+            % sum(fraction_ET) is always 1
+            dwc_dt=-Qe./L.*fraction_ET;    %in m water per sec
         else  %condensation
             Qe=Qe_pot;
             dwc_dt(1)=-Qe./L; %in m water per sec, put everything in uppermost grid cell

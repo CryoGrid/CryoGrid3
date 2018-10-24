@@ -3,15 +3,6 @@ function [FORCING]= interpolateForcingData(t, FORCING)
 
 posit=floor((t-FORCING.data.t_span(1,1))./(FORCING.data.t_span(2,1)-FORCING.data.t_span(1,1)))+1;
 
-%.*size(FORCING.data.t_span,1)) + 1;
-
-
-% if t<FORCING.data.t_span(posit,1)
-%     only for security, there can be problems due to numeric resolution
-%     posit=posit-1;
-% end
-
-
 
 FORCING.i.snowfall=FORCING.data.snowfall(posit,1)+(FORCING.data.snowfall(posit+1,1)-FORCING.data.snowfall(posit,1)).*(t-FORCING.data.t_span(posit,1))./(FORCING.data.t_span(2,1)-FORCING.data.t_span(1,1));
 

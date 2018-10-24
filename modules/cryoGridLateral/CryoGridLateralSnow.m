@@ -36,7 +36,7 @@ function [T, GRID, BALANCE, TEMPORARY] = CryoGridLateralSnow( PARA, GRID, BALANC
             end
         end
         % calculate lateral snow fluxes
-        my_snow_change = calculateLateralSnowFluxes2( mobile_snow, PARA );
+        my_snow_change = calculateLateralSnowFluxes( mobile_snow, PARA );
         % apply lateral snow fluxes directly
         if my_snow_change ~= 0
             [T, GRID] = applyLateralSnowFluxes( T, PARA, GRID, FORCING, my_snow_change );

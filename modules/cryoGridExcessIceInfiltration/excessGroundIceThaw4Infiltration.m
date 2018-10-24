@@ -8,13 +8,19 @@ organic=GRID.general.K_delta(GRID.soil.cT_domain).*GRID.soil.cT_organic;
 natPor=GRID.general.K_delta(GRID.soil.cT_domain).*GRID.soil.cT_natPor;
 actPor=GRID.general.K_delta(GRID.soil.cT_domain).*GRID.soil.cT_actPor;
 
+soilType = GRID.soil.cT_soilType;
+fieldCapacity = zeros(size(soilType));
+for i=1:size(PARA.soil.soilTypes,1)
+	fieldCapacity(soilType==i) = PARA.soil.soilTypes( i, 2 );
+end
+
 % modification for infiltration
 water=GRID.general.K_delta(GRID.soil.cT_domain).*wc;
 
 K_delta=GRID.general.K_delta(GRID.soil.cT_domain);
 
 mobileWater = double(T(GRID.soil.cT_domain)>0) .* (water-natPor) .* double(water>natPor);
-[startCell ~]= LayerIndex(mobileWater~=0);
+[startCell, ~]= LayerIndex(mobileWater~=0);
 
 %move solids down
 for i=startCell:-1:1
@@ -33,10 +39,9 @@ for i=startCell:-1:1
 end
 
 %adjust the actual porosity
-%natPor(1:startCell)=K_delta(1:startCell)-mineral(1:startCell)-organic(1:startCell);
 actPor(1:startCell)=K_delta(1:startCell)-mineral(1:startCell)-organic(1:startCell);
 
-%move water up
+% move water up
 mobileWater=0;
 for i=startCell:-1:1
     totalWater=water(i)+mobileWater;
@@ -45,7 +50,7 @@ for i=startCell:-1:1
     water(i)=totalWater-mobileWater;
 end
 
-%clean up grid cells with non-zero+non-unity water content in domains without soil matrix 
+%collect water from grid cells in domains without soil matrix 
 mobileWater=0;
 for i=1:startCell
     if mineral(i)+organic(i)==0
@@ -53,16 +58,29 @@ for i=1:startCell
         water(i)=0;
     end
 end
-for i=startCell:-1:1
-    if mineral(i)+organic(i)==0
-        water_temp=min( [ K_delta(i), mobileWater ] );
-        mobileWater=mobileWater-water_temp;
-        %water(i)=round(water_temp./K_delta(i)).*K_delta(i);   %this violates the water balance, but ensures that no grid cells with partly water and partly air can exist;
-        water(i)=water_temp;
-        %water_mismatch = water_temp-water(i);
-        %GRID.lake.residualWater = GRID.lake.residualWater + water_mismatch;
-        %meltwaterGroundIce=meltwaterGroundIce+water_mismatch; % this corrects the violated water balance: if round=floor then water_mismatch>=0 and this is added to runoff
+
+% infiltrate from top to bottom
+i=1;
+while mobileWater>0 && i<=startCell
+    if mineral(i)+organic(i)>0  %water is only added to cells with soil matrix
+        maxWater=K_delta(i).*fieldCapacity(i);
+        actualWater=water(i)+mobileWater;
+        water(i)=min( actualWater, maxWater );
+        mobileWater=max(0, actualWater-water(i));
     end
+    i=i+1;
+end
+i=startCell;
+while mobileWater>0 && i>=1
+    maxWater=actPor(i);
+    actualWater=water(i)+mobileWater;
+    water(i)=min(actualWater, maxWater);
+    mobileWater=max(0, actualWater-water(i));
+    i=i-1;
+end
+
+if mobileWater>0
+    error('xice - water infiltration - excess water after infiltration');
 end
 
 wc=water./K_delta;
@@ -71,7 +89,7 @@ GRID.soil.cT_mineral=mineral./K_delta;
 GRID.soil.cT_organic=organic./K_delta;
 GRID.soil.cT_natPor=natPor./K_delta;
 GRID.soil.cT_actPor=actPor./K_delta;
-GRID.soil.cT_soilType( (GRID.soil.cT_mineral+GRID.soil.cT_organic)<=1e-6 )=1;  %sets sand freeze curve for all water grid cells
+GRID.soil.cT_soilType( (GRID.soil.cT_mineral+GRID.soil.cT_organic)<=1e-6 )=3;  %sets pond as soil type (sand freeze curve) for all water grid cells
 
 soilGRIDsizeOld = sum( GRID.soil.cT_domain );   % to check if LUT update necessary
 
@@ -146,12 +164,12 @@ if cellsChanged > 0
     GRID = initializeSoilThermalProperties(GRID, PARA);   
 elseif cellsChanged < 0
     disp('xice - shortening LUT - removed water cell(s)');
-    GRID.soil.cT_frozen(1) = [];
-    GRID.soil.cT_thawed(1) = [];
-    GRID.soil.K_frozen(1) = [];
-    GRID.soil.K_thawed(1) = [];
-    GRID.soil.conductivity(1,:) = [];
-    GRID.soil.capacity(1,:) = [];
-    GRID.soil.liquidWaterContent(1,:) = [];
+    GRID.soil.cT_frozen(1:-cellsChanged) = [];
+    GRID.soil.cT_thawed(1:-cellsChanged) = [];
+    GRID.soil.K_frozen(1:-cellsChanged) = [];
+    GRID.soil.K_thawed(1:-cellsChanged) = [];
+    GRID.soil.conductivity(1:-cellsChanged,:) = [];
+    GRID.soil.capacity(1:-cellsChanged,:) = [];
+    GRID.soil.liquidWaterContent(1:-cellsChanged,:) = [];
 end
 

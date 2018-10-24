@@ -1,7 +1,7 @@
 function [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, surface_runoff)
 
     %%% step 2: GRID update
-    %%% TODO: add a function updateGRID_infiltration
+
 
     soilGRIDsizeOld = sum(GRID.soil.cT_domain);
 
