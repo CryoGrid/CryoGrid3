@@ -141,8 +141,8 @@ spmd
 
     %FORCING data mat-file
     PARA.forcing.filename=SETUP.forcingFile;  %must be in subfolder "forcing" and follow the conventions for CryoGrid 3 forcing files
-    PARA.forcing.rain_fraction=1;
-    PARA.forcing.snow_fraction=1;
+    PARA.forcing.rain_fraction=SETUP.rainFrac;
+    PARA.forcing.snow_fraction=SETUP.snowFrac;
     
     % switches for modules
     PARA.modules.infiltration=1;   % true if infiltration into unfrozen ground occurs

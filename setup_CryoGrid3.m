@@ -15,11 +15,14 @@ SETUP = {};
 SETUP.numRealizations = 3;
 SETUP.syncTimestep=6./24;
 SETUP.startDate = datenum( 1979, 10, 1 );
-SETUP.endDate = datenum( 2044, 12, 31);
-SETUP.xH=1;
-SETUP.xW=1;
+SETUP.endDate = datenum( 1980, 4, 1);
+SETUP.xH=0;
+SETUP.xW=0;
 SETUP.xS=1;
 SETUP.xice=0;
+
+SETUP.rainFrac=0.;
+SETUP.snowFrac= 2;
 
 SETUP.fieldCapacity = 0.50;
 
@@ -46,20 +49,16 @@ SETUP.relMaxWater = 1.;
 SETUP.heatExchangeAltitudeFactor = 0.;
 SETUP.natPor = 0.55;
 
-SETUP.forcingFile = 'samoylov_ERA_obs_fitted_1979_2014_spinup_extended2044.mat';
+
+SETUP.forcingFile = 'PB_ERAinterim_1979_2017_corr.mat';
+%SETUP.forcingFile = 'samoylov_ERA_obs_fitted_1979_2014_spinup.mat';
 
 % output directory
-SETUP.saveDir = '/data/scratch/nitzbon/CryoGrid/CryoGrid3_infiltration_xice_mpi_polygon/runs';
+SETUP.saveDir = '/data/scratch/nitzbon/CryoGrid/CryoGrid3_infiltration_xice_mpi_polygon/runs/BUGFIX/';
 
 % compose runname
-%SETUP.runName = sprintf( [ 'VALIDATION_' datestr( SETUP.startDate, 'yyyymm' ) '-' datestr(SETUP.endDate, 'yyyymm' ) '_xice%d_xH%d_xW%d_xS%d_fC%0.1f_fR%0.1f_fT%0.1f_eR%0.2f_eT%0.2f_K%0.1e_KRes%0.1e_eRes%0.2f_fc%0.2f_snowDens%d' ], ...
- %   SETUP.xice, SETUP.xH, SETUP.xW, SETUP.xS, ...
-  %  SETUP.f_C, SETUP.f_R, SETUP.f_T, SETUP.e_R, SETUP.e_T, ...
-   % SETUP.K, SETUP.K_Reservoir, SETUP.e_Reservoir, SETUP.fieldCapacity, SETUP.snowDens) ;
-SETUP.runName = sprintf( [ 'LONGTERM_' datestr( SETUP.startDate, 'yyyymm' ) '-' datestr(SETUP.endDate, 'yyyymm' ) '_xice%d_xH%d_xW%d_xS%d_fC%0.1f_fR%0.1f_fT%0.1f_eR%0.2f_eT%0.2f_dxiceC%0.2f_dxiceR%0.2f_dxiceTa%0.2f_dxiceTb%0.2f_K%0.1e_KRes%0.1e_eRes%0.2f_snowDens%d' ], ...
-     SETUP.xice, SETUP.xH, SETUP.xW, SETUP.xS, ...
-     SETUP.f_C, SETUP.f_R, SETUP.f_T, SETUP.e_R, SETUP.e_T, SETUP.d_xice_C, SETUP.d_xice_R, SETUP.d_xice_T1, SETUP.d_xice_T2, ...
-     SETUP.K, SETUP.K_Reservoir, SETUP.e_Reservoir, SETUP.snowDens) ;
+SETUP.runName = sprintf( [ 'BUGFIX_PrudhoeBayCorr_' datestr( SETUP.startDate, 'yyyymm' ) '-' datestr(SETUP.endDate, 'yyyymm' ) '_xice%d_xH%d_xW%d_xS%d_rf%0.1f_sf%0.1f' ], ...
+     SETUP.xice, SETUP.xH, SETUP.xW, SETUP.xS, SETUP.rainFrac, SETUP.snowFrac ) ;
 
 [~, SETUP.git_commit_hash] = system('git rev-parse HEAD');
 
