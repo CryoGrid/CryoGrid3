@@ -46,15 +46,13 @@ end
 % parameters related to snow exchange
 % to be specificed by user
 PARA.ensemble.terrain_index_snow = calculateTerrainIndexSnow(PARA.ensemble.altitude, PARA.ensemble.weight);
+PARA.ensemble.immobile_snow_height = [ 0.1, 0.1 ];
 
 % parameters related to infiltration scheme
 % to be specified by user
 
 % location-specific fix parameter values
 PARA.location.initial_altitude = PARA.ensemble.initial_altitude(index);
-PARA.soil.externalWaterFlux = PARA.ensemble.external_water_flux(index);
-PARA.soil.rootDepth = PARA.ensemble.rootDepth(index);
-PARA.soil.fieldCapacity= PARA.ensemble.fieldCapacity(index);
 % location-specific dynamic auxiliary variables
 PARA.location.area = PARA.ensemble.area(index);
 PARA.location.altitude = PARA.ensemble.altitude(index);

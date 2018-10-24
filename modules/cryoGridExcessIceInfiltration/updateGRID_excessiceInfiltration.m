@@ -1,7 +1,7 @@
 function [GRID] = updateGRID_excessiceInfiltration(meltwaterGroundIce, GRID)
 
     % pass excess meltwater to storage variable
-    GRID.lake.residualWater = GRID.lake.residualWater + meltwaterGroundIce;
+    GRID.soil.water2pool = GRID.soil.water2pool + meltwaterGroundIce;
 
     % update GRID domains of water body
     if GRID.soil.cT_organic(1)+GRID.soil.cT_mineral(1)<=1e-6    % upper soil cell pure air/water
