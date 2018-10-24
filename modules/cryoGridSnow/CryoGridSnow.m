@@ -42,11 +42,7 @@ if ~isempty(GRID.snow.cT_domain_ub) %snow cover already exitis
             c_temp(GRID.snow.cT_domain),...
             PARA);
         
-<<<<<<< HEAD
         GRID.soil.water2pool = GRID.soil.water2pool + newMelt;
-=======
-        GRID.lake.residualWater = GRID.lake.residualWater + newMelt;
->>>>>>> origin/xice_mpi_polygon_TC
         BALANCE.water.dr_snowmelt = BALANCE.water.dr_snowmelt + (-newMelt.*1000);    % in [mm]
     end
     
@@ -57,49 +53,29 @@ if ~isempty(GRID.snow.cT_domain_ub) %snow cover already exitis
         snowHeight = abs( GRID.general.K_grid(GRID.snow.cT_domain_ub) - GRID.general.K_grid(GRID.snow.cT_domain_lb+1) );
         maxSnowHeight = PARA.location.absolute_maxSnow_altitude - getAltitude( PARA, GRID );
         deltaSnow_i = max( [ 0, ...
-<<<<<<< HEAD
             min( [ FORCING.i.snowfall.*timestep./1000, ...
             (maxSnowHeight - snowHeight ) .* PARA.snow.rho_snow ./ PARA.constants.rho_w ] ) ] ); %ensures that no more than maxSnow can accumulate
-=======
-                             min( [ FORCING.i.snowfall.*timestep./1000, ...
-                                    (maxSnowHeight - snowHeight ) .* PARA.snow.rho_snow ./ PARA.constants.rho_w ] ) ] ); %ensures that no more than maxSnow can accumulate
->>>>>>> origin/xice_mpi_polygon_TC
         %account for excess snow in water balance
         BALANCE.water.dr_excessSnow = BALANCE.water.dr_excessSnow -( FORCING.i.snowfall.*timestep - deltaSnow_i*1000 ); %defined as negative when snow is removed
     end
     
     GRID.snow.Snow_i(GRID.snow.cT_domain_ub) = GRID.snow.Snow_i(GRID.snow.cT_domain_ub) ...
-<<<<<<< HEAD
         + deltaSnow_i;
     
     GRID.snow.Snow_a(GRID.snow.cT_domain_ub) = GRID.snow.Snow_a(GRID.snow.cT_domain_ub) ...
         + ( deltaSnow_i./(PARA.snow.rho_snow./ PARA.constants.rho_w) - deltaSnow_i);
-=======
-                                                + deltaSnow_i;
-    
-    GRID.snow.Snow_a(GRID.snow.cT_domain_ub) = GRID.snow.Snow_a(GRID.snow.cT_domain_ub) ...
-                                                + ( deltaSnow_i./(PARA.snow.rho_snow./ PARA.constants.rho_w) - deltaSnow_i);
->>>>>>> origin/xice_mpi_polygon_TC
     
 else %no snow cover
     
     %---------- add the new snow into initial SWE variable in case of no snow cover------------------
     
     GRID.snow.SWEinitial = GRID.snow.SWEinitial + FORCING.i.snowfall.*timestep./1000 - GRID.snow.SWEinitial.*0.1.*timestep;
-<<<<<<< HEAD
     GRID.soil.water2pool = GRID.soil.water2pool + GRID.snow.SWEinitial.*0.1.*timestep;
-=======
-    GRID.lake.residualWater = GRID.lake.residualWater + GRID.snow.SWEinitial.*0.1.*timestep;
->>>>>>> origin/xice_mpi_polygon_TC
     BALANCE.water.dr_snowmelt = BALANCE.water.dr_snowmelt - GRID.snow.SWEinitial.*0.1.*timestep*1000; %SWEinitial decreasing counted as surface runoff
     
     %----- add the rainfall as runoff in case of no infiltration into frozen ground
     if ~PARA.modules.infiltration || (PARA.modules.infiltration && T(GRID.soil.cT_domain_ub)<=0 )%no infiltration scheme or uppermost soil cell frozen
-<<<<<<< HEAD
         GRID.soil.water2pool = GRID.soil.water2pool + FORCING.i.rainfall.*timestep./1000;
-=======
-        GRID.lake.residualWater = GRID.lake.residualWater + FORCING.i.rainfall.*timestep./1000;
->>>>>>> origin/xice_mpi_polygon_TC
         BALANCE.water.dr_rain = BALANCE.water.dr_rain - FORCING.i.rainfall.*timestep;
     end
     

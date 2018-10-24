@@ -54,10 +54,7 @@ function OUT = generateOUT()
     % storage
     OUT.WB.dW_soil = [];
     OUT.WB.dW_snow = [];
-<<<<<<< HEAD
     OUT.WB.water2pool = [];
-=======
->>>>>>> origin/xice_mpi_polygon_TC
     % precipitation
     OUT.WB.dp_rain=[];
     OUT.WB.dp_snow=[]; % SWE

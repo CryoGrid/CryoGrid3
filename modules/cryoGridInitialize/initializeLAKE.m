@@ -2,7 +2,6 @@ function [GRID] = initializeLAKE(GRID);
 
 GRID.lake.unfrozenWaterSurface = false;
 GRID.lake.residualWater = 0; % the water content stored "mixed" cells of air and water if a water body is present 
-<<<<<<< HEAD
 
 % %---- flake initialization ------------------------------------------------
 % FLAKE.t_snow_n_flk=0+273.15;
@@ -30,5 +29,3 @@ GRID.lake.residualWater = 0; % the water content stored "mixed" cells of air and
 % FLAKE.q_ice_water = 0;
 % FLAKE.extincoef_water_typ=PARA.water.extinction;
 % FLAKE.latitude=PARA.location.latitude;
-=======
->>>>>>> origin/xice_mpi_polygon_TC
