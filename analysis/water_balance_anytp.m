@@ -7,11 +7,11 @@ close all
 % the forming of a small pond, so now enter into the budget calculation,
 % and excess appears in runoff.
 
-run='April30_5yr_fig'; % Name of the global run (realisation number is the removed)
+run='180501_1yr_rmw-20_push'; % Name of the global run (realisation number is the removed)
 addpath \\lagringshotell\geofag\projects\coup\Leo\toolbox
 name_str = runFiles( run );
 
-worker=1; % worker you want to work with <--------------------------------
+worker=2; % worker you want to work with <--------------------------------
 
 % Load data
 load(fullfile(run, name_str(worker).output{end}));
@@ -188,7 +188,7 @@ hold off
 % end
 
 figure(4)
-figure('Position', [990, 110, 800,400]);
+figure('Position', [990, 110, 800, 400]);
 Val=[inputs lateral_tot snow_excess snow_melted rain_surfRunoff external_flux evapotr rain_lost subli_condens -delta_final_initial];
 Names={'inputs', 'lat tot', 'snow Xs', 'snow melt', 'rain surfRoff', 'ext flux', 'evapotr', 'rain lost', 'sub cond', '-1* d final init'};
 
