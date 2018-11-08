@@ -20,8 +20,8 @@ if number_of_realizations>1
 end
 
 % Name, Forcing and saving directory
-run_numberi='180501_1yr_rmw-20_push';
-forcingname='Suossjavri_WRF_Norstore_adapted1yr.mat';
+run_numberi='180608_5yr_Suoss_testETmodif3_pondFULL';
+forcingname='Suossjavri_WRF_Norstore_adapted5yr.mat';
 saveDir = './runs';
 
 diary(['./runs/' run_numberi '_log.txt'])
@@ -67,7 +67,7 @@ spmd
     PARA.soil.externalWaterFlux=0;  %external water flux / drainage in [m/day]
     PARA.soil.convectiveDomain=[];       % soil domain where air convection due to buoyancy is possible -> start and end [m] - if empty no convection is possible
     PARA.soil.mobileWaterDomain=[];      % soil domain where water from excess ice melt is mobile -> start and end [m] - if empty water is not mobile
-    PARA.soil.relative_maxWater=-0.2;              % depth at which a water table will form [m] - above excess water is removed, below it pools up
+    PARA.soil.relative_maxWater= 0.2;              % depth at which a water table will form [m] - above excess water is removed, below it pools up
     PARA.soil.hydraulic_conductivity = 1e-5;
     PARA.soil.infiltration_limit_depth=1.5;     % depth [m] from the surface at wich the infiltration bucket scheme is stopped if no permafrost.
     PARA = loadSoilTypes( PARA );
@@ -154,14 +154,14 @@ spmd
     
     % switches for modules
     PARA.modules.infiltration=1;   % true if infiltration into unfrozen ground occurs
-    PARA.modules.xice=0;           % true if thaw subsicdence is enabled
+    PARA.modules.xice=1;           % true if thaw subsicdence is enabled
     PARA.modules.lateral=1;		   % true if adjacent realizations are run (this does not require actual lateral fluxes)
     
     if PARA.modules.lateral
         % switches for lateral processes
-        PARA.modules.exchange_heat = 0;
+        PARA.modules.exchange_heat = 1;
         PARA.modules.exchange_water =1;
-        PARA.modules.exchange_snow = 0;
+        PARA.modules.exchange_snow = 1;
         
         %---------overwrites variables for each realization--------------------
         % this function must define everything that is realization-specific or dependent of all realizations
@@ -293,12 +293,12 @@ spmd
         T = mixingWaterBody(T, GRID);
         
         %------- snow cover module --------------------------------------------
-        [T, GRID, PARA, SEB, BALANCE] = CryoGridSnow(T, GRID, FORCING, SEB, PARA, c_cTgrid, timestep, BALANCE, t);
+        [T, GRID, PARA, SEB, BALANCE] = CryoGridSnow(T, GRID, FORCING, SEB, PARA, c_cTgrid, timestep, BALANCE);
         [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE);
         
         %------- infiltration module-------------------------------------------
         if PARA.modules.infiltration
-            [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRID, PARA, FORCING, BALANCE, t);
+            [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRID, PARA, FORCING, BALANCE);
         end
         
         %------- excess ice module --------------------------------------------

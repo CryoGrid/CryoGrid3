@@ -60,7 +60,7 @@ for i=startCell:-1:1
         %water(i)=round(water_temp./K_delta(i)).*K_delta(i);   %this violates the water balance, but ensures that no grid cells with partly water and partly air can exist;
         water(i)=water_temp;
         %water_mismatch = water_temp-water(i);
-        %GRID.lake.residualWater = GRID.lake.residualWater + water_mismatch;
+        %GRID.soil.water2pool = GRID.soil.water2pool + water_mismatch;
         %meltwaterGroundIce=meltwaterGroundIce+water_mismatch; % this corrects the violated water balance: if round=floor then water_mismatch>=0 and this is added to runoff
     end
 end
