@@ -8,6 +8,11 @@
 %
 % -------------------------------------------------------------------------
 
+clear
+clc
+close all
+delete(gcp('nocreate')) % useful to restart from a crash
+
 add_modules;  %adds required modules
 
 number_of_realizations=2;
@@ -15,6 +20,11 @@ number_of_realizations=2;
 if number_of_realizations>1 && isempty( gcp('nocreate') )
     parpool(number_of_realizations);
 end
+
+% Name, Forcing and diary
+run_number='palsa_try';
+forcingname='Suossjavri_WRF_Norstore_adapted1yr.mat';
+diary(['./runs/' run_number '_log.txt'])
 
 spmd
     index=labindex;   % number identifying the process; change this to e.g. 1 for single realization (non-parallel) run
@@ -98,7 +108,7 @@ spmd
     PARA.technical.waterCellSize=0.02;                  % default size of a newly added water cell when water ponds below water table [m]
     
     % subsurface grid
-    PARA.technical.subsurfaceGrid = [[0:0.02:4], [4.1:0.1:10], [10.2:0.2:20], [21:1:30], [35:5:50], [60:10:100], [200:100:1000]]'; % the subsurface K-grid in [m]
+    PARA.technical.subsurfaceGrid = [[0:0.05:4], [4.1:0.1:10], [10.2:0.2:20], [21:1:30], [35:5:50], [60:10:100], [200:100:1000]]'; % the subsurface K-grid in [m]
 
     % parameters related to the specific location
     PARA.location.area=1.0;                             % area represented by the run [m^2] (here a dummy value of 1.0 is set which is overwritten for individual tiles)
@@ -134,7 +144,7 @@ spmd
     PARA = loadConstants( PARA );   % load natural constants and thermal properties of soil constituents into the PARA struct
     
     %FORCING data mat-file
-    PARA.forcing.filename='samoylov_ERA_obs_fitted_1979_2014_spinup_extended2044.mat';  %must be in subfolder "forcing" and follow the conventions for CryoGrid 3 forcing files
+    PARA.forcing.filename=forcingname;  %must be in subfolder "forcing" and follow the conventions for CryoGrid 3 forcing files
     PARA.forcing.rain_fraction=1;
     PARA.forcing.snow_fraction=1;
     
@@ -156,7 +166,6 @@ spmd
     
     % ------make output directory (name depends on parameters) ----------------
     saveDir = './runs';
-    run_number = sprintf( [ 'XICEMPI_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' )  ] );
     mkdir([ saveDir '/' run_number]);
     
     %--------------------------------------------------------------------------
@@ -298,7 +307,7 @@ spmd
         PARA.location.surface_altitude = getSurfaceAltitude( PARA, GRID );
         PARA.location.soil_altitude = getSoilAltitude( PARA, GRID );
         [PARA.location.infiltration_altitude, PARA.location.bottomBucketSoilcTIndex] = getInfiltrationAltitude( PARA, GRID, T);
-        [PARA.location.water_table_altitude] = getWaterTableAltitudeFC(T, wc, GRID, PARA);
+        [PARA.location.water_table_altitude, GRID.soil.flag] = getWaterTableAltitudeFC(T, wc, GRID, PARA);
         PARA.soil.infiltration_limit_altitude = PARA.location.soil_altitude - PARA.soil.infiltration_limit_depth;
         
         %------- update threshold variables if no lateral exchange processes occur, otherwise updated at sync time
@@ -372,4 +381,5 @@ if number_of_realizations>1
     delete(gcp('nocreate'))
 end
 
-fprintf('Done.\n');
+fprintf('Done with %s\n', run_number);
+diary off
