@@ -55,8 +55,8 @@ spmd
     PARA.soil.kh_bedrock=3.0;   % thermal conductivity of the mineral soil fraction [W/mK]
     
     % parameters related to hydrology scheme
-    PARA.soil.fieldCapacity=0.50;           % water holding capacity of the soil - this must be adapted to fit the upperlost layers!!
-    PARA.soil.evaporationDepth=0.10;        % depth to which evaporation occurs - place on grid cell boundaries
+    PARA.soil.fieldCapacity=0.55;           % water holding capacity of the soil - this must be adapted to fit the upperlost layers!!
+    PARA.soil.evaporationDepth=0.05;        % depth to which evaporation occurs - place on grid cell boundaries
     PARA.soil.rootDepth=0.20;               % depth affected by transpiration - place on grid cell boundaries
     PARA.soil.ratioET=0.5;                  % 1: only transpiration; 0: only evaporation, values in between must be made dependent on LAI, etc.
     PARA.soil.externalWaterFlux=0.0;        % external water flux / drainage in [m/day]
@@ -77,14 +77,14 @@ spmd
     PARA.snow.tau_1=86400.0;            % time constants of snow albedo change (according to ECMWF reanalysis) [sec]
     PARA.snow.tau_a=0.008;              % [per day]
     PARA.snow.tau_f=0.24;               % [per day]
-    PARA.snow.relative_maxSnow=[1.0]; 	% maximum snow depth that can be reached [m] - excess snow is removed in the model - if empty, no snow threshold
+    PARA.snow.relative_maxSnow=1.0; 	% maximum snow depth that can be reached [m] - excess snow is removed in the model - if empty, no snow threshold
     PARA.snow.extinction=25.0;          % light extinction coefficient of snow [1/m]
     
     % parameters related to water body on top of soil domain
     PARA.water.albedo=0.07;             % albedo water (parameterization after Wayne and Burt (1954) in surfaceCondition.m)
     PARA.water.epsilon=0.99;            % surface emissivity water
     PARA.water.rs=0.0;                  % surface resistance -> should be 0 for water
-    PARA.water.z0=5e-4;                 % roughness length surface [m] % value for summer / vegetation    
+    PARA.water.z0=5e-4;                 % roughness length surface [m] % value for summer / vegetation
     PARA.ice.albedo=0.20;               % albedo ice / Lei et al. (2011) shows a range of 0.1 to 0.35
     PARA.ice.epsilon=0.98;              % surface emissivity snow
     PARA.ice.rs=0.0;                    % surface resistance -> should be 0 for ice
@@ -96,23 +96,23 @@ spmd
     PARA.technical.SWEperCell=0.005;                    % SWE per grid cell in [m] - determines size of snow grid cells
     PARA.technical.maxSWE=0.4;                          % in [m] SWE
     PARA.technical.arraySizeT=5002;                     % number of values in the look-up tables for conductivity and capacity
-    PARA.technical.starttime=datenum( 1979, 10, 1 );    % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum( 1982, 12, 31);      % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.starttime=[];                        % starttime of the simulation - if empty start from first value of time series
+    PARA.technical.endtime=[];                          % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;       % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;       % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;                    % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
     PARA.technical.outputTimestep= 3 ./ 24.0;           % output time step in [days] - here three hours
     PARA.technical.syncTimeStep = 6 ./ 24.0;            % output time step in [days] - here three hours
-    PARA.technical.saveDate='01.01.';                   % date of year when output file is written - no effect if "saveInterval" is empty
-    PARA.technical.saveInterval=[1];                    % interval [years] in which output files are written - if empty the entire time series is written - minimum is 1 year
+    PARA.technical.saveDate='01.08.';                   % date of year when output file is written - no effect if "saveInterval" is empty
+    PARA.technical.saveInterval=1;                      % interval [years] in which output files are written - if empty the entire time series is written - minimum is 1 year
     PARA.technical.waterCellSize=0.02;                  % default size of a newly added water cell when water ponds below water table [m]
     
     % subsurface grid
-    PARA.technical.subsurfaceGrid = [[0:0.05:4], [4.1:0.1:10], [10.2:0.2:20], [21:1:30], [35:5:50], [60:10:100], [200:100:1000]]'; % the subsurface K-grid in [m]
-
+    PARA.technical.subsurfaceGrid = [0:0.05:2 2.1:0.1:5 5.2:0.2:20 21:1:30 35:5:50 60:10:100 200:100:1000]'; % the subsurface K-grid in [m]
+    
     % parameters related to the specific location
     PARA.location.area=1.0;                             % area represented by the run [m^2] (here a dummy value of 1.0 is set which is overwritten for individual tiles)
-    PARA.location.initial_altitude=20.0;                % altitude in [m a.s.l.]
+    PARA.location.initial_altitude=300;                % altitude in [m a.s.l.]
     
     % dynamic auxiliary varaibles (stored in the PARA struct for technical reasons)
     PARA.location.surface_altitude=PARA.location.initial_altitude;          % refers to the surface including water body and snow
@@ -132,14 +132,16 @@ spmd
     end
     
     %initial temperature profile -> first column depth [m] -> second column temperature [degree C]
-    PARA.Tinitial = [   -2     5    ;...
-                         0     0    ;...
-                         2    -2    ;...
-                         5    -7    ;...
-                        10    -9    ;...
-                        25    -9    ;...
-                       100    -8    ;...
-                      1100    10.2  ];      % the geothermal gradient for Qgeo=0.05W/m^2 and K=2.746W/Km is about 18.2 K/km
+    PARA.Tinitial = [-5     10   ;...
+                      0      5   ;...
+                      0.1    2   ;...
+                      0.5    0   ;...
+                      1     -1   ;...
+                      2     -2   ;...
+                     10      1   ;...
+                     30      2   ;...
+                    500      4   ;...
+                   1000     10   ];     % the geothermal gradient for Qgeo=0.05W/m^2 and K=2.746W/Km is about 18.2 K/km
     
     PARA = loadConstants( PARA );   % load natural constants and thermal properties of soil constituents into the PARA struct
     
@@ -150,14 +152,14 @@ spmd
     
     % switches for modules
     PARA.modules.infiltration=1;    % true if infiltration into unfrozen ground occurs
-    PARA.modules.xice=1;            % true if thaw subsicdence is enabled
-    PARA.modules.lateral=1;         % true if adjacent realizations are run (this does not require actual lateral fluxes)
+    PARA.modules.xice=0;            % true if thaw subsicdence is enabled
+    PARA.modules.lateral=0;         % true if adjacent realizations are run (this does not require actual lateral fluxes)
     
     if PARA.modules.lateral
         % switches for lateral processes
-        PARA.modules.exchange_heat = 1;
+        PARA.modules.exchange_heat = 0;
         PARA.modules.exchange_water = 1;
-        PARA.modules.exchange_snow = 1;
+        PARA.modules.exchange_snow = 0;
         
         %---------overwrites variables for each realization--------------------
         % this function must define everything that is realization-specific or dependent of all realizations
@@ -205,9 +207,10 @@ spmd
     wc=GRID.soil.cT_water;
     GRID.soil.E_lb = find(PARA.soil.evaporationDepth==GRID.soil.soilGrid(:,1))-1;
     GRID.soil.T_lb = find(PARA.soil.rootDepth==GRID.soil.soilGrid(:,1))-1;
+    GRID.soil.water2pool=0; % Leo : cannot find a good initialize function to put it in
+    GRID.soil.flag.dry2permafrost=0; % Flag to keep track of the existence of a water table above the permafrost 
+    GRID.soil.flag.noWTnoPF=0;
     
-	GRID.soil.water2pool=0; % Leo : cannot find a good initialize function to put it in
-
     %---- preallocate temporary arrays for capacity and conductivity-----------
     [c_cTgrid, k_cTgrid, k_Kgrid, lwc_cTgrid] = initializeConductivityCapacity(T,wc, GRID, PARA); % this is basically the same as "getThermalProperties" during integration, but without interpolation to K grid
     
@@ -285,9 +288,9 @@ spmd
         %------- infiltration module-------------------------------------------
         if PARA.modules.infiltration
             [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRID, PARA, FORCING, BALANCE);
-        else 
-			SEB=surfaceEnergyBalance(T, wc, FORCING, GRID, PARA, SEB);
-		end
+        else
+            SEB=surfaceEnergyBalance(T, wc, FORCING, GRID, PARA, SEB);
+        end
         
         %------- excess ice module --------------------------------------------
         if PARA.modules.xice && ~PARA.modules.infiltration
@@ -333,7 +336,7 @@ spmd
         if PARA.modules.lateral
             if t==TEMPORARY.syncTime %communication between workers
                 fprintf('\n\t\t\tCryoGridLateral: sync - start (Worker %1.0f)\n', labindex);
-                                
+                
                 % update auxiliary variables and common thresholds
                 labBarrier();
                 [PARA] = updateAuxiliaryVariablesAndCommonThresholds(T, wc, GRID, PARA);
@@ -345,7 +348,7 @@ spmd
                 
                 % WATER exchange module
                 if PARA.modules.exchange_water
-                    [wc, GRID, BALANCE] = CryoGridLateralWater( PARA, GRID, BALANCE, T, wc);    
+                    [wc, GRID, BALANCE] = CryoGridLateralWater( PARA, GRID, BALANCE, T, wc);
                 end
                 
                 % SNOW exchange module
