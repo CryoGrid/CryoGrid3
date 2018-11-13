@@ -19,7 +19,7 @@ A = double( PARA.ensemble.distanceBetweenPoints > 0 ); % adjacency matrix of the
 
 % topographical relations
 PARA.ensemble.initial_altitude = [300.0 300.50 301.0 301.50 302.0];	%in m a.s.l., this is the reference for the "zero" position of the grids
-PARA.ensemble.altitude = PARA.ensemble.initial_altitude;  
+PARA.ensemble.altitude = PARA.ensemble.initial_altitude;
 PARA.ensemble.surface_altitude = PARA.ensemble.initial_altitude;
 PARA.ensemble.soil_altitude = PARA.ensemble.initial_altitude;
 
@@ -43,8 +43,8 @@ PARA.ensemble.boundaryCondition(length(boundaryCondition)).type=boundaryConditio
 [PARA.ensemble.boundaryCondition.type]=boundaryCondition{:};
 for i=1:numlabs
     if strcmp(boundaryCondition{i},'DarcyReservoir')==1
-        PARA.ensemble.boundaryCondition(i).parameters.elevation=Darcy_elevation(i);  
-        PARA.ensemble.boundaryCondition(i).parameters.fluxFactor=Darcy_fluxFactor(i); 
+        PARA.ensemble.boundaryCondition(i).parameters.elevation=Darcy_elevation(i);
+        PARA.ensemble.boundaryCondition(i).parameters.fluxFactor=Darcy_fluxFactor(i);
     end
 end
 
@@ -72,34 +72,39 @@ PARA.location.absolute_maxSnow_altitude = [max( PARA.ensemble.altitude ) + PARA.
 
 % different stratigraphies
 % to be specificed by user
-Strati_palsa=[    0.0     0.55    0.05    0.15    1   0.80    ;...
-                  0.5     0.80    0.05    0.15    1   0.80    ;...
-                  3.0     0.50    0.50    0.00    2   0.50    ;...
-                 10.0     0.03    0.97    0.00    1   0.03   ];
-             
-Strati_mire =[    0.0     0.55    0.05    0.15    1   0.80    ;...
-                  0.5     0.80    0.05    0.15    1   0.80    ;...
-                  3.0     0.50    0.50    0.00    2   0.50    ;...
-                 10.0     0.03    0.97    0.00    1   0.03   ];
-             
+% Start from mire strati
+Strati_mire =[    0.0     0.80    0.05    0.15    1   0.80    ;...
+    0.5     0.80    0.05    0.15    1   0.80    ;...
+    3.0     0.50    0.50    0.00    2   0.50    ;...
+    10.0     0.03    0.97    0.00    1   0.03   ];
+
+% Construct Palsa strati for each worker
+Strati_palsa_initial=Strati_mire; % Start from the mire strati
+Strati_palsa_initial(1,2)=PARA.soil.fieldCapacity; % Set the upper layer at FC
+palsaHeight=PARA.ensemble.initial_altitude(2:end)-PARA.ensemble.initial_altitude(1); % Base palsa height on elevations
+ActiveLayer=[0.5 0.5 0.5 0.5]; % Input active layers
 if labindex < 2;
     PARA.soil.layer_properties=Strati_mire;
 else
-    PARA.soil.layer_properties=Strati_palsa;
+    PARA.soil.layer_properties=stratiXice(Strati_palsa_initial, palsaHeight(labindex-1), ActiveLayer(labindex-1)); % Modify the ice, mineral and organic content
 end
-             
+
 
 % different initial conditions
 % to be specificed by user
-Tinitial = [-5     10   10   ;...
-             0      5    5   ;...
-             0.1    2    2   ;...
-             0.5    1.5  0   ;...
-             1      1   -1   ;...
-             2      1   -2   ;...
-            10      1    1   ;...
-            30      2    2   ;...
-           500      4    4   ;...
-          1000     10   10   ]; 
-PARA.Tinitial=[Tinitial(:,1) Tinitial(:, 1+index)];
+T_z    =[-5 0 0.1 0.5 1 2 10 30 500 1000];
+ActiveLayer=[0.5 ActiveLayer];
+if min(ActiveLayer)>0.1 && max(ActiveLayer)<1;
+    T_z(4)=ActiveLayer(labindex);
+else
+    error('Check initial active layers and initial T profile')
+end
+T_mire =[10 5 2 1.5 2 2 2 2 4 10]';
+T_palsa=[10 5 2 0 -1 -1 1 2 4 10]';
+if labindex < 2;
+    PARA.Tinitial=[T_z T_mire];
+else
+    PARA.Tinitial=[T_z T_palsa];
+end
+
 end
