@@ -15,15 +15,15 @@ delete(gcp('nocreate')) % useful to restart from a crash
 
 add_modules;  %adds required modules
 
-number_of_realizations=2;
+number_of_realizations=5;
 
 if number_of_realizations>1 && isempty( gcp('nocreate') )
     parpool(number_of_realizations);
 end
 
 % Name, Forcing and diary
-run_number='palsa_try';
-forcingname='Suossjavri_WRF_Norstore_adapted1yr.mat';
+run_number='181114_50y';
+forcingname='Suossjavri_WRF_Norstore_adapted50yr.mat';
 diary(['./runs/' run_number '_log.txt'])
 
 spmd
@@ -148,18 +148,18 @@ spmd
     %FORCING data mat-file
     PARA.forcing.filename=forcingname;  %must be in subfolder "forcing" and follow the conventions for CryoGrid 3 forcing files
     PARA.forcing.rain_fraction=1;
-    PARA.forcing.snow_fraction=1;
+    PARA.forcing.snow_fraction=0.2;
     
     % switches for modules
     PARA.modules.infiltration=1;    % true if infiltration into unfrozen ground occurs
-    PARA.modules.xice=0;            % true if thaw subsicdence is enabled
-    PARA.modules.lateral=0;         % true if adjacent realizations are run (this does not require actual lateral fluxes)
+    PARA.modules.xice=1;            % true if thaw subsicdence is enabled
+    PARA.modules.lateral=1;         % true if adjacent realizations are run (this does not require actual lateral fluxes)
     
     if PARA.modules.lateral
         % switches for lateral processes
-        PARA.modules.exchange_heat = 0;
+        PARA.modules.exchange_heat = 1;
         PARA.modules.exchange_water = 1;
-        PARA.modules.exchange_snow = 0;
+        PARA.modules.exchange_snow = 1;
         
         %---------overwrites variables for each realization--------------------
         % this function must define everything that is realization-specific or dependent of all realizations

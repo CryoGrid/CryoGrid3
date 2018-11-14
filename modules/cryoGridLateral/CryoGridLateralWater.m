@@ -27,7 +27,7 @@ function [wc, GRID, BALANCE] = CryoGridLateralWater( PARA, GRID, BALANCE, T, wc)
 
         % Calculate possible boundary fluxes
         [ boundary_water_flux ] = calculateLateralWaterBoundaryFluxes(PARA, GRID, T);
-        fprintf('\t\t\tBoundary contribution :\t%3.2e m\n',boundary_water_flux)
+        % fprintf('\t\t\tBoundary contribution :\t%3.2e m\n',boundary_water_flux)
 
 
         % Check for water availability and set real water fluxes

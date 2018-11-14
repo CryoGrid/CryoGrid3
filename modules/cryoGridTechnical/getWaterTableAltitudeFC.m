@@ -4,6 +4,7 @@ function [waterTableAlt, flag_str] = getWaterTableAltitudeFC(T, wc, GRID, PARA)
 
 % Define some variables
 T=T(GRID.soil.cT_domain);
+flag_str=GRID.soil.flag;
 
 % Check for favourable conditions for water exchanges and browse through
 % the water column
