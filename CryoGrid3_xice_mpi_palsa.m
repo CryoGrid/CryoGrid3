@@ -22,7 +22,7 @@ if number_of_realizations>1 && isempty( gcp('nocreate') )
 end
 
 % Name, Forcing and diary
-run_number='181114_50y';
+run_number='181116_5w50y_SebSolve';
 forcingname='Suossjavri_WRF_Norstore_adapted50yr.mat';
 diary(['./runs/' run_number '_log.txt'])
 
@@ -283,6 +283,7 @@ spmd
         
         %------- snow cover module --------------------------------------------
         [T, GRID, PARA, SEB, BALANCE] = CryoGridSnow(T, GRID, FORCING, SEB, PARA, c_cTgrid, timestep, BALANCE);
+        GRID = checkFuckingSnow( GRID );
         [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE);
         
         %------- infiltration module-------------------------------------------

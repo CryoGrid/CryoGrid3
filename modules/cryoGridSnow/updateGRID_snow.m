@@ -31,12 +31,25 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
 
     else   %snow exists
 
-        check_change=false;  
-
+        check_change=false;
+        
         GRID.general.K_grid(GRID.snow.cT_domain_ub) = GRID.general.K_grid(GRID.snow.cT_domain_ub+1) -...
             ( GRID.snow.Snow_i(GRID.snow.cT_domain_ub) + GRID.snow.Snow_w(GRID.snow.cT_domain_ub) + GRID.snow.Snow_a(GRID.snow.cT_domain_ub)); %updates the position of the uppermost snow grid cell
-
-        assert( ~isnan( GRID.general.K_grid(GRID.snow.cT_domain_ub) ), 'updateGRID_snow - error in uppermost snow cell position' );
+        
+        try
+            assert( ~isnan( GRID.general.K_grid(GRID.snow.cT_domain_ub) ), 'updateGRID_snow - error in uppermost snow cell position' );
+        catch
+            Li=GRID.snow.cT_domain_ub+1
+            GRIDgene=GRID.general.K_grid(GRID.snow.cT_domain_ub+1)
+            GRIDsnowi=GRID.snow.Snow_i(GRID.snow.cT_domain_ub)
+            GRIDsnoww=GRID.snow.Snow_w(GRID.snow.cT_domain_ub)
+            GRIDsnowa=GRID.snow.Snow_a(GRID.snow.cT_domain_ub)
+            wholeSnowi=GRID.snow.Snow_i
+            wholeSnowa=GRID.snow.Snow_a
+            assert( ~isnan( GRID.general.K_grid(GRID.snow.cT_domain_ub) ), 'updateGRID_snow - error in uppermost snow cell position' );
+        end
+        
+        % assert( ~isnan( GRID.general.K_grid(GRID.snow.cT_domain_ub) ), 'updateGRID_snow - error in uppermost snow cell position' );
         
         if GRID.snow.Snow_i(GRID.snow.cT_domain_ub)>=1.5.*PARA.technical.SWEperCell  %create new grid cell
 
@@ -53,8 +66,17 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
 
             % ------- update SWE grid
             GRID.snow.Snow_i(GRID.snow.cT_domain_ub)=1./3.*GRID.snow.Snow_i(GRID.snow.cT_domain_ub+1);
+            if isnan(GRID.snow.Snow_i(GRID.snow.cT_domain_ub))==1;
+                fprintf('upGRsn : update SWE ice\n')
+            end
             GRID.snow.Snow_w(GRID.snow.cT_domain_ub)=1./3.*GRID.snow.Snow_w(GRID.snow.cT_domain_ub+1);
+            if isnan(GRID.snow.Snow_w(GRID.snow.cT_domain_ub))==1;
+                fprintf('upGRsn : update SWE water\n')
+            end
             GRID.snow.Snow_a(GRID.snow.cT_domain_ub)=1./3.*GRID.snow.Snow_a(GRID.snow.cT_domain_ub+1);
+            if isnan(GRID.snow.Snow_a(GRID.snow.cT_domain_ub))==1;
+                fprintf('upGRsn : update SWE air\n')
+            end
             GRID.snow.Snow_i(GRID.snow.cT_domain_ub+1)=GRID.snow.Snow_i(GRID.snow.cT_domain_ub+1) - GRID.snow.Snow_i(GRID.snow.cT_domain_ub);
             GRID.snow.Snow_w(GRID.snow.cT_domain_ub+1)=GRID.snow.Snow_w(GRID.snow.cT_domain_ub+1) - GRID.snow.Snow_w(GRID.snow.cT_domain_ub);
             GRID.snow.Snow_a(GRID.snow.cT_domain_ub+1)=GRID.snow.Snow_a(GRID.snow.cT_domain_ub+1) - GRID.snow.Snow_a(GRID.snow.cT_domain_ub);

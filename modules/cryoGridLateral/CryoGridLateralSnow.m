@@ -40,6 +40,7 @@ function [T, GRID, BALANCE, TEMPORARY] = CryoGridLateralSnow( PARA, GRID, BALANC
         % apply lateral snow fluxes directly
         if my_snow_change ~= 0
             [T, GRID] = applyLateralSnowFluxes( T, PARA, GRID, FORCING, my_snow_change );
+            GRID = checkFuckingSnow( GRID );
             [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE);
             BALANCE.water.dr_lateralSnow = BALANCE.water.dr_lateralSnow + my_snow_change*1000 ;
         end

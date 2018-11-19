@@ -20,6 +20,13 @@ if ~isempty(GRID.snow.cT_domain_ub) %snow cover already exitis
     nonAirFractionUppermostGridCell = (GRID.snow.Snow_i(GRID.snow.cT_domain_ub)+GRID.snow.Snow_w(GRID.snow.cT_domain_ub))./...
         (GRID.snow.Snow_i(GRID.snow.cT_domain_ub)+GRID.snow.Snow_w(GRID.snow.cT_domain_ub)+GRID.snow.Snow_a(GRID.snow.cT_domain_ub));
     
+    if nonAirFractionUppermostGridCell==0;
+        fprintf('nonAir est nul\n')
+    elseif isnan(nonAirFractionUppermostGridCell)==1;
+        
+        fprintf('nonAir est NaN\n')
+    end
+    
     GRID.snow.Snow_a(GRID.snow.cT_domain_ub) = GRID.snow.Snow_a(GRID.snow.cT_domain_ub) ...
         - ( SEB.Qe.*timestep.*24.*3600./PARA.constants.L_sg./PARA.constants.rho_i./nonAirFractionUppermostGridCell ...% - ( SEB.Qe.*timestep.*24.*3600./(L+L_lv)./1000./nonAirFractionUppermostGridCell ...
         -  SEB.Qe.*timestep.*24.*3600./PARA.constants.L_sg./PARA.constants.rho_i); %-  SEB.Qe.*timestep.*24.*3600./(L+L_lv)./1000);
