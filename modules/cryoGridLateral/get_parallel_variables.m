@@ -49,6 +49,7 @@ PARA.ensemble.terrain_index_snow = calculateTerrainIndexSnow(PARA.ensemble.altit
 PARA.ensemble.immobile_snow_height = [ 0.1, 0.1, 0.1 ];
 PARA.ensemble.snow_scaling = ones(1, numlabs);  % unclear if needed in ensemble struct
 
+
 % parameters related to infiltration scheme
 % to be specificed by user
 PARA.ensemble.rootDepth = 0.2 .* ones(1, numlabs);
@@ -56,9 +57,6 @@ PARA.ensemble.fieldCapacity = 0.5 .* ones(1, numlabs);
 
 % location-specific fix parameter values
 PARA.location.initial_altitude = PARA.ensemble.initial_altitude(index);
-PARA.soil.externalWaterFlux = PARA.ensemble.external_water_flux(index);
-PARA.soil.rootDepth = PARA.ensemble.rootDepth(index);
-PARA.soil.fieldCapacity= PARA.ensemble.fieldCapacity(index);
 % location-specific dynamic auxiliary variables
 PARA.location.area = PARA.ensemble.area(index);
 PARA.location.altitude = PARA.ensemble.altitude(index);

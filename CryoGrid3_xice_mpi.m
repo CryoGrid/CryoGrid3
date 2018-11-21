@@ -4,7 +4,7 @@
 %
 % Development by: S. Westermann and M. Langer 2015
 %
-% Development of the parallelized version by: L. Martin and M. Nitzbon 2017-2018
+% Development of the parallelized version by: L. Martin and J. Nitzbon 2017-2018
 %
 % -------------------------------------------------------------------------
 
