@@ -47,16 +47,19 @@ if ~isempty(GRID.snow.cT_domain_ub) %snow cover already exitis
     end
     
     %-------- add the new snow to the upper most snow cell in the case of a exisiting snow cover -------------------
+    
+    scaledSnowfall = PARA.forcing.snow_scaling .* FORCING.i.snowfall.*timestep./1000; % in [m]
+    
     if isempty( PARA.location.absolute_maxSnow_altitude )
-        deltaSnow_i = max(0, FORCING.i.snowfall.*timestep./1000);
+        deltaSnow_i = max(0, scaledSnowfall);
     else
         snowHeight = abs( GRID.general.K_grid(GRID.snow.cT_domain_ub) - GRID.general.K_grid(GRID.snow.cT_domain_lb+1) );
         maxSnowHeight = PARA.location.absolute_maxSnow_altitude - getAltitude( PARA, GRID );
         deltaSnow_i = max( [ 0, ...
-            min( [ FORCING.i.snowfall.*timestep./1000, ...
+            min( [ scaledSnowfall, ...
             (maxSnowHeight - snowHeight ) .* PARA.snow.rho_snow ./ PARA.constants.rho_w ] ) ] ); %ensures that no more than maxSnow can accumulate
         %account for excess snow in water balance
-        BALANCE.water.dr_excessSnow = BALANCE.water.dr_excessSnow -( FORCING.i.snowfall.*timestep - deltaSnow_i*1000 ); %defined as negative when snow is removed
+        BALANCE.water.dr_excessSnow = BALANCE.water.dr_excessSnow -( (scaledSnowfall - deltaSnow_i)*1000 ); %defined as negative when snow is removed
     end
     
     GRID.snow.Snow_i(GRID.snow.cT_domain_ub) = GRID.snow.Snow_i(GRID.snow.cT_domain_ub) ...
@@ -69,7 +72,7 @@ else %no snow cover
     
     %---------- add the new snow into initial SWE variable in case of no snow cover------------------
     
-    GRID.snow.SWEinitial = GRID.snow.SWEinitial + FORCING.i.snowfall.*timestep./1000 - GRID.snow.SWEinitial.*0.1.*timestep;
+    GRID.snow.SWEinitial = GRID.snow.SWEinitial + scaledSnowfall - GRID.snow.SWEinitial.*0.1.*timestep;
     GRID.soil.water2pool = GRID.soil.water2pool + GRID.snow.SWEinitial.*0.1.*timestep;
     BALANCE.water.dr_snowmelt = BALANCE.water.dr_snowmelt - GRID.snow.SWEinitial.*0.1.*timestep*1000; %SWEinitial decreasing counted as surface runoff
     
@@ -83,7 +86,7 @@ end
 
 %--------- update albedo after fresh fallen snow --------------------------
 % determine time of last snowfall for albedo calculation
-SEB.newSnow =  SEB.newSnow-SEB.newSnow.*0.1.*timestep + FORCING.i.snowfall.*timestep./1000;
+SEB.newSnow =  SEB.newSnow-SEB.newSnow.*0.1.*timestep + scaledSnowfall;
 if SEB.newSnow>= PARA.technical.SWEperCell/2
     PARA.snow.albedo=PARA.snow.max_albedo;
     SEB.newSnow=0;

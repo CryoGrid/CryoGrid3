@@ -135,8 +135,9 @@ spmd
     
     %FORCING data mat-file
     PARA.forcing.filename='samoylov_ERA_obs_fitted_1979_2014.mat';  %must be in subfolder "forcing" and follow the conventions for CryoGrid 3 forcing files
-    PARA.forcing.rain_fraction=1;
-    PARA.forcing.snow_fraction=1;
+    PARA.forcing.rain_fraction=1;   % scaling factor applied to the entire snowfall forcing data
+    PARA.forcing.snow_fraction=2;   % scaling factor applied to the entire snowfall forcing data
+    PARA.forcing.snow_scaling=1.0;  % scaling factor for incoming snowfall of individual tile, used to emulate lateral snow redistribution
     
     % switches for modules
     PARA.modules.infiltration=1;    % true if infiltration into unfrozen ground occurs
@@ -145,8 +146,8 @@ spmd
     
     if PARA.modules.lateral
         % switches for lateral processes
-        PARA.modules.exchange_heat = 1;
-        PARA.modules.exchange_water = 1;
+        PARA.modules.exchange_heat = 0;
+        PARA.modules.exchange_water = 0;
         PARA.modules.exchange_snow = 1;
         
         %---------overwrites variables for each realization--------------------
