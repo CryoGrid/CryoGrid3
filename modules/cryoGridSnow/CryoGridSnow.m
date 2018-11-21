@@ -71,7 +71,8 @@ if ~isempty(GRID.snow.cT_domain_ub) %snow cover already exitis
 else %no snow cover
     
     %---------- add the new snow into initial SWE variable in case of no snow cover------------------
-    
+    scaledSnowfall = PARA.forcing.snow_scaling .* FORCING.i.snowfall.*timestep./1000; % in [m]
+
     GRID.snow.SWEinitial = GRID.snow.SWEinitial + scaledSnowfall - GRID.snow.SWEinitial.*0.1.*timestep;
     GRID.soil.water2pool = GRID.soil.water2pool + GRID.snow.SWEinitial.*0.1.*timestep;
     BALANCE.water.dr_snowmelt = BALANCE.water.dr_snowmelt - GRID.snow.SWEinitial.*0.1.*timestep*1000; %SWEinitial decreasing counted as surface runoff

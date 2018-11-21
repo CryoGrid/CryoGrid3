@@ -7,13 +7,13 @@ index = labindex;
 
 % topological relations
 area_tot = 100.0;
-PARA.ensemble.weight = [2 3 1];
+PARA.ensemble.weight = [2 3 4];
 PARA.ensemble.area = PARA.ensemble.weight ./ sum(PARA.ensemble.weight) .* area_tot ; % in m^2
 PARA.ensemble.distanceBetweenPoints= 10 .* ( diag(ones(numlabs-1,1),-1)+diag(ones(numlabs-1,1),1) ); %   %in m. Put 0 for all non-connected ensemble members
 A = double( PARA.ensemble.distanceBetweenPoints > 0 ); % adjacency matrix of the network (auxiliary)
 
 % topographical relations
-PARA.ensemble.initial_altitude = [20.0 21.0 20.5];	%in m a.s.l., this is the reference for the "zero" position of the grids
+PARA.ensemble.initial_altitude = [0.0 0.2 0.4];	%in m a.s.l., this is the reference for the "zero" position of the grids
 PARA.ensemble.altitude = PARA.ensemble.initial_altitude;  
 PARA.ensemble.surface_altitude = PARA.ensemble.initial_altitude;
 PARA.ensemble.soil_altitude = PARA.ensemble.initial_altitude;
@@ -31,9 +31,9 @@ PARA.ensemble.hydraulic_contact_length = PARA.ensemble.thermal_contact_length;
 PARA.ensemble.infiltration_altitude = nan(1, numlabs);
 PARA.ensemble.hydraulicDistance = PARA.ensemble.distanceBetweenPoints;
 
-boundaryCondition={'NoBC','NoBC'}; 		% set to 'DarcyReservoir' for an external water reservoir
-Darcy_elevation=[nan nan]; 				% Elevation of the Darcy reservoir that can drain or refill the worker it is connected to. NaN for workers without this boundary condition
-Darcy_fluxFactor=[nan nan]; 			% Taken as the hydraulic_contact_length*hydraulic_conductivity/hydraulic_distance. Defined for now like this, lets see if we wantto define it differently. NaN for workers without this boundary condition
+boundaryCondition={'NoBC','NoBC', 'NoBC'}; 		% set to 'DarcyReservoir' for an external water reservoir
+Darcy_elevation=nan(1, numlabs); 				% Elevation of the Darcy reservoir that can drain or refill the worker it is connected to. NaN for workers without this boundary condition
+Darcy_fluxFactor=nan(1, numlabs); 			% Taken as the hydraulic_contact_length*hydraulic_conductivity/hydraulic_distance. Defined for now like this, lets see if we wantto define it differently. NaN for workers without this boundary condition
 PARA.ensemble.boundaryCondition(length(boundaryCondition)).type=boundaryCondition{end};
 [PARA.ensemble.boundaryCondition.type]=boundaryCondition{:};
 for i=1:numlabs
@@ -46,11 +46,13 @@ end
 % parameters related to snow exchange
 % to be specificed by user
 PARA.ensemble.terrain_index_snow = calculateTerrainIndexSnow(PARA.ensemble.altitude, PARA.ensemble.weight);
-PARA.ensemble.immobile_snow_height = [ 0.1, 0.2, 0.1 ];
+PARA.ensemble.immobile_snow_height = [ 0.1, 0.1, 0.1 ];
 PARA.ensemble.snow_scaling = ones(1, numlabs);  % unclear if needed in ensemble struct
 
 % parameters related to infiltration scheme
-% to be specified by user
+% to be specificed by user
+PARA.ensemble.rootDepth = 0.2 .* ones(1, numlabs);
+PARA.ensemble.fieldCapacity = 0.5 .* ones(1, numlabs);
 
 % location-specific fix parameter values
 PARA.location.initial_altitude = PARA.ensemble.initial_altitude(index);

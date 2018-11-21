@@ -10,7 +10,7 @@
 
 add_modules;  %adds required modules
 
-number_of_realizations=2;
+number_of_realizations=3;
 
 if number_of_realizations>1 && isempty( gcp('nocreate') )
     parpool(number_of_realizations);
@@ -87,7 +87,7 @@ spmd
     PARA.technical.maxSWE=0.4;                          % in [m] SWE
     PARA.technical.arraySizeT=5002;                     % number of values in the look-up tables for conductivity and capacity
     PARA.technical.starttime=datenum( 1979, 10, 1 );    % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum( 1985, 12, 31);      % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.endtime=datenum( 1980, 4, 1);      % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;       % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;       % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;                    % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
@@ -134,7 +134,7 @@ spmd
     PARA = loadConstants( PARA );   % load natural constants and thermal properties of soil constituents into the PARA struct
     
     %FORCING data mat-file
-    PARA.forcing.filename='samoylov_ERA_obs_fitted_1979_2014.mat';  %must be in subfolder "forcing" and follow the conventions for CryoGrid 3 forcing files
+    PARA.forcing.filename='samoylov_ERA_obs_fitted_1979_2014_spinup_extended2044.mat';  %must be in subfolder "forcing" and follow the conventions for CryoGrid 3 forcing files
     PARA.forcing.rain_fraction=1;   % scaling factor applied to the entire snowfall forcing data
     PARA.forcing.snow_fraction=2;   % scaling factor applied to the entire snowfall forcing data
     PARA.forcing.snow_scaling=1.0;  % scaling factor for incoming snowfall of individual tile, used to emulate lateral snow redistribution
@@ -342,7 +342,7 @@ spmd
                 
                 % SNOW exchange module
                 if PARA.modules.exchange_snow
-                    [T, GRID, BALANCE, TEMPORARY] = CryoGridLateralSnow( PARA, GRID, BALANCE, TEMPORARY, FORCING, T);
+                    PARA  = CryoGridLateralSnow( PARA, GRID );
                 end
                 
                 % update auxiliary variables and common thresholds
