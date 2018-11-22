@@ -1,6 +1,6 @@
-function [dE_dt, BALANCE] = calculateLateralHeatFluxes(T_index, k_index, PACKAGE_heatExchange_j, GRID, PARA, BALANCE, j)
+function [F, BALANCE] = calculateLateralHeatFluxes(T_index, k_index, PACKAGE_heatExchange_j, GRID, PARA, BALANCE, j)
     
-    dE_dt = zeros( length(GRID.general.cT_grid), 1);
+    F = zeros( length(GRID.general.cT_grid), 1);
     if PARA.ensemble.thermal_contact_length(labindex,j)>0  % calculate lateral heat flux only for laterally connected workers
         
         T_j = PACKAGE_heatExchange_j.T;
@@ -20,41 +20,41 @@ function [dE_dt, BALANCE] = calculateLateralHeatFluxes(T_index, k_index, PACKAGE
         %contact_altitude = min( [ PARA.ensemble.altitude(j), PARA.ensemble.altitude(labindex) ] );  %below this depth, grid cells will exchange heat
         %contact_domain = altitude_cTgrid_index <= contact_altitude;  %all cells in the current ensemble member
         
-        
-
         upper_contact_altitude = min( [ PARA.ensemble.altitude(j), PARA.ensemble.altitude(labindex) ] );
         lower_contact_altitude = max( [ altitude_Kgrid_index(end), altitude_Kgrid_j(end)] );
         
-        altitude_Kgrid_common = flip( union( altitude_Kgrid_index, altitude_Kgrid_j ) );   
+        altitude_Kgrid_common = flip( union( altitude_Kgrid_index, altitude_Kgrid_j ) );
+        Kdelta_common = abs( altitude_Kgrid_common(1:end-1) - altitude_Kgrid_common(2:end) );
         altitude_centerGrid_common = (altitude_Kgrid_common(1:end-1)+altitude_Kgrid_common(2:end) ) ./ 2;
         
-        contactDomain_centerGrid_common = altitude_centerGrid_common < upper_contact_altitude & altitude_centerGrid_common > lower_contact_altitude;
+        contactDomain = altitude_centerGrid_common < upper_contact_altitude & altitude_centerGrid_common > lower_contact_altitude;
+        altitude_centerGrid_contact = altitude_centerGrid_common(contactDomain);
 
         % determine cT_index for common grid for both realizations
-        centerPointIndex_common_index = nan(  length( altitude_centerGrid_common ) ,1);
-        centerPointIndex_common_j = nan(  length( altitude_centerGrid_common ), 1 );
+        contactPointIndex_index = nan(  sum( contactDomain) ,1);
+        contactPointIndex_j = nan(  sum( contactDomain), 1 );
         % this is super inefficient and should be replaced by some smart vector operation
-        for k = 1:length(altitude_centerGrid_common)
-            centerPointIndex_common_index(k) = find( altitude_centerGrid_common < altitude_Kgrid_index, 1, 'last' );
-            centerPointIndex_common_j(k) = find( altitude_centerGrid_common < altitude_Kgrid_j, 1, 'last' );
+        for k = 1:sum( contactDomain )
+            contactPointIndex_index(k) = find( altitude_centerGrid_contact(k) < altitude_Kgrid_index, 1, 'last' );
+            contactPointIndex_j(k) = find( altitude_centerGrid_contact(k) < altitude_Kgrid_j, 1, 'last' );
         end
         
-        T_centerPoints_index = T_index( centerPointIndex_common_index(contactDomain_centerGrid_common ) );
-        T_centerPoints_j = T_j( centerPointIndex_common_j(contactDomain_centerGrid_common) );
+        T_centerPoints_index = T_index( contactPointIndex_index );
+        T_centerPoints_j = T_j( contactPointIndex_j );
         
-        k_centerPoints_index = k_index( centerPointIndex_common_index(contactDomain_centerGrid_common ) );
-        k_centerPoints_j = k_j( centerPointIndex_common_j(contactDomain_centerGrid_common ) );
+        k_centerPoints_index = k_index( contactPointIndex_index );
+        k_centerPoints_j = k_j( contactPointIndex_j );
         
 
         % determine effectice thermal conductivities
         k_eff = (weight_index+weight_j) ./ ( weight_index./k_centerPoints_index + weight_j./k_centerPoints_j );
 
-        % energy flux from worker j to index in [J / m^3 / s]
-        dE_dt_centerPoints_index = k_eff .* (T_centerPoints_j - T_centerPoints_index) ./ distance_index_j .* contact_length_index_j ./ PARA.ensemble.area(labindex) ;
+        % energy flux from worker j to index in [J / s] through a lateral cross section
+        F_centerPoints_index = k_eff .* (T_centerPoints_j - T_centerPoints_index) ./ distance_index_j .* contact_length_index_j .* Kdelta_common(contactDomain) ;
         
-        dE_dt_accumulated_index = accumarray( centerPointIndex_common_index(contactDomain_centerGrid_common), dE_dt_centerPoints_index );
+        F_accumulated_index = accumarray( contactPointIndex_index , F_centerPoints_index );
         
-        dE_dt = [ dE_dt_accumulated_index; zeros( length( dE_dt ) - length( dE_dt_accumulated_index ) , 1 ) ];
+        F = [ F_accumulated_index; zeros( length( F ) - length( F_accumulated_index ) , 1 ) ];
               
 
         % balance is not correct

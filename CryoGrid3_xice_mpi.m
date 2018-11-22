@@ -10,7 +10,7 @@
 
 add_modules;  %adds required modules
 
-number_of_realizations=3;
+number_of_realizations=2;
 
 if number_of_realizations>1 && isempty( gcp('nocreate') )
     parpool(number_of_realizations);
@@ -136,7 +136,7 @@ spmd
     %FORCING data mat-file
     PARA.forcing.filename='samoylov_ERA_obs_fitted_1979_2014_spinup_extended2044.mat';  %must be in subfolder "forcing" and follow the conventions for CryoGrid 3 forcing files
     PARA.forcing.rain_fraction=1;   % scaling factor applied to the entire snowfall forcing data
-    PARA.forcing.snow_fraction=2;   % scaling factor applied to the entire snowfall forcing data
+    PARA.forcing.snow_fraction=1;   % scaling factor applied to the entire snowfall forcing data
     PARA.forcing.snow_scaling=1.0;  % scaling factor for incoming snowfall of individual tile, used to emulate lateral snow redistribution
     
     % switches for modules
@@ -146,9 +146,9 @@ spmd
     
     if PARA.modules.lateral
         % switches for lateral processes
-        PARA.modules.exchange_heat = 0;
+        PARA.modules.exchange_heat = 1;
         PARA.modules.exchange_water = 0;
-        PARA.modules.exchange_snow = 1;
+        PARA.modules.exchange_snow = 0;
         
         %---------overwrites variables for each realization--------------------
         % this function must define everything that is realization-specific or dependent of all realizations
