@@ -6,14 +6,14 @@ function PARA = get_parallel_variables(PARA)
 index = labindex;
 
 % topological relations
-area_tot = 100.0;
-PARA.ensemble.weight = [2 3 4];
+area_tot = 70.0;
+PARA.ensemble.weight = [1 1 1];
 PARA.ensemble.area = PARA.ensemble.weight ./ sum(PARA.ensemble.weight) .* area_tot ; % in m^2
 PARA.ensemble.distanceBetweenPoints= 10 .* ( diag(ones(numlabs-1,1),-1)+diag(ones(numlabs-1,1),1) ); %   %in m. Put 0 for all non-connected ensemble members
 A = double( PARA.ensemble.distanceBetweenPoints > 0 ); % adjacency matrix of the network (auxiliary)
 
 % topographical relations
-PARA.ensemble.initial_altitude = [0.0 0.2 0.4];	%in m a.s.l., this is the reference for the "zero" position of the grids
+PARA.ensemble.initial_altitude = [0.0 1.15 3.00];	%in m a.s.l., this is the reference for the "zero" position of the grids
 PARA.ensemble.altitude = PARA.ensemble.initial_altitude;  
 PARA.ensemble.surface_altitude = PARA.ensemble.initial_altitude;
 PARA.ensemble.soil_altitude = PARA.ensemble.initial_altitude;

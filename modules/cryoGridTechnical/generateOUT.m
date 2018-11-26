@@ -46,7 +46,7 @@ function OUT = generateOUT()
     OUT.lateral.water_fluxes = [];     % vector containing accumulated lateral water fluxes per output interval in [m] to the current worker from all other workers
     %OUT.lateral.snow_flux = [];      % accumulated lateral snow fluxes per output interval in [m SWE] to the current worker
     OUT.lateral.dE_tot = [];      % vector containing depth-integrated lateral heat fluxes per output interval in [J/m^2] to the current worker
-    OUT.lateral.dE_cell = [];    % matrix containing cell-wise, accumulated lateral heat fluxes in [J/m^3] to the current worker
+    OUT.lateral.dE_cell = [];    % matrix containing cell-wise, accumulated lateral heat fluxes in [J/m^2] to the current worker
     OUT.lateral.snow_scaling = [];
 
     % water balance (WB)
