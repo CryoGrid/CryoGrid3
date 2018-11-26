@@ -10,7 +10,7 @@
 
 add_modules;  %adds required modules
 
-number_of_realizations=2;
+number_of_realizations=3;
 
 if number_of_realizations>1 && isempty( gcp('nocreate') )
     parpool(number_of_realizations);
@@ -87,7 +87,7 @@ spmd
     PARA.technical.maxSWE=0.4;                          % in [m] SWE
     PARA.technical.arraySizeT=5002;                     % number of values in the look-up tables for conductivity and capacity
     PARA.technical.starttime=datenum( 1979, 10, 1 );    % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum( 1980, 4, 1);      % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.endtime=datenum( 1979, 12, 31);      % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;       % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;       % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;                    % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
@@ -98,7 +98,8 @@ spmd
     PARA.technical.waterCellSize=0.02;                  % default size of a newly added water cell when water ponds below water table [m]
     
     % subsurface grid
-    PARA.technical.subsurfaceGrid = [[0:0.02:4], [4.1:0.1:10], [10.2:0.2:20], [21:1:30], [35:5:50], [60:10:100], [200:100:1000]]'; % the subsurface K-grid in [m]
+    %PARA.technical.subsurfaceGrid = [[0:0.02:4], [4.1:0.1:10], [10.2:0.2:20], [21:1:30], [35:5:50], [60:10:100], [200:100:1000]]'; % the subsurface K-grid in [m]
+    PARA.technical.subsurfaceGrid = [[0:0.02:1], [1.1:0.1:10], [10.2:0.2:20], [21:1:30]]';%, [35:5:50], [60:10:100], [200:100:1000]]'; % the subsurface K-grid in [m]
 
     % parameters related to the specific location
     PARA.location.area=1.0;                             % area represented by the run [m^2] (here a dummy value of 1.0 is set which is overwritten for individual tiles)
@@ -157,7 +158,7 @@ spmd
     
     % ------make output directory (name depends on parameters) ----------------
     saveDir = './runs';
-    run_number = sprintf( [ 'XICEMPI_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' )  ] );
+    run_number = sprintf( [ 'LAT_HEAT_TEST_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' )  ] );
     mkdir([ saveDir '/' run_number]);
     
     %--------------------------------------------------------------------------
@@ -195,8 +196,8 @@ spmd
     
     %---- modification for infiltration
     wc=GRID.soil.cT_water;
-    GRID.soil.E_lb = find(PARA.soil.evaporationDepth==GRID.soil.soilGrid(:,1))-1;
-    GRID.soil.T_lb = find(PARA.soil.rootDepth==GRID.soil.soilGrid(:,1))-1;
+    %GRID.soil.E_lb = find(PARA.soil.evaporationDepth==GRID.soil.soilGrid(:,1))-1;
+    %GRID.soil.T_lb = find(PARA.soil.rootDepth==GRID.soil.soilGrid(:,1))-1;
     
 	GRID.soil.water2pool=0; % Leo : cannot find a good initialize function to put it in
 

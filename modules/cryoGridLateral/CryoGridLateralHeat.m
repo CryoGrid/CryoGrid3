@@ -7,7 +7,6 @@ function [ T, TEMPORARY ] = CryoGridLateralHeat( PARA, GRID, BALANCE, TEMPORARY,
         fprintf('\t\t\tsync - exchanging heat\n');
         % calculate lateral heat fluxes
         PACKAGE_heatExchange.T = T;
-        PACKAGE_heatExchange.cT_grid = GRID.general.cT_grid;
         PACKAGE_heatExchange.K_grid = GRID.general.K_grid;
         PACKAGE_heatExchange.k_cTgrid = k_cTgrid;
         for j=1:numlabs
@@ -21,12 +20,17 @@ function [ T, TEMPORARY ] = CryoGridLateralHeat( PARA, GRID, BALANCE, TEMPORARY,
             if j~=labindex
                 PACKAGE_heatExchange_j = labReceive(j, 1);
                 [F_lateral_j, BALANCE] = calculateLateralHeatFluxes(T, k_cTgrid, PACKAGE_heatExchange_j,GRID, PARA, BALANCE, j);   % contribution from worker j to worker index in [ J/s ]
-                TEMPORARY.dE_cell_lateral(:,j) = TEMPORARY.dE_cell_lateral(:,j) + F_lateral_j ./ GRID.general.K_delta ./ PARA.location.area .* PARA.technical.syncTimeStep.*24.*3600; % in [ J/m^3 ]
+                TEMPORARY.dE_cell_lateral(:,j) = TEMPORARY.dE_cell_lateral(:,j) + F_lateral_j ./ PARA.location.area .* PARA.technical.syncTimeStep.*24.*3600; % in [ J/m^2 ]
                 TEMPORARY.dE_tot_lateral(j) = TEMPORARY.dE_tot_lateral(j) + nansum(  F_lateral_j ./ PARA.location.area .* PARA.technical.syncTimeStep.*24.*3600 ); % depth intergrated in [ J/m^2 ]
-                dE_dt_lateral = dE_dt_lateral + F_lateral_j./PARA.location.area;    % sum up contributions from all realizations in [ J/s ]
+                dE_dt_lateral = dE_dt_lateral + F_lateral_j./PARA.location.area;    % sum up contributions from all realizations in [ J/ m^2 /s ]
             end
         end
         % apply lateral heat fluxes for entire sync interval directly
-        T = T + dE_dt_lateral./c_cTgrid.*PARA.technical.syncTimeStep.*24.*3600 ./ GRID.general.K_delta ; % no division by K_delta necessary as dE_dt_lateral in [ J / m^3 / s ]
+        T = T + dE_dt_lateral./c_cTgrid.*PARA.technical.syncTimeStep.*24.*3600 ./ GRID.general.K_delta ; % division by K_delta necessary as dE_dt_lateral in [ J / m^2 / s ]
+        
+        % account for lateral heat fluxes in diagnostic BALANCE struct
+        % (summed contribution from all connected realizations)
+        BALANCE.energy.Q_lateral = BALANCE.energy.Q_lateral + nansum(  dE_dt_lateral ) .* PARA.technical.syncTimeStep.*24.*3600 ; % in [ J / m^2 ]
+        
     end
 end
