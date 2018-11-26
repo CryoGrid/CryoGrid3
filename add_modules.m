@@ -1,6 +1,3 @@
-clear all
-close all
-
 % import CryoGrid modules
 addpath('modules/cryoGridTechnical/')
 addpath('modules/cryoGridInitialize/')

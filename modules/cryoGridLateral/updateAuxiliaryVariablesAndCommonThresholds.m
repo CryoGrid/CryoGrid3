@@ -37,5 +37,5 @@ function [PARA] = updateAuxiliaryVariablesAndCommonThresholds( T, wc, GRID, PARA
     PARA.location.surface_altitude = PARA.ensemble.surface_altitude(labindex);
     PARA.location.soil_altitude = PARA.ensemble.soil_altitude(labindex);
     PARA.location.water_table_altitude = PARA.ensemble.water_table_altitude(labindex);
-	  PARA.location.infiltration_altitude = PARA.ensemble.infiltration_altitude(labindex);
+	PARA.location.infiltration_altitude = PARA.ensemble.infiltration_altitude(labindex);
     PARA.soil.infiltration_limit_altitude = PARA.location.soil_altitude - PARA.soil.infiltration_limit_depth;

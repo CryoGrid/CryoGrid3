@@ -84,7 +84,7 @@ function [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, 
     soilGRIDsizeNew = sum(GRID.soil.cT_domain);
     cellsChanged = soilGRIDsizeNew - soilGRIDsizeOld;
     if cellsChanged > 0
-        disp('infiltration - reinitializing LUT - new water cell(s)');
+        disp( [ 'infiltration - reinitializing LUT - ', num2str(cellsChanged), ' new water cell(s)' ] );
         GRID.soil.cT_water = wc;
         GRID = initializeSoilThermalProperties(GRID, PARA);   
     elseif cellsChanged < 0

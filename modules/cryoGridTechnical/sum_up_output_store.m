@@ -117,14 +117,14 @@ if  t==TEMPORARY.outputTime
     
     % lateral fluxes
     if PARA.modules.lateral
-        OUT.lateral.terrain_index_snow=[ OUT.lateral.terrain_index_snow; PARA.ensemble.terrain_index_snow ];
+        %OUT.lateral.terrain_index_snow=[ OUT.lateral.terrain_index_snow; PARA.ensemble.terrain_index_snow ];
+        OUT.lateral.snow_scaling = [ OUT.lateral.snow_scaling; PARA.ensemble.snow_scaling ];
         OUT.lateral.water_fluxes = cat(3,OUT.lateral.water_fluxes, BALANCE.water.dr_water_fluxes_out );     % vector containing water fluxes in [m/s] to the current worker
         %OUT.lateral.snow_fluxes = [ OUT.lateral.snow_fluxes; snow_fluxes ];                      % vector containing snow fluxes in [m SWE / s] to the current worker
         %OUT.lateral.heat_fluxes = [ OUT.lateral.heat_fluxes; heat_fluxes ];                      % vector containing depth-integrated heat fluxes in [W/m^2] to the current worker
         %OUT.lateral.snow_flux = [ OUT.lateral.snow_flux;  TEMPORARY.snow_flux_lateral ];      % accumulated lateral snow fluxes per output interval in [m SWE] to the current worker
         OUT.lateral.dE_tot = [ OUT.lateral.dE_tot ; TEMPORARY.dE_tot_lateral];      % vector containing depth-integrated lateral heat fluxes per output interval in [J/m^2] to the current worker
         OUT.lateral.dE_cell = cat( 3, OUT.lateral.dE_cell, TEMPORARY.dE_cell_lateral );    % matrix containing cell-wise, accumulated lateral heat fluxes in [J/m^3] to the current worker
-        OUT.lateral.snow_scaling = [ OUT.lateral.snow_scaling; PARA.ensemble.snow_scaling ];
         
         TEMPORARY.snow_flux_lateral = 0 ;
         TEMPORARY.dE_cell_lateral = zeros( length(GRID.general.cT_grid), numlabs );
