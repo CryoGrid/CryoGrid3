@@ -1,4 +1,4 @@
-function [GRID, meltwaterGroundIce, wc]=excessGroundIceThaw4Infiltration(T, wc, GRID, PARA)
+function [GRID, meltwaterGroundIce, wc, TEMPORARY]=excessGroundIceThaw4Infiltration(T, wc, GRID, PARA,TEMPORARY)
 
 meltwaterGroundIce=0; % in [m]
 
@@ -21,6 +21,8 @@ K_delta=GRID.general.K_delta(GRID.soil.cT_domain);
 
 mobileWater = double(T(GRID.soil.cT_domain)>0) .* (water-natPor) .* double(water>natPor);
 [startCell, ~]= LayerIndex(mobileWater~=0);
+
+TEMPORARY.excessIceThawed = TEMPORARY.excessIceThawed + mobileWater(startCell);
 
 %move solids down
 for i=startCell:-1:1

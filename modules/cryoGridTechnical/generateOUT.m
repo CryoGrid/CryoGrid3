@@ -94,6 +94,13 @@ function OUT = generateOUT()
     
     OUT.EB.Q_lateral = [];
     
+    % unfrozen carbon mass [ m * sec ] % needs to be multiplied with density possibly further conversion factors to get OC
+    OUT.carbon.unfrozen_organic_volume_time = [];
+    OUT.carbon.unfrozen_organic_volume_time_aerobic = [];
+    OUT.carbon.unfrozen_organic_volume_time_anaerobic = [];
+    
+    OUT.xice.excessIceThawed = [];
+    
     
     % for DEBUGGING   
     OUT.debugging.dE_dt_SEB = [];

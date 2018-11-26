@@ -43,8 +43,14 @@ TEMPORARY.bottomBucketSoilDepth_sum=0;
 TEMPORARY.water2pool_sum=0;
 TEMPORARY.water2pool=0;
 
+TEMPORARY.unfrozen_organic_volume_time = 0;
+TEMPORARY.unfrozen_organic_volume_time_aerobic = 0;
+TEMPORARY.unfrozen_organic_volume_time_anaerobic = 0;
+
+TEMPORARY.excessIceThawed = 0;
+
 
 %TEMPORARY.water_fluxes = zeros( 1, numlabs );     % vector containing accumulated lateral water fluxes per output interval in [m] to the current worker from all other workers
-TEMPORARY.snow_flux_lateral = 0 ;      % vector containing accumulated lateral snow fluxes per output interval in [m SWE] to the current worker
+%TEMPORARY.snow_flux_lateral = 0 ;      % vector containing accumulated lateral snow fluxes per output interval in [m SWE] to the current worker
 TEMPORARY.dE_cell_lateral = zeros( length(T), numlabs );    % matrix containing cell-wise, accumulated lateral heat fluxes in [J/m^3] to the current worker
 TEMPORARY.dE_tot_lateral = zeros( 1, numlabs ) ;      % vector containing depth-integrated lateral heat fluxes per output interval in [J/m^2] to the current worker

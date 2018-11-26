@@ -59,6 +59,7 @@ if  t==TEMPORARY.outputTime
     
     TEMPORARY.timestep_sum=0;
     
+    
     %------ store new values in OUT struct -----------------------------------
     
     % key state variables
@@ -131,6 +132,16 @@ if  t==TEMPORARY.outputTime
     
     end
     
+    % related to carbon
+    OUT.carbon.unfrozen_organic_volume_time = [ OUT.carbon.unfrozen_organic_volume_time;  TEMPORARY.unfrozen_organic_volume_time ];
+    TEMPORARY.unfrozen_organic_volume_time=0;
+    OUT.carbon.unfrozen_organic_volume_time_aerobic = [ OUT.carbon.unfrozen_organic_volume_time_aerobic;  TEMPORARY.unfrozen_organic_volume_time_aerobic ];
+    TEMPORARY.unfrozen_organic_volume_time_aerobic=0;    
+    OUT.carbon.unfrozen_organic_volume_time_anaerobic = [ OUT.carbon.unfrozen_organic_volume_time_anaerobic;  TEMPORARY.unfrozen_organic_volume_time_anaerobic ];
+    TEMPORARY.unfrozen_organic_volume_time_anaerobic=0;    
+    % related to excess ice
+    OUT.xice.excessIceThawed = [ OUT.xice.excessIceThawed; TEMPORARY.excessIceThawed ] ;
+    TEMPORARY.excessIceThawed = 0;
     
     % water balance (WB)
     % all flows are defined as positive when they go into the soil/snow column

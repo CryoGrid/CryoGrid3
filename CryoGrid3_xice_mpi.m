@@ -23,10 +23,11 @@ spmd
     % here you provide the ground stratigraphy
     % z     w/i     m       o     type porosity
     % default stratigraphy used in publication:
-    PARA.soil.layer_properties=[    0.0     0.55    0.05    0.15    1   0.80    ;...
-                                    0.5     0.80    0.05    0.15    1   0.80    ;...
-                                    3.0     0.50    0.50    0.00    2   0.50    ;...
-                                   10.0     0.03    0.97    0.00    1   0.03    ];
+    PARA.soil.layer_properties=[    0.0     0.80    0.05    0.15    1   0.80    ;...
+                                    0.1     0.80    0.15    0.05    1   0.80    ;...
+                                    0.4     0.80    0.15    0.05    1   0.55    ;...
+                                    3.0     0.50    0.50    0.00    1   0.50    ;...
+                                   10.0     0.30    0.70    0.00    1   0.30    ];
     % soil stratigraphy
     % column 1: start depth of layer (first layer must start with 0) - each layer extends until the beginning of the next layer, the last layer extends until the end of the model domain
     % column 2: volumetric water+ice content
@@ -87,7 +88,7 @@ spmd
     PARA.technical.maxSWE=0.4;                          % in [m] SWE
     PARA.technical.arraySizeT=5002;                     % number of values in the look-up tables for conductivity and capacity
     PARA.technical.starttime=datenum( 1979, 10, 1 );    % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum( 1979, 12, 31);      % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.endtime=datenum( 1980, 10, 11);      % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;       % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;       % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;                    % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
@@ -148,8 +149,8 @@ spmd
     if PARA.modules.lateral
         % switches for lateral processes
         PARA.modules.exchange_heat = 1;
-        PARA.modules.exchange_water = 0;
-        PARA.modules.exchange_snow = 0;
+        PARA.modules.exchange_water = 1;
+        PARA.modules.exchange_snow = 1;
         
         %---------overwrites variables for each realization--------------------
         % this function must define everything that is realization-specific or dependent of all realizations
@@ -158,7 +159,7 @@ spmd
     
     % ------make output directory (name depends on parameters) ----------------
     saveDir = './runs';
-    run_number = sprintf( [ 'LAT_HEAT_TEST_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' )  ] );
+    run_number = sprintf( [ 'XICEMPI_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' )  ] );
     mkdir([ saveDir '/' run_number]);
     
     %--------------------------------------------------------------------------
@@ -235,7 +236,11 @@ spmd
         %set surface conditions (albedo, roughness length, etc.)
         [PARA, GRID] = surfaceCondition(GRID, PARA, T);
         %calculate the surface energy balance
-        [SEB, dwc_dt] = surfaceEnergyBalanceInfiltration(T, wc, FORCING, GRID, PARA, SEB);
+        if PARA.modules.infiltration
+            [SEB, dwc_dt] = surfaceEnergyBalanceInfiltration(T, wc, FORCING, GRID, PARA, SEB);
+        else
+            %...
+        end
         
         %------ soil module  --------------------------------------------------
         %calculate heat conduction
@@ -278,8 +283,6 @@ spmd
         %------- infiltration module-------------------------------------------
         if PARA.modules.infiltration
             [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRID, PARA, FORCING, BALANCE);
-        else 
-			SEB=surfaceEnergyBalance(T, wc, FORCING, GRID, PARA, SEB);
 		end
         
         %------- excess ice module --------------------------------------------
@@ -288,7 +291,7 @@ spmd
             [GRID, PARA] = excessGroundIce(T, GRID, PARA);
             wc = wc( end-sum(GRID.soil.cT_domain)+1 : end );	% assure wc has correct length
         elseif PARA.modules.xice && PARA.modules.infiltration
-            [GRID, PARA, wc, meltwaterGroundIce] = excessGroundIceInfiltration(T, wc, GRID, PARA);
+            [GRID, PARA, wc, meltwaterGroundIce, TEMPORARY] = excessGroundIceInfiltration(T, wc, GRID, PARA, TEMPORARY);
             GRID = updateGRID_excessiceInfiltration(meltwaterGroundIce, GRID);
         end
         
@@ -312,12 +315,6 @@ spmd
                 PARA.location.absolute_maxSnow_altitude =  PARA.location.altitude + PARA.snow.relative_maxSnow;
             end
         end
-        
-        %------- water balance calculations -----------------------------------
-        % rainfall
-        BALANCE.water.dp_rain = BALANCE.water.dp_rain + FORCING.i.rainfall.*timestep;   %sum up rainfall in [mm] per output interval
-        % snowfall
-        BALANCE.water.dp_snow = BALANCE.water.dp_snow + FORCING.i.snowfall.*timestep;   %sum up snowfall in [mm] SWE per output interval
         
         %------- lateral exchange module --------------------------------------
         % all functions called in this block should go into
@@ -356,6 +353,22 @@ spmd
             end
         end
         
+        
+        %------- water balance calculations -----------------------------------
+        % rainfall
+        BALANCE.water.dp_rain = BALANCE.water.dp_rain + FORCING.i.rainfall.*timestep;   %sum up rainfall in [mm] per output interval
+        % snowfall
+        BALANCE.water.dp_snow = BALANCE.water.dp_snow + FORCING.i.snowfall.*timestep;   %sum up snowfall in [mm] SWE per output interval
+        
+        
+        %------- further diagnostics
+        % organic volume which is unfrozen multiplied with timestep
+        TEMPORARY.unfrozen_organic_volume_time = TEMPORARY.unfrozen_organic_volume_time + ...
+                                                 nansum( GRID.soil.cT_organic .* GRID.general.K_delta(GRID.soil.cT_domain) .* ( T(GRID.soil.cT_domain)>0 ) ) .* timestep.*24.*3600; 
+        TEMPORARY.unfrozen_organic_volume_time_aerobic = TEMPORARY.unfrozen_organic_volume_time_aerobic + ...
+                                                 nansum( GRID.soil.cT_organic .* GRID.general.K_delta(GRID.soil.cT_domain) .* ( T(GRID.soil.cT_domain)>0 ) ) .* ( wc<=PARA.soil.fieldCapacity ) .* timestep.*24.*3600; 
+        TEMPORARY.unfrozen_organic_volume_time_anaerobic = TEMPORARY.unfrozen_organic_volume_time_anaerobic + ...
+                                                 nansum( GRID.soil.cT_organic .* GRID.general.K_delta(GRID.soil.cT_domain) .* ( T(GRID.soil.cT_domain)>0 ) ) .* ( wc>PARA.soil.fieldCapacity ) .* timestep.*24.*3600; 
         
         %------- next time step -----------------------------------------------
         t=t+timestep;
