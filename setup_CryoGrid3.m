@@ -14,12 +14,12 @@ SETUP = {};
 % parameters
 SETUP.numRealizations = 3;
 SETUP.syncTimestep=6./24;
-SETUP.startDate = datenum( 1949, 10, 1 );
+SETUP.startDate = datenum( 1979, 10, 1 );
 SETUP.endDate = datenum( 2099, 12, 31);
 SETUP.xH=1;
 SETUP.xW=1;
 SETUP.xS=1;
-SETUP.xice=0;
+SETUP.xice=1;
 
 SETUP.fieldCapacity = 0.50;
 
@@ -37,8 +37,8 @@ SETUP.f_R = 1.0-SETUP.f_T-SETUP.f_C;
 
 % excess ice layers
 SETUP.d_xice_C=0.9;
-SETUP.d_xice_R=0.9;
-SETUP.d_xice_T1=0.6;
+SETUP.d_xice_R=0.6;
+SETUP.d_xice_T1=0.3;
 SETUP.d_xice_T2=SETUP.d_xice_R-abs(SETUP.e_R-SETUP.e_T); % intermediate layer with reduced excess ice between T1 and T2, # T2 should be at the same altitude as d_xice_R
 
 % d_xice_DELTA=0.0;

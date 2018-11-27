@@ -378,6 +378,8 @@ function CryoGrid3_xice_mpi(SETUP)
         end
 
         % save final state and output at t=endtime
+        DIAG = diagnose_output_yearly( OUT, PARA, GRID, FORCING );
+        iSaveDIAG( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_diagnostics' datestr(t,'yyyy')  '.mat' ], DIAG);      
         iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_output' datestr(t,'yyyy') '.mat'], OUT)
         iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_finalState' datestr(t,'yyyy') '.mat'], T, wc, t, SEB, PARA, GRID)
         iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_altitudes' datestr(t,'yyyy') '.png'], OUT, PARA );
