@@ -23,7 +23,7 @@ SETUP.xice=1;
 
 SETUP.fieldCapacity = 0.50;
 
-SETUP.e_Reservoir = -1.0;%-1.0;
+SETUP.e_Reservoir = 0.0;%-1.0;
 SETUP.snowDens = 200;%200..250
 SETUP.e_R = 0.4;%0.2..0.4
 SETUP.e_T = SETUP.e_R-0.1;
@@ -51,7 +51,7 @@ SETUP.K_Reservoir = 5e-5;
 SETUP.K=1e-5;
 SETUP.natPor = 0.55;
 
-SETUP.scenario='rcp45';
+SETUP.scenario='rcp85';
 
 SETUP.forcingFile = ['Samoylov_' SETUP.scenario '_1901_2300_CryoGrid_windModified.mat'];
 

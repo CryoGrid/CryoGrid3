@@ -373,7 +373,7 @@ function CryoGrid3_xice_mpi(SETUP)
             %------- next time step -----------------------------------------------
             t=t+timestep;
             %---------- sum up + OUTPUT -------------------------------------------
-            [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc_cTgrid(GRID.soil.cT_domain), timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, saveDir, run_number);
+            [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc_cTgrid(GRID.soil.cT_domain), timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, FORCING, saveDir, run_number);
 
         end
 
