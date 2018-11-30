@@ -55,7 +55,7 @@ function CryoGrid3_xice_mpi(SETUP)
         PARA.soil.convectiveDomain=[];          % soil domain where air convection due to buoyancy is possible -> start and end [m] - if empty no convection is possible
         PARA.soil.mobileWaterDomain=[0 10.0];   % soil domain where water from excess ice melt is mobile -> start and end [m] - if empty water is not mobile
         PARA.soil.relative_maxWater=1.0;        % depth at which a water table will form [m] - above excess water is removed, below it pools up
-        PARA.soil.hydraulic_conductivity = 1e-5;% subsurface saturated hydraulic conductivity assumed for lateral water fluxes [m/s]
+        PARA.soil.hydraulic_conductivity = SETUP.K;% subsurface saturated hydraulic conductivity assumed for lateral water fluxes [m/s]
         PARA.soil.infiltration_limit_depth=2.0; % maxiumum depth [m] from the surface to which infiltration occurse
         PARA = loadSoilTypes( PARA );           % load the soil types ( silt, sand, water body )
 
@@ -69,7 +69,7 @@ function CryoGrid3_xice_mpi(SETUP)
         PARA.snow.tau_1=86400.0;            % time constants of snow albedo change (according to ECMWF reanalysis) [sec]
         PARA.snow.tau_a=0.008;              % [per day]
         PARA.snow.tau_f=0.24;               % [per day]
-        PARA.snow.relative_maxSnow=[1.0]; 	% maximum snow depth that can be reached [m] - excess snow is removed in the model - if empty, no snow threshold
+        PARA.snow.relative_maxSnow=[SETUP.relMaxSnow]; 	% maximum snow depth that can be reached [m] - excess snow is removed in the model - if empty, no snow threshold
         PARA.snow.extinction=25.0;          % light extinction coefficient of snow [1/m]
 
         % parameters related to water body on top of soil domain
@@ -100,8 +100,7 @@ function CryoGrid3_xice_mpi(SETUP)
         PARA.technical.waterCellSize=0.02;                  % default size of a newly added water cell when water ponds below water table [m]
 
         % subsurface grid
-        %PARA.technical.subsurfaceGrid = [[0:0.02:4], [4.1:0.1:10], [10.2:0.2:20], [21:1:30], [35:5:50], [60:10:100], [200:100:1000]]'; % the subsurface K-grid in [m]
-        PARA.technical.subsurfaceGrid = [[0:0.02:1], [1.1:0.1:10], [10.2:0.2:20], [21:1:30]]';%, [35:5:50], [60:10:100], [200:100:1000]]'; % the subsurface K-grid in [m]
+        PARA.technical.subsurfaceGrid = [[0:0.02:2], [2.05:0.05:4.0], [4.1:0.1:10], [10.2:0.2:20], [21:1:30], [35:5:50], [60:10:100], [200:100:1000]]'; % the subsurface K-grid in [m]
 
         % parameters related to the specific location
         PARA.location.area=1.0;                             % area represented by the run [m^2] (here a dummy value of 1.0 is set which is overwritten for individual tiles)
@@ -137,7 +136,7 @@ function CryoGrid3_xice_mpi(SETUP)
         PARA = loadConstants( PARA );   % load natural constants and thermal properties of soil constituents into the PARA struct
 
         %FORCING data mat-file
-        PARA.forcing.filename='samoylov_ERA_obs_fitted_1979_2014_spinup_extended2044.mat';  %must be in subfolder "forcing" and follow the conventions for CryoGrid 3 forcing files
+        PARA.forcing.filename=SETUP.forcingFile;  %must be in subfolder "forcing" and follow the conventions for CryoGrid 3 forcing files
         PARA.forcing.rain_fraction=1;   % scaling factor applied to the entire snowfall forcing data
         PARA.forcing.snow_fraction=1;   % scaling factor applied to the entire snowfall forcing data
         PARA.forcing.snow_scaling=1.0;  % scaling factor for incoming snowfall of individual tile, used to emulate lateral snow redistribution

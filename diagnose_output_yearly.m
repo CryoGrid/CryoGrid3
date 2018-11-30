@@ -25,7 +25,7 @@ function DIAG = diagnose_output_yearly( OUT, PARA, GRID, FORCING )
     end
     
     % MAGST as MAGT in 0 m depth
-    requestedDepth = 0.0;
+    requestedDepth = 0.01;
     [~, indexes] = min( abs( A - requestedDepth ) );
     linindexes = sub2ind( [length(altitude_grid),length(ts)], indexes, [1:1:length(ts)] );
     DIAG.magst = mean( OUT.cryoGrid3(linindexes) );
