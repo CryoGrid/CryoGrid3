@@ -3,6 +3,10 @@ function Q_e = Q_eq(uz, z, z0, q, Tz, T_surf, Lstar, rs, p, PARA)
 Tz=Tz+273.15;
 T_surf=T_surf+273.15;
 
+if isnan(T_surf)==1;
+    fprintf('Q_eq : T_surf is NaN\n')
+end
+
 rho = p./(PARA.constants.R_a*Tz); %air density [kg m^(-3)]
 kappa = PARA.constants.kappa; %0.4;
 L_w=1000.*(2500.8 - 2.36.*(T_surf-273.15));   % [J/kg] latent heat of evaporation of water
@@ -13,6 +17,8 @@ if isnan(psi_M(z./Lstar, z0./Lstar))==1;
         fprintf('Q_eq : psi_M gives NaN, and Lstar is inf\n')
     elseif Lstar==0;
         fprintf('Q_eq : psi_M gives NaN, and Lstar is null\n')
+    elseif isnan(Lstar)==1;
+        fprintf('Q_eq : psi_M gives NaN, and Lstar is NaN\n')
     else
         fprintf('Q_eq : psi_M gives NaN, but Lstar not inf, not null\n')
     end

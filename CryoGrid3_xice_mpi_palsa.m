@@ -23,7 +23,7 @@ if number_of_realizations>1 && isempty( gcp('nocreate') )
 end
 
 % Name, Forcing and diary
-run_number='181128_5w50y_printfpsiM';
+run_number='181203_5w50y_morePrints';
 forcingname='Suossjavri_WRF_Norstore_adapted50yr.mat';
 diary(['./runs/' run_number '_log.txt'])
 

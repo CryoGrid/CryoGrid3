@@ -55,11 +55,15 @@ if PARA.modules.infiltration
             fraction_T=getT_fraction(T(GRID.soil.cT_domain), wc, PARA.soil.fieldCapacity);
             fraction_E=getE_fraction(T(GRID.soil.cT_domain), wc, PARA.soil.fieldCapacity);
             
-            depth_weighting_E=exp(-1./PARA.soil.evaporationDepth.*GRID.general.cT_grid(GRID.soil.cT_domain));  %exponential decrease with depth
+            % depth_weighting_E=exp(-1./PARA.soil.evaporationDepth.*GRID.general.cT_grid(GRID.soil.cT_domain)); % exponential decrease with depth, former version
+            depth_weighting_E=exp(-1./PARA.soil.evaporationDepth.* ( GRID.general.cT_grid(GRID.soil.cT_domain) - PARA.location.initial_altitude + getAltitude(PARA,GRID) ) ); % Modification from Jan to account for subsidence
+            
             depth_weighting_E(depth_weighting_E<0.05)=0;
             depth_weighting_E=depth_weighting_E.*GRID.general.K_delta(GRID.soil.cT_domain)./sum(depth_weighting_E.*GRID.general.K_delta(GRID.soil.cT_domain),1); %normalize
             
-            depth_weighting_T=exp(-1./PARA.soil.rootDepth.*GRID.general.cT_grid(GRID.soil.cT_domain));
+            % depth_weighting_T=exp(-1./PARA.soil.rootDepth.*GRID.general.cT_grid(GRID.soil.cT_domain)); % Former version
+            depth_weighting_T=exp(-1./PARA.soil.rootDepth.* ( GRID.general.cT_grid(GRID.soil.cT_domain) - PARA.location.initial_altitude + getAltitude(PARA,GRID) ) ); % Modification from Jan to account for subsidence 
+            
             depth_weighting_T(depth_weighting_T<0.05)=0;
             depth_weighting_T=depth_weighting_T.*GRID.general.K_delta(GRID.soil.cT_domain)./sum(depth_weighting_T.*GRID.general.K_delta(GRID.soil.cT_domain),1);
             
