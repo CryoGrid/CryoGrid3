@@ -1,5 +1,7 @@
 function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
-
+if sum(isnan(GRID.snow.Snow_a(:)))>0
+    fprintf('NaN in GRID.snow.Snow_a - uGs flag0\n')
+end
     snowCellSize=GRID.snow.snowCellSize;
 
     if isempty(GRID.snow.cT_domain_lb)==1 %no snow exists
@@ -19,10 +21,19 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
 
             % ------- update SWE grid -------------------------------------
             GRID.snow.Snow_i(GRID.snow.cT_domain_ub) = GRID.snow.SWEinitial;
+            if sum(isnan(GRID.snow.Snow_i(:)))>0
+                fprintf('NaN in GRID.snow.Snow_i - uGs flag1\n')
+            end
+            if sum(isnan(GRID.snow.Snow_a(:)))>0
+                fprintf('NaN in GRID.snow.Snow_a - uGs flag1\n')
+            end
             GRID.snow.Snow_w(GRID.snow.cT_domain_ub) = 0;
             GRID.snow.Snow_a(GRID.snow.cT_domain_ub) = (GRID.snow.SWEinitial./(PARA.snow.rho_snow./PARA.constants.rho_w) - GRID.snow.SWEinitial);      
-            GRID.snow.SWEinitial=0;       
-
+            GRID.snow.SWEinitial=0;    
+            if sum(isnan(GRID.snow.Snow_a(:)))>0
+                fprintf('NaN in GRID.snow.Snow_a - uGs flag2\n')
+            end
+            
             % -------- update K grid -------------------------------------
             GRID.general.K_grid(GRID.snow.cT_domain_ub) = GRID.general.K_grid(GRID.snow.cT_domain_ub+1)  - ( GRID.snow.Snow_i(GRID.snow.cT_domain_ub) + GRID.snow.Snow_a(GRID.snow.cT_domain_ub) + GRID.snow.Snow_w(GRID.snow.cT_domain_ub) );
             T(GRID.snow.cT_domain_ub)=T(GRID.air.cT_domain_lb);
@@ -46,6 +57,7 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
             GRIDsnowa=GRID.snow.Snow_a(GRID.snow.cT_domain_ub)
             wholeSnowi=GRID.snow.Snow_i
             wholeSnowa=GRID.snow.Snow_a
+            wholeSnoww=GRID.snow.Snow_w
             assert( ~isnan( GRID.general.K_grid(GRID.snow.cT_domain_ub) ), 'updateGRID_snow - error in uppermost snow cell position' );
         end
         
@@ -66,6 +78,9 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
 
             % ------- update SWE grid
             GRID.snow.Snow_i(GRID.snow.cT_domain_ub)=1./3.*GRID.snow.Snow_i(GRID.snow.cT_domain_ub+1);
+            if sum(isnan(GRID.snow.Snow_i(:)))>0
+                fprintf('NaN in GRID.snow.Snow_i - uGs flag2\n')
+            end
             if isnan(GRID.snow.Snow_i(GRID.snow.cT_domain_ub))==1;
                 fprintf('upGRsn : update SWE ice\n')
             end
@@ -77,11 +92,20 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
             if isnan(GRID.snow.Snow_a(GRID.snow.cT_domain_ub))==1;
                 fprintf('upGRsn : update SWE air\n')
             end
+            if sum(isnan(GRID.snow.Snow_a(:)))>0
+                fprintf('NaN in GRID.snow.Snow_a - uGs flag3\n')
+            end
             GRID.snow.Snow_i(GRID.snow.cT_domain_ub+1)=GRID.snow.Snow_i(GRID.snow.cT_domain_ub+1) - GRID.snow.Snow_i(GRID.snow.cT_domain_ub);
+            if sum(isnan(GRID.snow.Snow_i(:)))>0
+                fprintf('NaN in GRID.snow.Snow_i - uGs flag3\n')
+            end
             GRID.snow.Snow_w(GRID.snow.cT_domain_ub+1)=GRID.snow.Snow_w(GRID.snow.cT_domain_ub+1) - GRID.snow.Snow_w(GRID.snow.cT_domain_ub);
             GRID.snow.Snow_a(GRID.snow.cT_domain_ub+1)=GRID.snow.Snow_a(GRID.snow.cT_domain_ub+1) - GRID.snow.Snow_a(GRID.snow.cT_domain_ub);
             T(GRID.snow.cT_domain_ub)=T(GRID.snow.cT_domain_ub+1);
             check_change=true;
+            if sum(isnan(GRID.snow.Snow_a(:)))>0
+                fprintf('NaN in GRID.snow.Snow_a - uGs flag4\n')
+            end
         end
 
         if min(GRID.snow.Snow_i(GRID.snow.cT_domain))<=0.5.*PARA.technical.SWEperCell %avoid looping when unnecessary 
@@ -109,6 +133,12 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
                      GRID.snow.Snow_a(2:i)=GRID.snow.Snow_a(1:i-1);
                      T(i+1)=(T(i+1)+T(i))/2;
                      T(2:i)=T(1:i-1);
+                     if sum(isnan(GRID.snow.Snow_i(:)))>0
+                         fprintf('NaN in GRID.snow.Snow_i - uGs flag4\n')
+                     end
+                     if sum(isnan(GRID.snow.Snow_a(:)))>0
+                         fprintf('NaN in GRID.snow.Snow_a - uGs flag5\n')
+                     end
                  end
             end
             check_change=true;
@@ -134,6 +164,13 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
             GRID.snow.Snow_i(2:GRID.snow.cT_domain_lb-1)=GRID.snow.Snow_i(1:GRID.snow.cT_domain_lb-2);
             GRID.snow.Snow_w(2:GRID.snow.cT_domain_lb-1)=GRID.snow.Snow_w(1:GRID.snow.cT_domain_lb-2);
             GRID.snow.Snow_a(2:GRID.snow.cT_domain_lb-1)=GRID.snow.Snow_a(1:GRID.snow.cT_domain_lb-2);
+            
+            if sum(isnan(GRID.snow.Snow_i(:)))>0
+                fprintf('NaN in GRID.snow.Snow_i - uGs flag5\n')
+            end
+            if sum(isnan(GRID.snow.Snow_a(:)))>0
+                fprintf('NaN in GRID.snow.Snow_a - uGs flag6\n')
+            end
 
             T(GRID.snow.cT_domain_lb)=(T(GRID.snow.cT_domain_lb)+T(GRID.snow.cT_domain_lb-1))/2;
             T(2:GRID.snow.cT_domain_lb-1)=T(1:GRID.snow.cT_domain_lb-2);
@@ -182,9 +219,15 @@ function [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE)
 
 
            GRID.snow.Snow_i(GRID.air.cT_domain_lb)=0;
+           if sum(isnan(GRID.snow.Snow_i(:)))>0
+               fprintf('NaN in GRID.snow.Snow_i - uGs flag6\n')
+           end
            GRID.snow.Snow_w(GRID.air.cT_domain_lb)=0;
            GRID.snow.Snow_a(GRID.air.cT_domain_lb)=0;
            T(GRID.air.cT_domain_lb)=0;
+           if sum(isnan(GRID.snow.Snow_a(:)))>0
+               fprintf('NaN in GRID.snow.Snow_a - uGs flag7\n')
+           end
 
         end       
 

@@ -39,6 +39,9 @@ if PARA.modules.infiltration
     % snow cover or uppermost grid cell frozen --> no ET ; this includes the case of a frozen water body
     if ~isempty(GRID.snow.cT_domain_ub) || T(GRID.soil.cT_domain_ub)<=0
         Qe=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, PARA.surf.rs, FORCING.i.p, PARA));
+        if isnan(Qe)==1;
+           fprintf('SEBinfiltr : Qe for snow cover is NaN\n') 
+        end
         % unfrozen water body at surface
     elseif GRID.lake.unfrozenWaterSurface
         Qe=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, PARA.surf.rs, FORCING.i.p, PARA));
@@ -88,6 +91,10 @@ dE_dt(GRID.air.cT_domain_lb+1) = dE_dt(GRID.air.cT_domain_lb+1) ...
     - Qh - Qe;  % Qe positive: cooling of soil => evaporation/subl. => loss of SWE
 
 % fluxes are in [ W / m^2 ]
+if isnan(Qe)==1;
+    fprintf('SEBinfiltr : stored Qe is NaN\n')
+end
+
 SEB.Qsurf = dE_dt(GRID.air.cT_domain_lb+1);
 SEB.dE_dt_SEB = dE_dt;
 SEB.Qnet = Qnet;

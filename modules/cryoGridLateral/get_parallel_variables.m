@@ -38,7 +38,7 @@ PARA.ensemble.hydraulicDistance = PARA.ensemble.distanceBetweenPoints;
 
 boundaryCondition={'DarcyReservoir','NoBC','NoBC','NoBC','NoBC'}; 		% set to 'DarcyReservoir' for an external water reservoir
 Darcy_elevation=[300 nan nan nan nan]; 				% Elevation of the Darcy reservoir that can drain or refill the worker it is connected to. NaN for workers without this boundary condition
-Darcy_fluxFactor=[10*5*1e-5/1.20 nan nan nan nan]; 			% Taken as the hydraulic_contact_length*hydraulic_conductivity/hydraulic_distance. Defined for now like this, lets see if we wantto define it differently. NaN for workers without this boundary condition
+Darcy_fluxFactor=[100*5*1e-5/1.20 nan nan nan nan]; 			% Taken as the hydraulic_contact_length*hydraulic_conductivity/hydraulic_distance. Defined for now like this, lets see if we wantto define it differently. NaN for workers without this boundary condition
 PARA.ensemble.boundaryCondition(length(boundaryCondition)).type=boundaryCondition{end};
 [PARA.ensemble.boundaryCondition.type]=boundaryCondition{:};
 for i=1:numlabs

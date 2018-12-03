@@ -20,6 +20,8 @@ if do_it==2;
     
     [GRID.snow.cT_domain_lb, GRID.snow.cT_domain_ub] = LayerIndex(GRID.snow.cT_domain);
     [GRID.snow.K_domain_lb, GRID.snow.K_domain_ub] =   LayerIndex(GRID.snow.K_domain);
+    
+    fprintf('Snow bug rescue team at work\n')
 end
 
 end
