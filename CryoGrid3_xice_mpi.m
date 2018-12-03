@@ -309,7 +309,7 @@ function CryoGrid3_xice_mpi(SETUP)
             %------- update threshold variables if no lateral exchange processes occur, otherwise updated at sync time
             if ~PARA.modules.lateral
                 PARA.location.absolute_maxWater_altitude = PARA.location.altitude + PARA.soil.relative_maxWater;
-                if isempty( PARA.snow.relative_maxSnow ) % Leo : changed from PARA.snow.maxSnow
+                if isempty( PARA.snow.relative_maxSnow )
                     PARA.location.absolute_maxSnow_altitude = [];
                 else
                     PARA.location.absolute_maxSnow_altitude =  PARA.location.altitude + PARA.snow.relative_maxSnow;

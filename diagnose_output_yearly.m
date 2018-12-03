@@ -42,9 +42,16 @@ function DIAG = diagnose_output_yearly( OUT, PARA, GRID, FORCING )
     linindexes = sub2ind( [length(altitude_grid),length(ts)], indexes, [1:1:length(ts)] );
     DIAG.magt10m = mean( OUT.cryoGrid3(linindexes) );
     
+    % MAGT in 30 m depth
+    requestedDepth = 30.0;
+    [~, indexes] = min( abs( A - requestedDepth ) );
+    linindexes = sub2ind( [length(altitude_grid),length(ts)], indexes, [1:1:length(ts)] );
+    DIAG.magt30m = mean( OUT.cryoGrid3(linindexes) );    
+    
     % maxiumum thaw depth (TDmax) [ m ]
     [ DIAG.TDmax, idx ] = max( OUT.location.soil_altitude() - OUT.location.infiltration_altitude() ) ;
     DIAG.t_TDmax = ts(idx);
+    DIAG.doy_TDmax = day( datetime( ts(idx), 'ConvertFrom','datenum'), 'dayofyear' );
     
     % end-of-summer water table depth (WTDeos) [ m ]
     DIAG.WTDeos = OUT.location.water_table_altitude(idx) - OUT.location.soil_altitude(idx);
@@ -52,17 +59,20 @@ function DIAG = diagnose_output_yearly( OUT, PARA, GRID, FORCING )
     % end-of-winter snow depth (SDmax) [ m ]
     [ DIAG.SDmax, idx] = nanmax( abs( OUT.location.surface_altitude(1:round(length(ts)/2)) - OUT.location.altitude(1:round(length(ts)/2)) ) );   %search only in first half of year
     DIAG.t_SDmax = ts(idx);
+    DIAG.doy_SDmax = day( datetime( ts(idx), 'ConvertFrom','datenum'), 'dayofyear' );
 
     % start of snow-free season ( = thawing period ) [ UTC Julian day ]
     % note that the thawing period is determined per realization and not
     % for the entire landscape
     startSnowFreeIndex = find ( isnan( OUT.snow.topPosition() ), 1, 'first' );
     DIAG.t_startSnowFree = ceil ( ts( startSnowFreeIndex ) );
+    DIAG.doy_startSnowFree = day( datetime( ts(startSnowFreeIndex), 'ConvertFrom','datenum'), 'dayofyear' );
 
     % end of snow-free season ( = thawing period ) [ UTC Julian day ]
     endSnowFreeIndex = length(ts) + 1 - find ( isnan( flip( OUT.snow.topPosition()) ), 1, 'first' );
     DIAG.t_endSnowFree = floor ( ts( endSnowFreeIndex ) );
-    
+    DIAG.doy_endSnowFree = day( datetime( ts(endSnowFreeIndex), 'ConvertFrom','datenum'), 'dayofyear' );
+
     % mean SEB during thawing period [ W / m^2 ]
     DIAG.meanQnet = sum( OUT.EB.Qnet ( startSnowFreeIndex:endSnowFreeIndex ) .* dt ) ./ abs( ts(startSnowFreeIndex) - ts(endSnowFreeIndex) )  ;
     DIAG.meanQh = sum( OUT.EB.Qh ( startSnowFreeIndex:endSnowFreeIndex ) .* dt ) ./ abs( ts(startSnowFreeIndex) - ts(endSnowFreeIndex) )  ;

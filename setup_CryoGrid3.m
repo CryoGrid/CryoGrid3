@@ -14,16 +14,16 @@ SETUP = {};
 % parameters
 SETUP.numRealizations = 3;
 SETUP.syncTimestep=6./24;
-SETUP.startDate = datenum( 1949, 10, 1 );
+SETUP.startDate = datenum( 1999, 10, 1 );
 SETUP.endDate = datenum( 2099, 12, 31);
 SETUP.xH=1;
 SETUP.xW=1;
 SETUP.xS=1;
-SETUP.xice=0;
+SETUP.xice=1;
 
 SETUP.fieldCapacity = 0.50; % 0.40
 SETUP.relMaxSnow = 0.4; % 1.0
-SETUP.snowDens = 200;%200..250
+SETUP.snowDens = 225;%200..250
 SETUP.boundaryCondition_T = 'DarcyReservoir';
 SETUP.e_Reservoir = 0.0;%-1.0;
 
@@ -69,7 +69,7 @@ SETUP.stratigraphy = { stratigraphyMap('CENTER'), ...
     stratigraphyMap('RIM'), ...
     stratigraphyMap('TROUGH') };
 
-SETUP.scenario='rcp45';
+SETUP.scenario='rcp85';
 
 SETUP.forcingFile = ['Samoylov_' SETUP.scenario '_1901_2300_CryoGrid_windModified.mat'];
 

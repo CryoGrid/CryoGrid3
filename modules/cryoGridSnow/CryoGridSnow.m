@@ -21,8 +21,8 @@ if ~isempty(GRID.snow.cT_domain_ub) %snow cover already exitis
         (GRID.snow.Snow_i(GRID.snow.cT_domain_ub)+GRID.snow.Snow_w(GRID.snow.cT_domain_ub)+GRID.snow.Snow_a(GRID.snow.cT_domain_ub));
     
     GRID.snow.Snow_a(GRID.snow.cT_domain_ub) = GRID.snow.Snow_a(GRID.snow.cT_domain_ub) ...
-        - ( SEB.Qe.*timestep.*24.*3600./PARA.constants.L_sg./PARA.constants.rho_i./nonAirFractionUppermostGridCell ...% - ( SEB.Qe.*timestep.*24.*3600./(L+L_lv)./1000./nonAirFractionUppermostGridCell ...
-        -  SEB.Qe.*timestep.*24.*3600./PARA.constants.L_sg./PARA.constants.rho_i); %-  SEB.Qe.*timestep.*24.*3600./(L+L_lv)./1000);
+        - (  SEB.Qe.*timestep.*24.*3600./PARA.constants.L_sg./PARA.constants.rho_i./nonAirFractionUppermostGridCell ...% - ( SEB.Qe.*timestep.*24.*3600./(L+L_lv)./1000./nonAirFractionUppermostGridCell ...
+           - SEB.Qe.*timestep.*24.*3600./PARA.constants.L_sg./PARA.constants.rho_i ); %-  SEB.Qe.*timestep.*24.*3600./(L+L_lv)./1000);
     
     BALANCE.water.ds = BALANCE.water.ds - SEB.Qe.*timestep.*24.*3600./PARA.constants.L_sg./PARA.constants.rho_i*1000; % sublimation in [mm]
     
