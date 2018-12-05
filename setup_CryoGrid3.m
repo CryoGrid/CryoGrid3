@@ -23,7 +23,7 @@ SETUP.xice=1;
 
 SETUP.fieldCapacity = 0.50; % 0.40
 SETUP.relMaxSnow = 0.4; % 1.0
-SETUP.snowDens = 225;%200..250
+SETUP.snowDens = 250;%200..250
 SETUP.boundaryCondition_T = 'DarcyReservoir';
 SETUP.e_Reservoir = 0.0;%-1.0;
 

@@ -9,7 +9,7 @@ z=PARA.technical.z;
 
 Qh=real(Q_h(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, FORCING.i.p, FORCING.i.q, PARA));
 
-assert( ~isnan(Qh), 'surfaceEnergyBalanceInfiltration - Qh is nan' );
+%assert( ~isnan(Qh), 'surfaceEnergyBalanceInfiltration - Qh is nan' );
 
 dwc_dt=wc.*0;
 
@@ -41,18 +41,18 @@ if PARA.modules.infiltration
     % snow cover or uppermost grid cell frozen --> no ET ; this includes the case of a frozen water body
     if ~isempty(GRID.snow.cT_domain_ub) || T(GRID.soil.cT_domain_ub)<=0
         Qe=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, PARA.surf.rs, FORCING.i.p, PARA));
-        assert( ~isnan(Qh), 'surfaceEnergyBalanceInfiltration - Qe is nan' );
+        %assert( ~isnan(Qh), 'surfaceEnergyBalanceInfiltration - Qe is nan' );
 
     % unfrozen water body at surface
     elseif GRID.lake.unfrozenWaterSurface
         Qe=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, PARA.surf.rs, FORCING.i.p, PARA));
         dwc_dt(1)=-Qe./L; %in m water per sec, this can be evaporation or condensation
-        assert( ~isnan(Qe), 'surfaceEnergyBalanceInfiltration - Qe is nan' );
+        %assert( ~isnan(Qe), 'surfaceEnergyBalanceInfiltration - Qe is nan' );
 
     % unfrozen soil surface
     else
         Qe_pot=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, 0, FORCING.i.p, PARA));  %potential ET
-        assert( ~isnan(Qe_pot), 'surfaceEnergyBalanceInfiltration - Qe_pot is nan' );
+        %assert( ~isnan(Qe_pot), 'surfaceEnergyBalanceInfiltration - Qe_pot is nan' );
 
         if Qe_pot>0
             
@@ -77,12 +77,12 @@ if PARA.modules.infiltration
             
             % sum(fraction_ET) is always 1
             dwc_dt=-Qe./L.*fraction_ET;    %in m water per sec
-            assert( ~isnan(Qe), 'surfaceEnergyBalanceInfiltration - Qe is nan' );
+            %assert( ~isnan(Qe), 'surfaceEnergyBalanceInfiltration - Qe is nan' );
 
         else  %condensation
             Qe=Qe_pot;
             dwc_dt(1)=-Qe./L; %in m water per sec, put everything in uppermost grid cell
-            assert( ~isnan(Qe), 'surfaceEnergyBalanceInfiltration - Qe is nan' );
+            %assert( ~isnan(Qe), 'surfaceEnergyBalanceInfiltration - Qe is nan' );
 
         end
     end
@@ -92,7 +92,7 @@ else % this is identical to case with snow cover or frozen ground
 end
 %ground heat flux
 Qg   = Qnet-Qh-Qe;
-assert( ~isnan(Qg), 'surfaceEnergyBalanceInfiltration - Qg is nan' );
+%assert( ~isnan(Qg), 'surfaceEnergyBalanceInfiltration - Qg is nan' );
 
 %surface heat flux (into upper cell, ground heat flux regards also other
 %grid cells, should be identical if no snow cover and no evapotranspiration
@@ -111,4 +111,3 @@ SEB.Qe = Qe;
 SEB.Qg = Qg;
 SEB.Sout = Sout;
 SEB.Lout = Lout;
-
