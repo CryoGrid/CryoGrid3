@@ -9,6 +9,8 @@ z=PARA.technical.z;
 
 Qh=real(Q_h(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, FORCING.i.p, FORCING.i.q, PARA));
 
+%assert( ~isnan(Qh), 'surfaceEnergyBalanceInfiltration - Qh is nan' );
+
 dwc_dt=wc.*0;
 
 
@@ -39,25 +41,32 @@ if PARA.modules.infiltration
     % snow cover or uppermost grid cell frozen --> no ET ; this includes the case of a frozen water body
     if ~isempty(GRID.snow.cT_domain_ub) || T(GRID.soil.cT_domain_ub)<=0
         Qe=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, PARA.surf.rs, FORCING.i.p, PARA));
-        % unfrozen water body at surface
+        %assert( ~isnan(Qh), 'surfaceEnergyBalanceInfiltration - Qe is nan' );
+
+    % unfrozen water body at surface
     elseif GRID.lake.unfrozenWaterSurface
         Qe=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, PARA.surf.rs, FORCING.i.p, PARA));
         dwc_dt(1)=-Qe./L; %in m water per sec, this can be evaporation or condensation
-        
-        % unfrozen soil surface
+        %assert( ~isnan(Qe), 'surfaceEnergyBalanceInfiltration - Qe is nan' );
+
+    % unfrozen soil surface
     else
         Qe_pot=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, 0, FORCING.i.p, PARA));  %potential ET
+        %assert( ~isnan(Qe_pot), 'surfaceEnergyBalanceInfiltration - Qe_pot is nan' );
+
         if Qe_pot>0
             
             fraction_T=getT_fraction(T(GRID.soil.cT_domain), wc, PARA.soil.fieldCapacity);
             fraction_E=getE_fraction(T(GRID.soil.cT_domain), wc, PARA.soil.fieldCapacity);
             
-            depth_weighting_E=exp(-1./PARA.soil.evaporationDepth.*GRID.general.cT_grid(GRID.soil.cT_domain));  %exponential decrease with depth
+            depth_weighting_E=exp(-1./PARA.soil.evaporationDepth.* ( GRID.general.cT_grid(GRID.soil.cT_domain) - PARA.location.initial_altitude + getAltitude(PARA,GRID) ) );  %exponential decrease with depth ,needs to be corrected for subsieded grid
             depth_weighting_E(depth_weighting_E<0.05)=0;
+            assert( sum(depth_weighting_E)>0, 'surfaceEnergyBalanceInfiltration - depth_weighting_E is zero' );
             depth_weighting_E=depth_weighting_E.*GRID.general.K_delta(GRID.soil.cT_domain)./sum(depth_weighting_E.*GRID.general.K_delta(GRID.soil.cT_domain),1); %normalize
             
-            depth_weighting_T=exp(-1./PARA.soil.rootDepth.*GRID.general.cT_grid(GRID.soil.cT_domain));
+            depth_weighting_T=exp(-1./PARA.soil.rootDepth.* ( GRID.general.cT_grid(GRID.soil.cT_domain) - PARA.location.initial_altitude + getAltitude(PARA,GRID) ) );
             depth_weighting_T(depth_weighting_T<0.05)=0;
+            assert( sum(depth_weighting_T)>0, 'surfaceEnergyBalanceInfiltration - depth_weighting_T is zero' );
             depth_weighting_T=depth_weighting_T.*GRID.general.K_delta(GRID.soil.cT_domain)./sum(depth_weighting_T.*GRID.general.K_delta(GRID.soil.cT_domain),1);
             
             fraction_ET = fraction_T.*depth_weighting_T.*PARA.soil.ratioET + fraction_E.*depth_weighting_E.*(1-PARA.soil.ratioET);
@@ -68,16 +77,22 @@ if PARA.modules.infiltration
             
             % sum(fraction_ET) is always 1
             dwc_dt=-Qe./L.*fraction_ET;    %in m water per sec
+            %assert( ~isnan(Qe), 'surfaceEnergyBalanceInfiltration - Qe is nan' );
+
         else  %condensation
             Qe=Qe_pot;
             dwc_dt(1)=-Qe./L; %in m water per sec, put everything in uppermost grid cell
+            %assert( ~isnan(Qe), 'surfaceEnergyBalanceInfiltration - Qe is nan' );
+
         end
     end
 else % this is identical to case with snow cover or frozen ground
     Qe=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, PARA.surf.rs, FORCING.i.p, PARA));
+    
 end
 %ground heat flux
 Qg   = Qnet-Qh-Qe;
+%assert( ~isnan(Qg), 'surfaceEnergyBalanceInfiltration - Qg is nan' );
 
 %surface heat flux (into upper cell, ground heat flux regards also other
 %grid cells, should be identical if no snow cover and no evapotranspiration
@@ -96,4 +111,3 @@ SEB.Qe = Qe;
 SEB.Qg = Qg;
 SEB.Sout = Sout;
 SEB.Lout = Lout;
-
