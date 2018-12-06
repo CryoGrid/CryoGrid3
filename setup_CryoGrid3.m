@@ -9,17 +9,19 @@ close all;
 
 SETUP = {};
 
+SETUP.startFromRun = false;
+
 %startYear=2011;
 
 % parameters
 SETUP.numRealizations = 3;
 SETUP.syncTimestep=6./24;
-SETUP.startDate = datenum( 1999, 10, 1 );
+SETUP.startDate = datenum( 1949, 10, 1 );
 SETUP.endDate = datenum( 2099, 12, 31);
 SETUP.xH=1;
 SETUP.xW=1;
 SETUP.xS=1;
-SETUP.xice=1;
+SETUP.xice=0;
 
 SETUP.fieldCapacity = 0.50; % 0.40
 SETUP.relMaxSnow = 0.4; % 1.0

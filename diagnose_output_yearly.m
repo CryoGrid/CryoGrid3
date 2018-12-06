@@ -103,5 +103,5 @@ function DIAG = diagnose_output_yearly( OUT, PARA, GRID, FORCING )
     
     %time-integrated unfrozen organic matter volume (aerobic/anearobic) [ m sec ]
     DIAG.unfrozenOrganic = sum( OUT.carbon.unfrozen_organic_volume_time );
-    DIAG.unfrozenOragnicAerobic = sum( OUT.carbon.unfrozen_organic_volume_time_aerobic );
+    DIAG.unfrozenOrganicAerobic = sum( OUT.carbon.unfrozen_organic_volume_time_aerobic );
     DIAG.unfrozenOrganicAnaerobic = sum( OUT.carbon.unfrozen_organic_volume_time_anaerobic );
