@@ -9,4 +9,4 @@ close all;
 
 setupFile = 'SAVEDIR/RUN/RUN_setup.mat';        % load temporary setup file created by "setup_CryoGrid3.m"
 load( setupFile );
-CryoGrid3_xice_mpi( SETUP , SETUP.startFromRun );
+CryoGrid3_xice_mpi_slurm( SETUP , SETUP.startFromRun );

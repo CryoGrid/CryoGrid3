@@ -9,4 +9,5 @@
 #SBATCH --error=SAVEDIR/RUN/CryoGrid3.err
 #SBATCH --workdir=/home/nitzbon/CryoGrid/CryoGrid3
 
-matlab -nosplash -nodisplay -nodesktop < run_CryoGrid3.m
+matlab -nosplash -nodisplay -nodesktop < run_RUN.m
+rm run_RUN.m
