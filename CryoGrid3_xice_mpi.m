@@ -10,7 +10,7 @@
 
 add_modules;  %adds required modules
 
-number_of_realizations=3;
+number_of_realizations=2;
 
 if number_of_realizations>1 && isempty( gcp('nocreate') )
     parpool(number_of_realizations);
@@ -195,12 +195,9 @@ spmd
     T = inititializeTemperatureProfile_simple(GRID, PARA, FORCING);
     
     %---- modification for infiltration
-    wc=GRID.soil.cT_water;
-    %GRID.soil.E_lb = find(PARA.soil.evaporationDepth==GRID.soil.soilGrid(:,1))-1;
-    %GRID.soil.T_lb = find(PARA.soil.rootDepth==GRID.soil.soilGrid(:,1))-1;
+    wc=GRID.soil.cT_water;    
+	GRID.soil.water2pool=0;
     
-	GRID.soil.water2pool=0; % Leo : cannot find a good initialize function to put it in
-
     %---- preallocate temporary arrays for capacity and conductivity-----------
     [c_cTgrid, k_cTgrid, k_Kgrid, lwc_cTgrid] = initializeConductivityCapacity(T,wc, GRID, PARA); % this is basically the same as "getThermalProperties" during integration, but without interpolation to K grid
     
@@ -344,6 +341,142 @@ spmd
                 % SNOW exchange module
                 if PARA.modules.exchange_snow
                     PARA  = CryoGridLateralSnow( PARA, GRID );
+                end
+                
+                % lateral EROSION module
+                if PARA.modules.exchange_sediment
+                    % CryoGridLateralErosion();
+                    
+                    sediment_change_tot = zeros(1,numlabs); % in [m] w.r.t. current realization (index)
+                    sediment_change_o = zeros(1,numlabs);
+                    sediment_change_m = zeros(1,numlabs);
+
+
+                    PACKAGE_sedimentExchange.K_delta = GRID.general.K_delta( GRID.soil.cT_domain );
+                    PACKAGE_sedimentExchange.cT_mineral = GRID.soil.cT_mineral;
+                    PACKAGE_sedimentExchange.cT_organic = GRID.soil.cT_organic;
+
+                    
+                    
+                    for j=1:numlabs
+                        if j~=labindex
+                            labSend( PACKAGE_sedimentExchange, j, 2);
+                        end
+                    end
+                    for j=1:numlabs
+                        if j~=labindex
+                            PACKAGE_waterExchange_j = labReceive(j, 2);
+                            %sediment_fluxes =   % matrix containing all fluxes in [m/s] scaled to row index
+                        end
+                    end
+                    i=1;
+                    j=2;                    
+                    soil_surface_index = PARA.ensemble.soil_altitude(i);
+                    soil_surface_j = PARA.ensemble.soil_altitude(j);
+                    
+                    surface_index = PARA.ensemble.altitude(i);
+                    surface_j = PARA.ensemble.altitude(j);
+                    
+                    cT_mineral_j = PACKAGE_sedimentExchange.cT_mineral ;
+                    cT_organic_j = PACKAGE_sedimentExchange.cT_organic ;
+                    K_delta_j = PACKAGE_sedimentExchange.K_delta;
+                    area_j = PARA.ensemble.area(j);
+                    
+                    
+                    
+                    K_delta_index = GRID.general.K_delta(GRID.soil.cT_domain);
+                    area_index = PARA.ensemble.area(labindex);
+                    
+                    K_land = 3e-10; % in [m^2/sec] approx. 0.01 m^2/yr, reference: [ Kessler et al. 2012, JGR ]
+                    K_water = 3e-8; % in [m^2/sec] approx 1.0 m^2/yr, reference: [ Kessler et al. 2012, JGR ]              
+
+                    % mixed interface (includes air only)
+                    phi_tot = abs( soil_surface_index - soil_surface_j );
+                    phi_land = max( soil_surface_index, soil_surface_j ) - min( surface_index, surface_j );
+                    phi_land = max( phi_land, 0 );
+                    phi_water = min( surface_index, surface_j ) - min( soil_surface_index, soil_surface_j);
+                    phi_water = min( phi_water, phi_tot);
+                    assert( phi_land + phi_water == phi_tot, 'lateral erosion - water/air interfaces do not match total interface' ) ;
+                    K_eff = phi_tot ./ ( phi_land./K_land + phi_water./K_water );       % based on assuming "series junction" of erosion domains --> inverse addition of "conductivities"
+
+                    D = PARA.ensemlbe.distanceBetweenPoints(index,j);
+                    L = PARA.ensemble.thermal_contact_length(index,j);
+                    
+                    % caclulate erosion fluxes
+                    
+                    if soil_surface_j > soil_surface_index
+                        % gaining sediment
+        
+                        % calculate total sediment volume transported within timestep
+                        q_sed_diff = K_air .* (soil_surface_j - soil_surface_index) ./ D ;  % sediment flux in [m^2/sec]
+                        V_sed_diff = q_sed_diff .* L .* PARA.technical.syncTimeStep .* 24 .* 3600;  % sediment volume in [m^3]
+                     
+                        % calculate composition of organic and mineral
+                        V_sed_o = 0;
+                        V_sed_m = 0;
+                        V_sed_remaining = V_sed_diff;
+                        k=1;
+                        while V_sed_remaining > 0
+                            V_temp = min( V_sed_remaining, K_delta_j(k) .* (cT_organic_j(k)+cT_mineral(k)) .* area_j );
+                            V_sed_o = V_sed_o + cT_organic(k) ./ (cT_organic_j(k)+cT_mineral(k)) .* V_temp;
+                            V_sed_m = V_sed_m + cT_mineral(k) ./ (cT_organic_j(k)+cT_mineral(k)) .* V_temp;
+                            V_sed_remaining = V_sed_remaining - V_temp;
+                            k=k+1;
+                        end
+                        
+                        sediment_change_tot(j) = V_sed_diff ./ area_index;
+                        sediment_change_m(j) = V_sed_m ./ area_index;
+                        sediment_change_o(j) = V_sed_o ./ area_index;
+                        
+                        assert( V_sed_o + V_sed_m == V_sed_diff, 'lateral erosion - organic and mineral do not match total sed change' );
+                        
+                        
+                        
+                    elseif soil_surface_j < soil_surface_index
+                        % losing sediment
+                        
+                        % calculate total sediment volume transported within timestep
+                        q_sed_diff = K_air .* (soil_surface_j - soil_surface_index) ./ D ;  % sediment flux in [m^2/sec]
+                        V_sed_diff = abs( q_sed_diff .* L .* PARA.technical.syncTimeStep .* 24 .* 3600 );  % sediment volume in [m^3] (always positive)                                             
+                        
+                        % calculate composition of organic and mineral
+                        V_sed_o = 0;
+                        V_sed_m = 0;
+                        V_sed_remaining = V_sed_diff;
+                        k=1;
+                        while V_sed_remaining > 0
+                            V_temp = min( V_sed_remaining, K_delta_index(k) .* (GRID.soil.cT_organic(k)+GRID.soil.cT_mineral(k)) .* area_index );
+                            V_sed_o = V_sed_o + GRID.soil.cT_organic(k) ./ (GRID.soil.cT_organic(k)+GRID.soil.cT_mineral(k)) .* V_temp;
+                            V_sed_m = V_sed_m + GRID.soil.cT_mineral(k) ./ (GRID.soil.cT_organic(k)+GRID.soil.cT_mineral(k)) .* V_temp;
+                            V_sed_remaining = V_sed_remaining - V_temp;
+                            k=k+1;
+                        end
+                        
+                        sediment_change_tot(j) = -V_sed_diff ./ area_index;
+                        sediment_change_m(j) = -V_sed_m ./ area_index;
+                        sediment_change_o(j) = -V_sed_o ./ area_index;
+                        
+                        assert( V_sed_o + V_sed_m == V_sed_diff, 'lateral erosion - organic and mineral do not match total sed change' );
+                        
+                        
+
+                        
+                    else
+                        sediment_change_tot(j) = 0;
+                        sediment_change_m(j) = 0;
+                        sediment_change_o(j) = 0;
+                        
+                    end
+                    
+                    % + scale fluxes when >2 realizations
+
+                             
+                    % apply erosion fluxes (not implemented so far)
+                    
+                    
+                    
+                    % store output somewhere
+                    
                 end
                 
                 % update auxiliary variables and common thresholds
