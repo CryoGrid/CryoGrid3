@@ -53,8 +53,9 @@ spmd
     PARA.soil.convectiveDomain=[];          % soil domain where air convection due to buoyancy is possible -> start and end [m] - if empty no convection is possible
     PARA.soil.mobileWaterDomain=[0 10.0];   % soil domain where water from excess ice melt is mobile -> start and end [m] - if empty water is not mobile
     PARA.soil.relative_maxWater=1.0;        % depth at which a water table will form [m] - above excess water is removed, below it pools up
-    PARA.soil.hydraulic_conductivity = 1e-5;% subsurface saturated hydraulic conductivity assumed for lateral water fluxes [m/s]
-    PARA.soil.infiltration_limit_depth=2.0; % maxiumum depth [m] from the surface to which infiltration occurse
+    PARA.soil.hydraulic_conductivity_subs = 1e-5;    % subsurface saturated hydraulic conductivity assumed for lateral water fluxes [m/s]
+    PARA.soil.hydraulic_conductivity_surf = 1e-4;    % surface hydraulic conductivity assumed for lateral water fluxes [m/s]
+    PARA.soil.infiltration_limit_depth=10.0; % maxiumum depth [m] from the surface to which infiltration occurse
     PARA = loadSoilTypes( PARA );           % load the soil types ( silt, sand, water body )
     
     % parameters related to snow
@@ -86,8 +87,8 @@ spmd
     PARA.technical.SWEperCell=0.005;                    % SWE per grid cell in [m] - determines size of snow grid cells
     PARA.technical.maxSWE=0.4;                          % in [m] SWE
     PARA.technical.arraySizeT=5002;                     % number of values in the look-up tables for conductivity and capacity
-    PARA.technical.starttime=datenum( 1979, 10, 1 );    % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum( 1979, 12, 31);      % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.starttime=datenum( 1999, 10, 1 );    % starttime of the simulation - if empty start from first value of time series
+    PARA.technical.endtime=datenum( 2010, 12, 31);      % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;       % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;       % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;                    % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
@@ -148,8 +149,8 @@ spmd
     if PARA.modules.lateral
         % switches for lateral processes
         PARA.modules.exchange_heat = 1;
-        PARA.modules.exchange_water = 0;
-        PARA.modules.exchange_snow = 0;
+        PARA.modules.exchange_water = 1;
+        PARA.modules.exchange_snow = 1;
         
         %---------overwrites variables for each realization--------------------
         % this function must define everything that is realization-specific or dependent of all realizations
@@ -158,7 +159,7 @@ spmd
     
     % ------make output directory (name depends on parameters) ----------------
     saveDir = './runs';
-    run_number = sprintf( [ 'LAT_HEAT_TEST_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' )  ] );
+    run_number = sprintf( [ 'HYDCOND_TEST_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' )  ] );
     mkdir([ saveDir '/' run_number]);
     
     %--------------------------------------------------------------------------
@@ -338,7 +339,7 @@ spmd
                 
                 % WATER exchange module
                 if PARA.modules.exchange_water
-                    [wc, GRID, BALANCE] = CryoGridLateralWater( PARA, GRID, BALANCE, T, wc);    
+                    [wc, GRID, BALANCE, TEMPORARY] = CryoGridLateralWater( PARA, GRID, BALANCE, TEMPORARY, T, wc);    
                 end
                 
                 % SNOW exchange module

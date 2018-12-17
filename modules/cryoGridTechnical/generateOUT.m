@@ -99,6 +99,7 @@ function OUT = generateOUT()
     OUT.debugging.dE_dt_SEB = [];
     OUT.debugging.dE_dt_cond = [];
     OUT.debugging.K_grid = [];
+    OUT.debugging.Darcy_fluxFactor = [];
 
 
 end

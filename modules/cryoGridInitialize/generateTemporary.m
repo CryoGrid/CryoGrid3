@@ -43,6 +43,8 @@ TEMPORARY.bottomBucketSoilDepth_sum=0;
 TEMPORARY.water2pool_sum=0;
 TEMPORARY.water2pool=0;
 
+TEMPORARY.Darcy_fluxFactor=nan;
+
 
 %TEMPORARY.water_fluxes = zeros( 1, numlabs );     % vector containing accumulated lateral water fluxes per output interval in [m] to the current worker from all other workers
 TEMPORARY.snow_flux_lateral = 0 ;      % vector containing accumulated lateral snow fluxes per output interval in [m SWE] to the current worker

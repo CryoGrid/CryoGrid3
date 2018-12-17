@@ -207,6 +207,7 @@ if  t==TEMPORARY.outputTime
     OUT.debugging.dE_dt_SEB = [OUT.debugging.dE_dt_SEB [ TEMPORARY.dE_dt_SEB ] ];
     OUT.debugging.dE_dt_cond = [OUT.debugging.dE_dt_cond [ TEMPORARY.dE_dt_cond ] ];
     OUT.debugging.K_grid = [OUT.debugging.K_grid, GRID.general.K_grid ];
+    OUT.debugging.Darcy_fluxFactor = [ OUT.debugging.Darcy_fluxFactor; TEMPORARY.Darcy_fluxFactor ];
 
 
     %------------------------------------------------------------------     
