@@ -6,20 +6,20 @@ function PARA = get_parallel_variables(PARA)
 index = labindex;
 
 % topological relations
-area_tot = 70.0;
-PARA.ensemble.weight = [1 1 1];
+area_tot = 1.0;
+PARA.ensemble.weight = [2 1 1];
 PARA.ensemble.area = PARA.ensemble.weight ./ sum(PARA.ensemble.weight) .* area_tot ; % in m^2
-PARA.ensemble.distanceBetweenPoints= 10 .* ( diag(ones(numlabs-1,1),-1)+diag(ones(numlabs-1,1),1) ); %   %in m. Put 0 for all non-connected ensemble members
+PARA.ensemble.distanceBetweenPoints= 1 .* ( diag(ones(numlabs-1,1),-1)+diag(ones(numlabs-1,1),1) ); %   %in m. Put 0 for all non-connected ensemble members
 A = double( PARA.ensemble.distanceBetweenPoints > 0 ); % adjacency matrix of the network (auxiliary)
 
 % topographical relations
-PARA.ensemble.initial_altitude = [0.0 1.15 3.00];	%in m a.s.l., this is the reference for the "zero" position of the grids
+PARA.ensemble.initial_altitude = [0. 0.8 1.6 ];	%in m a.s.l., this is the reference for the "zero" position of the grids
 PARA.ensemble.altitude = PARA.ensemble.initial_altitude;  
 PARA.ensemble.surface_altitude = PARA.ensemble.initial_altitude;
 PARA.ensemble.soil_altitude = PARA.ensemble.initial_altitude;
 
 % parameters related to HEAT exchange
-PARA.ensemble.thermal_contact_length = 20 .* (diag(1*ones(numlabs-1,1),-1)+diag(1*ones(numlabs-1,1),1));
+PARA.ensemble.thermal_contact_length = 1 .* (diag(1*ones(numlabs-1,1),-1)+diag(1*ones(numlabs-1,1),1));
 PARA.ensemble.thermalDistance = PARA.ensemble.distanceBetweenPoints;
 
 % parameters related to WATER exchange
@@ -46,7 +46,7 @@ end
 % parameters related to snow exchange
 % to be specificed by user
 PARA.ensemble.terrain_index_snow = calculateTerrainIndexSnow(PARA.ensemble.altitude, PARA.ensemble.weight);
-PARA.ensemble.immobile_snow_height = [ 0.1, 0.1, 0.1 ];
+PARA.ensemble.immobile_snow_height = 0.1 .* ones(1,numlabs);
 PARA.ensemble.snow_scaling = ones(1, numlabs);  % unclear if needed in ensemble struct
 
 
@@ -57,6 +57,8 @@ PARA.ensemble.fieldCapacity = 0.5 .* ones(1, numlabs);
 
 % location-specific fix parameter values
 PARA.location.initial_altitude = PARA.ensemble.initial_altitude(index);
+PARA.location.rootDepth = PARA.ensemble.rootDepth(labindex);
+PARA.location.fieldCapacity = PARA.ensemble.fieldCapacity(labindex);
 % location-specific dynamic auxiliary variables
 PARA.location.area = PARA.ensemble.area(index);
 PARA.location.altitude = PARA.ensemble.altitude(index);
