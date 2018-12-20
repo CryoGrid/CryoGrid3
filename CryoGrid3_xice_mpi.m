@@ -124,7 +124,7 @@ spmd
     
     %initial temperature profile -> first column depth [m] -> second column temperature [degree C]
     PARA.Tinitial = [   -2     5    ;...
-                         0    -2    ;...
+                         0     0    ;...
                          2    -2    ;...
                          5    -7    ;...
                         10    -9    ;...
@@ -223,7 +223,7 @@ spmd
     % Time Integration Routine                                                I
     %                                                                         I
     %_________________________________________________________________________I
-    try
+   % try
         while t<PARA.technical.endtime
 
             %------ interpolate forcing data to time t ----------------------------
@@ -373,17 +373,20 @@ spmd
 
         end
     
-    catch
-        % save final state and output if crashed during while-loop
-        iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_output_CRASH' datestr(t,'yyyy') '.mat'], OUT)
-        iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_finalState_CRASH' datestr(t,'yyyy') '.mat'], T, wc, t, SEB, PARA, GRID)
-        iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_altitudes_CRASH' datestr(t,'yyyy') '.png'], OUT, PARA );
-    end
-    
-    % save final state and output at t=endtime
-    iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_output' datestr(t,'yyyy') '.mat'], OUT)
-    iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_finalState' datestr(t,'yyyy') '.mat'], T, wc, t, SEB, PARA, GRID)
-    iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_altitudes' datestr(t,'yyyy') '.png'], OUT, PARA );
+   
+        % save final state and output at t=endtime
+        iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_output' datestr(t,'yyyy') '.mat'], OUT)
+        iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_finalState' datestr(t,'yyyy') '.mat'], T, wc, t, SEB, PARA, GRID)
+        iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_altitudes' datestr(t,'yyyy') '.png'], OUT, PARA );
+        
+%     catch excep
+%         fprintf( [ excep.identifier '\n' excep.message ] );
+%         
+%         save final state and output if crashed during while-loop
+%         iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_output_CRASH' datestr(t,'yyyy') '.mat'], OUT)
+%         iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_finalState_CRASH' datestr(t,'yyyy') '.mat'], T, wc, t, SEB, PARA, GRID)
+%         iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_altitudes_CRASH' datestr(t,'yyyy') '.png'], OUT, PARA );
+%     end
 end
 
 if number_of_realizations>1
