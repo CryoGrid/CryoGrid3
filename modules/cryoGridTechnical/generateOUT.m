@@ -49,7 +49,10 @@ function OUT = generateOUT()
     OUT.lateral.dE_cell = [];    % matrix containing cell-wise, accumulated lateral heat fluxes in [J/m^2] to the current worker
     OUT.lateral.snow_scaling = [];
     
-    OUT.lateral.sediment_fluxes_total = [];
+    OUT.lateral.sediment_fluxes_o = [];
+    OUT.lateral.sediment_fluxes_m = [];
+    OUT.lateral.sediment_fluxes_diff = [];
+    OUT.lateral.sediment_fluxes_adv = [];
 
     % water balance (WB)
     % all flows are defined as positive when they go into the soil/snow column

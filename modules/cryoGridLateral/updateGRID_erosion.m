@@ -1,4 +1,38 @@
-function GRID = updateGRID_erosion( PARA, GRID )
+function [wc, GRID] = updateGRID_erosion( PARA, GRID, wc )
+
+
+
+while (GRID.soil.cT_mineral(1)+GRID.soil.cT_organic(1)+wc(1)<1e-6)
+    disp('infiltration - update GRID - removing air cell')
+
+    % adjust air and soil domains and boundaries
+    GRID.air.cT_domain(GRID.soil.cT_domain_ub)=1;
+    GRID.air.K_domain(GRID.soil.K_domain_ub)=1;
+    GRID.air.cT_domain_lb=GRID.air.cT_domain_lb+1;
+    GRID.air.K_domain_lb=GRID.air.K_domain_lb+1;
+    GRID.soil.cT_domain(GRID.soil.cT_domain_ub)=0;
+    GRID.soil.K_domain(GRID.soil.K_domain_ub)=0;
+    GRID.soil.cT_domain_ub=GRID.soil.cT_domain_ub+1;
+    GRID.soil.K_domain_ub=GRID.soil.K_domain_ub+1;
+    GRID.soil.soilGrid(1)=[];
+
+    wc(1)=[];
+
+    GRID.soil.cT_organic(1)=[];
+    GRID.soil.cT_natPor(1)=[];
+    GRID.soil.cT_actPor(1)=[];
+    GRID.soil.cT_mineral(1)=[];
+    GRID.soil.cT_soilType(1)=[];
+
+    GRID.soil.excessGroundIce(1)=[];
+
+end
+
+
+
+
+
+
 
 % update GRID water body / lake domain
 if GRID.soil.cT_organic(1)+GRID.soil.cT_mineral(1)<=1e-9    % upper soil cell pure air/water

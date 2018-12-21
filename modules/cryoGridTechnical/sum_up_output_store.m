@@ -124,11 +124,20 @@ if  t==TEMPORARY.outputTime
         OUT.lateral.dE_tot = [ OUT.lateral.dE_tot ; TEMPORARY.dE_tot_lateral];      % vector containing depth-integrated lateral heat fluxes per output interval in [J/m^2] to the current worker
         OUT.lateral.dE_cell = cat( 3, OUT.lateral.dE_cell, TEMPORARY.dE_cell_lateral );    % matrix containing cell-wise, accumulated lateral heat fluxes in [J/m^3] to the current worker
         OUT.lateral.snow_scaling = [ OUT.lateral.snow_scaling; PARA.ensemble.snow_scaling ];
-        OUT.lateral.sediment_fluxes_total = [OUT.lateral.sediment_fluxes_total; GRID.soil.residualSediment ];
         
         TEMPORARY.snow_flux_lateral = 0 ;
         TEMPORARY.dE_cell_lateral = zeros( length(GRID.general.cT_grid), numlabs );
         TEMPORARY.dE_tot_lateral = zeros( 1, numlabs ) ;
+        
+        OUT.lateral.sediment_fluxes_o = [OUT.lateral.sediment_fluxes_o; TEMPORARY.sediment_fluxes_o ];
+        OUT.lateral.sediment_fluxes_m = [OUT.lateral.sediment_fluxes_m; TEMPORARY.sediment_fluxes_m ];
+        OUT.lateral.sediment_fluxes_diff = [OUT.lateral.sediment_fluxes_diff; TEMPORARY.sediment_fluxes_diff ];
+        OUT.lateral.sediment_fluxes_adv = [OUT.lateral.sediment_fluxes_adv; TEMPORARY.sediment_fluxes_adv ];
+        
+        TEMPORARY.sediment_fluxes_o = zeros( 1, numlabs );        
+        TEMPORARY.sediment_fluxes_m = zeros( 1, numlabs );
+        TEMPORARY.sediment_fluxes_diff = zeros( 1, numlabs );
+        TEMPORARY.sediment_fluxes_adv = zeros( 1, numlabs );
     
     end
     

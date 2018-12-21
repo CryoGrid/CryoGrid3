@@ -10,7 +10,7 @@
 
 add_modules;  %adds required modules
 
-number_of_realizations=3;
+number_of_realizations=5;
 
 if number_of_realizations>1 && isempty( gcp('nocreate') )
     parpool(number_of_realizations);
@@ -24,9 +24,9 @@ spmd
     % z     w/i     m       o     type porosity
     % default stratigraphy used in publication:
     PARA.soil.layer_properties=[    0.0     0.80    0.05    0.15    1   0.80    ;...
-                                    0.5     0.75    0.20    0.05    1   0.55    ;...
-                                    3.0     0.50    0.50    0.00    2   0.50    ;...
-                                   10.0     0.03    0.97    0.00    1   0.03    ];
+                                    0.1     0.80    0.15    0.05    1   0.60    ;...
+                                    1.0     0.50    0.50    0.00    1   0.50    ;...
+                                   10.0     0.30    0.70    0.00    1   0.30    ];
     % soil stratigraphy
     % column 1: start depth of layer (first layer must start with 0) - each layer extends until the beginning of the next layer, the last layer extends until the end of the model domain
     % column 2: volumetric water+ice content
@@ -86,8 +86,8 @@ spmd
     PARA.technical.SWEperCell=0.005;                    % SWE per grid cell in [m] - determines size of snow grid cells
     PARA.technical.maxSWE=0.4;                          % in [m] SWE
     PARA.technical.arraySizeT=5002;                     % number of values in the look-up tables for conductivity and capacity
-    PARA.technical.starttime=datenum( 1979, 6, 1 );    % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum( 1979, 10, 1);      % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.starttime=datenum( 1979, 10, 1 );    % starttime of the simulation - if empty start from first value of time series
+    PARA.technical.endtime=datenum( 1999, 12, 31);      % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;       % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;       % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;                    % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
@@ -142,7 +142,7 @@ spmd
     
     % switches for modules
     PARA.modules.infiltration=1;    % true if infiltration into unfrozen ground occurs
-    PARA.modules.xice=0;            % true if thaw subsicdence is enabled
+    PARA.modules.xice=1;            % true if thaw subsicdence is enabled
     PARA.modules.lateral=1;         % true if adjacent realizations are run (this does not require actual lateral fluxes)
     
     if PARA.modules.lateral
@@ -352,7 +352,7 @@ spmd
 
                     % lateral EROSION module // SEDIMENT exchange module
                     if PARA.modules.exchange_sediment
-                        [wc, GRID] = CryoGridLateralErosion(PARA, GRID, wc, T);
+                        [wc, GRID, TEMPORARY] = CryoGridLateralErosion(PARA, GRID, wc, T, TEMPORARY);
                     end
 
                     % update auxiliary variables and common thresholds

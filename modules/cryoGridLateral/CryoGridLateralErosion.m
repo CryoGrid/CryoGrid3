@@ -1,14 +1,12 @@
-function [ wc, GRID ] = CryoGridLateralErosion( PARA, GRID, wc, T )
+function [ wc, GRID, TEMPORARY ] = CryoGridLateralErosion( PARA, GRID, wc, T, TEMPORARY )
 
 labBarrier();
-% check preconditions (are there two connected realizations which
-% between which erosion occurs
+% check preconditions (are there two connected realizations between which erosion occurs)
 precondition_sedimentExchange = checkPreconditionWaterExchange( T, GRID ); % identical to water exchange: unfrozen upp
-
 
 if precondition_sedimentExchange
     
-    fprintf('\t\t\tsync - exchanging sediment (lateral erosion)\n');
+    fprintf('\t\t\tsync - calculating lateral erosion fluxes\n');
     
     sediment_change_tot = zeros(1,numlabs); % in [m] w.r.t. current realization (index)
     sediment_change_diff = zeros(1,numlabs);
@@ -48,16 +46,20 @@ if precondition_sedimentExchange
     
     GRID.soil.residualOrganic = GRID.soil.residualOrganic + sum( sediment_change_o );
     GRID.soil.residualMineral = GRID.soil.residualMineral + sum( sediment_change_m );
-    
     GRID.soil.residualSediment = GRID.soil.residualOrganic + GRID.soil.residualMineral;
     
+    TEMPORARY.sediment_fluxes_o = TEMPORARY.sediment_fluxes_o + sediment_change_o;
+    TEMPORARY.sediment_fluxes_m = TEMPORARY.sediment_fluxes_m + sediment_change_m;
+    TEMPORARY.sediment_fluxes_diff = TEMPORARY.sediment_fluxes_diff + sediment_change_diff;
+    TEMPORARY.sediment_fluxes_adv = TEMPORARY.sediment_fluxes_adv + sediment_change_adv;
+
+ 
     % application of lateral sediment fluxes
     if T(GRID.soil.cT_domain_ub)>0 && isempty(GRID.snow.cT_domain_ub)
         
         % determine uppermost cell containing sediment
         cT_sediment = GRID.soil.cT_mineral + GRID.soil.cT_organic > 1e-9;
         firstSedimentCell = find( cT_sediment, 1, 'first' );
-        
         K_delta = GRID.general.K_delta(GRID.soil.cT_domain);
         
         % determine thresholds for removal or creation of cell
@@ -66,37 +68,26 @@ if precondition_sedimentExchange
             thresholdDeposition = K_delta(firstSedimentCell) .* ( 1 - GRID.soil.cT_natPor(firstSedimentCell) );
         end
         thresholdRemoval = K_delta(firstSedimentCell) .* (GRID.soil.cT_mineral(firstSedimentCell) + GRID.soil.cT_organic(firstSedimentCell));
-        
-        %thresholdRemoveCell = K_delta(firstSedimentCell) .* (GRID.soil.cT_mineral(firstSedimentCell) + GRID.soil.cT_organic(firstSedimentCell));
-        %thresholdNewCell = K_delta(firstSedimentCell) .* (1 - GRID.soil.cT_natPor(firstSedimentCell));
-        %applyFluxes =  GRID.soil.residualSediment >= thresholdNewCell || GRID.soil.residualSediment <= -thresholdRemoveCell ;
+ 
         % apply fluxes if thresholds exceeded
+        residualSedimentToDeposit = double( GRID.soil.residualOrganic>0 ) .* GRID.soil.residualOrganic + double( GRID.soil.residualMineral>0 ) .* GRID.soil.residualMineral;
+        residualSedimentToRemove  = double( GRID.soil.residualOrganic<0 ) .* GRID.soil.residualOrganic + double( GRID.soil.residualMineral<0 ) .* GRID.soil.residualMineral;
         
-        if GRID.soil.residualSediment >= thresholdDeposition
+        if residualSedimentToDeposit >= thresholdDeposition || residualSedimentToRemove <= -thresholdRemoval
             fprintf( '\t\t\tsync - Applying sediment fluxes to worker %d\n ...', labindex );
-            % ------  deposition of sediment------------------------
-            [ wc, GRID ] = depositSediment( GRID, wc );
-            assert( length(wc)==sum(GRID.soil.cT_domain), 'wc length wrong after sediment deposition');
+            if residualSedimentToDeposit >= thresholdDeposition    % deposition of sediment
+                [ wc, GRID ] = depositSediment( GRID, wc );
+                assert( length(wc)==sum(GRID.soil.cT_domain), 'wc length wrong after sediment deposition');
+            elseif residualSedimentToRemove <= -thresholdRemoval  % removal of sediment
+                [ wc, GRID ] = removeSediment( GRID, wc );
+                assert( length(wc)==sum(GRID.soil.cT_domain), 'wc length wrong after sediment removal');
+            end
+            
+            % update water body domain and LUT
             GRID = updateGRID_erosion( PARA, GRID );
             
-        elseif GRID.soil.residualSediment <= -thresholdRemoval
-            fprintf( '\t\t\tsync - Applying sediment fluxes to worker %d\n ...', labindex );
-            % ------ removal of sediment -----------------
-            [ wc, GRID ] = removeSediment( GRID, wc );
-            assert( length(wc)==sum(GRID.soil.cT_domain), 'wc length wrong after sediment removal');
-            GRID = updateGRID_erosion( PARA, GRID );
+            GRID.soil.residualSediment = GRID.soil.residualOrganic + GRID.soil.residualMineral;
             
         end
-        
-        % track total amount (volume) of minerals and organics in order to
-        % confirm conservation of mass --> BALANCE.mass ?
-        
-        GRID.soil.residualSediment = GRID.soil.residualOrganic + GRID.soil.residualMineral;
-        %assert( GRID.soil.residualOrganic == 0, 'organics not zero after application of fluxes');
-        %assert( GRID.soil.residualMineral == 0, 'minerals not zero after application of fluxes');
-        
-        % update water body domain and LUT
     end
-end
-
 end
