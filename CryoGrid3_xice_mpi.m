@@ -183,7 +183,8 @@ function CryoGrid3_xice_mpi(SETUP, startFromRun)
                 PARA.modules.exchange_heat = SETUP.xH;
                 PARA.modules.exchange_water = SETUP.xW;
                 PARA.modules.exchange_snow = SETUP.xS;
-
+                PARA.modules.exchange_sediment = SETUP.xE;
+                
                 %---------overwrites variables for each realization--------------------
                 % this function must define everything that is realization-specific or dependent of all realizations
                 PARA = get_parallel_variables( PARA, SETUP );
@@ -231,9 +232,13 @@ function CryoGrid3_xice_mpi(SETUP, startFromRun)
             wc=GRID.soil.cT_water;
             %GRID.soil.E_lb = find(PARA.soil.evaporationDepth==GRID.soil.soilGrid(:,1))-1;
             %GRID.soil.T_lb = find(PARA.soil.rootDepth==GRID.soil.soilGrid(:,1))-1;
-
             GRID.soil.water2pool=0; % Leo : cannot find a good initialize function to put it in
-
+            
+            %---- modification for lateral erosion
+            GRID.soil.residualSediment = 0;
+            GRID.soil.residualOrganic = 0;
+            GRID.soil.residualMineral = 0;
+            
             %---- preallocate temporary arrays for capacity and conductivity-----------
             [c_cTgrid, k_cTgrid, k_Kgrid, lwc_cTgrid] = initializeConductivityCapacity(T,wc, GRID, PARA); % this is basically the same as "getThermalProperties" during integration, but without interpolation to K grid
 
@@ -374,6 +379,11 @@ function CryoGrid3_xice_mpi(SETUP, startFromRun)
                     % SNOW exchange module
                     if PARA.modules.exchange_snow
                         PARA  = CryoGridLateralSnow( PARA, GRID );
+                    end
+                    
+                    % lateral EROSION module // SEDIMENT exchange module
+                    if PARA.modules.exchange_sediment
+                        [wc, GRID, TEMPORARY] = CryoGridLateralErosion(PARA, GRID, wc, T, TEMPORARY);
                     end
 
                     % update auxiliary variables and common thresholds

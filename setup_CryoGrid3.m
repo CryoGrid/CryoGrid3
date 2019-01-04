@@ -27,11 +27,12 @@ else
     % parameters
     SETUP.numRealizations = 3;
     SETUP.syncTimestep=6./24;
-    SETUP.startDate = datenum( 1949, 10, 1 );
-    SETUP.endDate = datenum( 2099, 12, 31);
+    SETUP.startDate = datenum( 1999, 10, 1 );
+    SETUP.endDate = datenum( 2010, 12, 31);
     SETUP.xH=1;
     SETUP.xW=1;
     SETUP.xS=1;
+    SETUP.xE=1;
     SETUP.xice=0;
 
     SETUP.fieldCapacity = 0.50; % 0.40
@@ -98,8 +99,10 @@ else
      %    SETUP.xice, SETUP.xH, SETUP.xW, SETUP.xS, ...
       %   SETUP.f_C, SETUP.f_R, SETUP.f_T, SETUP.e_R, SETUP.e_T, SETUP.d_xice_C, SETUP.d_xice_R, SETUP.d_xice_T1, SETUP.d_xice_T2, ...
        %  SETUP.K, SETUP.K_Reservoir, SETUP.e_Reservoir, SETUP.snowDens) ;
-    SETUP.runName = sprintf( [ 'SCENARIO_' SETUP.scenario '_' datestr( SETUP.startDate, 'yyyymm' ) '-' datestr(SETUP.endDate, 'yyyymm' ) '_xice%d_xH%d_xW%d_xS%d_%s_eRes%0.2f_snowDens%d_maxSnow%0.2f' ], ...
-         SETUP.xice, SETUP.xH, SETUP.xW, SETUP.xS, SETUP.boundaryCondition_T, SETUP.e_Reservoir, SETUP.snowDens, SETUP.relMaxSnow ) ;
+    %SETUP.runName = sprintf( [ 'SCENARIO_' SETUP.scenario '_' datestr( SETUP.startDate, 'yyyymm' ) '-' datestr(SETUP.endDate, 'yyyymm' ) '_xice%d_xH%d_xW%d_xS%d_%s_eRes%0.2f_snowDens%d_maxSnow%0.2f' ], ...
+     %    SETUP.xice, SETUP.xH, SETUP.xW, SETUP.xS, SETUP.boundaryCondition_T, SETUP.e_Reservoir, SETUP.snowDens, SETUP.relMaxSnow ) ;
+    SETUP.runName = sprintf( [ 'STABILIZATION_' SETUP.scenario '_' datestr( SETUP.startDate, 'yyyymm' ) '-' datestr(SETUP.endDate, 'yyyymm' ) '_xice%d_xH%d_xW%d_xS%d_xE%d_%s_eRes%0.2f_snowDens%d_maxSnow%0.2f' ], ...
+         SETUP.xice, SETUP.xH, SETUP.xW, SETUP.xS, SETUP.xE, SETUP.boundaryCondition_T, SETUP.e_Reservoir, SETUP.snowDens, SETUP.relMaxSnow ) ; 
     [~, SETUP.git_commit_hash] = system('git rev-parse HEAD');
 
 end
