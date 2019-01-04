@@ -32,8 +32,8 @@ GRID.soil.cT_organic(firstSedimentCell)=0;
 GRID.soil.cT_mineral(firstSedimentCell)=0;
 
 % adjust fractions in next cell
-GRID.soil.cT_organic(firstSedimentCell+1) = GRID.soil.cT_organic(firstSedimentCell+1) + deltaOrganic ./ K_delta(firstSedimentCell+1);
-GRID.soil.cT_mineral(firstSedimentCell+1) = GRID.soil.cT_mineral(firstSedimentCell+1) + deltaMineral ./ K_delta(firstSedimentCell+1);
+GRID.soil.cT_organic(firstSedimentCell+1) = max( 0, GRID.soil.cT_organic(firstSedimentCell+1) + deltaOrganic ./ K_delta(firstSedimentCell+1) );
+GRID.soil.cT_mineral(firstSedimentCell+1) = max( 0, GRID.soil.cT_mineral(firstSedimentCell+1) + deltaMineral ./ K_delta(firstSedimentCell+1) );
 
 assert( GRID.soil.cT_organic(firstSedimentCell+1)>=0, 'negative organic content' );
 assert( GRID.soil.cT_mineral(firstSedimentCell+1)>=0, 'negative mineral content' );
@@ -80,9 +80,9 @@ else % water domain present
     totalWater = sum( wc(1:firstSedimentCell) .* K_delta(1:firstSedimentCell) );
     k = firstSedimentCell;
     while k>0
-        assert( totalWater > 0, sprintf( 'negative water to pond in cell #%d', k ) );
+        %assert( totalWater >= 0, sprintf( 'negative water to pond in cell #%d', k ) );
         
-        tempWater= min( totalWater, K_delta(k) .* GRID.soil.cT_actPor(k) );
+        tempWater= max( 0, min( totalWater, K_delta(k) .* GRID.soil.cT_actPor(k) ) );
         wc(k)=tempWater./K_delta(k);
         totalWater=totalWater-tempWater;
         k=k-1;

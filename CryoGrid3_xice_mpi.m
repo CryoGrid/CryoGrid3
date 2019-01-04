@@ -23,9 +23,9 @@ spmd
     % here you provide the ground stratigraphy
     % z     w/i     m       o     type porosity
     % default stratigraphy used in publication:
-    PARA.soil.layer_properties=[    0.0     0.80    0.05    0.15    1   0.80    ;...
-                                    0.1     0.80    0.15    0.05    1   0.60    ;...
-                                    1.0     0.50    0.50    0.00    1   0.50    ;...
+    PARA.soil.layer_properties=[    0.0     0.85    0.00    0.15    1   0.80    ;...
+                                    0.1     0.65    0.30    0.05    2   0.65    ;...
+                                    0.6     0.75    0.20    0.05    1   0.55    ;...
                                    10.0     0.30    0.70    0.00    1   0.30    ];
     % soil stratigraphy
     % column 1: start depth of layer (first layer must start with 0) - each layer extends until the beginning of the next layer, the last layer extends until the end of the model domain
@@ -45,7 +45,7 @@ spmd
     PARA.soil.kh_bedrock=3.0;   % thermal conductivity of the mineral soil fraction [W/mK]
     
     % parameters related to hydrology scheme
-    PARA.soil.fieldCapacity=0.50;           % water holding capacity of the soil - this must be adapted to fit the upperlost layers!!
+    PARA.soil.fieldCapacity=0.40;           % water holding capacity of the soil - this must be adapted to fit the upperlost layers!!
     PARA.soil.evaporationDepth=0.10;        % depth to which evaporation occurs - place on grid cell boundaries
     PARA.soil.rootDepth=0.20;               % depth affected by transpiration - place on grid cell boundaries
     PARA.soil.ratioET=0.5;                  % 1: only transpiration; 0: only evaporation, values in between must be made dependent on LAI, etc.
@@ -159,7 +159,7 @@ spmd
     
     % ------make output directory (name depends on parameters) ----------------
     saveDir = './runs';
-    run_number = sprintf( [ 'LAT_EROSION_TEST_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' ) '_xice%d_xH%d_xW%d_xS%d_xE%d'  ], ...
+    run_number = sprintf( [ 'LAT_EROSION_TEST_' datestr( PARA.technical.starttime, 'yyyymm' ) '-' datestr(PARA.technical.endtime, 'yyyymm' ) '_xice%d_xH%d_xW%d_xS%d_xE%d_stratSam'  ], ...
         [ PARA.modules.xice, PARA.modules.exchange_heat, PARA.modules.exchange_water, PARA.modules.exchange_snow, PARA.modules.exchange_sediment ] );
     mkdir([ saveDir '/' run_number]);
     
