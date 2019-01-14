@@ -16,21 +16,54 @@ area_C = PARA.ensemble.area(1);
 area_R = PARA.ensemble.area(2);
 area_T = PARA.ensemble.area(3);
 
-% thermal distances
-distance_CR = (0.5.*area_C + 0.25.*area_R) ./ sqrt( area_tot ); % in m
-distance_RT = (0.5.*area_T + 0.25.*area_R) ./ sqrt( area_tot );
-% hydraulic distances
-halfWidth_R = (0.25.*area_R) ./ sqrt( area_tot );
-PARA.ensemble.distanceBetweenPoints = [ 0, distance_CR, 0; distance_CR, 0, distance_RT; 0, distance_RT, 0 ];
-A = double( PARA.ensemble.distanceBetweenPoints > 0 ); % adjacency matrix of the network (auxiliary)
+% polygon geometry
+if SETUP.polygon_geometry == 1 % % HEXAGONAL GEOMETRY
 
-% perimeters % assuming hexagonal shapes of centers and polygons
-perimeter_CR = 6 .* sqrt( 2 .* area_C ./ (3 .* sqrt(3) ) );   % assuming hexagonal shape of center/rim interface %2 .* pi .* ( diameter_C ./2);    % assuming circular shape of polygon centers
-perimeter_RT = 6. * sqrt( 2 .* (area_C+area_R) ./ (3 .* sqrt(3) ) ); % assuming hexagonal shape of rim/trough interface
+    % thermal distances
+    distance_CR = (0.5.*area_C + 0.25.*area_R) ./ sqrt( area_tot ); % in m
+    distance_RT = (0.5.*area_T + 0.25.*area_R) ./ sqrt( area_tot );
+    % hydraulic distances
+    halfWidth_R = (0.25.*area_R) ./ sqrt( area_tot );
+    PARA.ensemble.distanceBetweenPoints = [ 0, distance_CR, 0; distance_CR, 0, distance_RT; 0, distance_RT, 0 ];
 
+    % perimeters % assuming hexagonal shapes of centers and polygons
+    perimeter_CR = 6 .* sqrt( 2 .* area_C ./ (3 .* sqrt(3) ) );   % assuming hexagonal shape of center/rim interface %2 .* pi .* ( diameter_C ./2);    % assuming circular shape of polygon centers
+    perimeter_RT = 6. * sqrt( 2 .* (area_C+area_R) ./ (3 .* sqrt(3) ) ); % assuming hexagonal shape of rim/trough interface
+
+    % parameters related to HEAT exchange
+    PARA.ensemble.thermal_contact_length = [0, perimeter_CR, 0; perimeter_CR, 0, perimeter_RT; 0, perimeter_RT, 0 ]; % [ 0, 1, 0 ; 1, 0, 1 ; 0, 1, 0 ]; %
+    PARA.ensemble.thermalDistance = PARA.ensemble.distanceBetweenPoints;
+
+    % parameters related to WATER exchange
+    PARA.ensemble.hydraulic_contact_length = PARA.ensemble.thermal_contact_length;
+    PARA.ensemble.hydraulicDistance = [ 0, halfWidth_R, 0; halfWidth_R, 0, halfWidth_R; 0, halfWidth_R, 0 ];
+
+elseif SETUP.polygon_geometry == 2 % CIRCULAR CROSS-SECTION
+
+    radius_C = sqrt( area_C / pi );
+    radius_R = sqrt( (area_C+area_R) / pi );
+    radius_T = sqrt( (area_C+area_R+area_T) / pi );
+
+    perimeter_CR = 2*pi*radius_C;
+    perimeter_RT = 2*pi*radius_R;
+
+    distance_CR = ( radius_C + radius_R ) / 2;
+    distance_RT = radius_T - radius_R/2 - radius_C/2;
+
+    % distances
+    PARA.ensemble.distanceBetweenPoints = [ 0, distance_CR, 0; distance_CR, 0, distance_RT; 0, distance_RT, 0 ];
+    PARA.ensemble.thermalDistance = PARA.ensemble.distanceBetweenPoints;
+    PARA.ensemble.hydraulicDistance = PARA.ensemble.distanceBetweenPoints;
+
+    % contact lengths
+    PARA.ensemble.thermal_contact_length = [0, perimeter_CR, 0; perimeter_CR, 0, perimeter_RT; 0, perimeter_RT, 0 ]; % [ 0, 1, 0 ; 1, 0, 1 ; 0, 1, 0 ]; %
+    PARA.ensemble.hydraulic_contact_length = PARA.ensemble.thermal_contact_length;
+end
 
 % topographical relations
-altitude_C = 20.0;
+A = double( PARA.ensemble.distanceBetweenPoints > 0 ); % adjacency matrix of the network (auxiliary)
+
+altitude_C = 0.0; %20.0;
 elevation_R = SETUP.e_R;
 elevation_T = SETUP.e_T;
 altitude_R = altitude_C + elevation_R;
@@ -42,18 +75,13 @@ PARA.ensemble.altitude = PARA.ensemble.initial_altitude;
 PARA.ensemble.surface_altitude = PARA.ensemble.initial_altitude;
 PARA.ensemble.soil_altitude = PARA.ensemble.initial_altitude;
 
-% parameters related to HEAT exchange
-PARA.ensemble.thermal_contact_length = [0, perimeter_CR, 0; perimeter_CR, 0, perimeter_RT; 0, perimeter_RT, 0 ]; % [ 0, 1, 0 ; 1, 0, 1 ; 0, 1, 0 ]; %
-PARA.ensemble.thermalDistance = PARA.ensemble.distanceBetweenPoints;
-
 % parameters related to WATER exchange
 PARA.ensemble.water_fluxes = zeros( numlabs, numlabs ); % total water flux in [m] per sync interval from each worker to worker index
 PARA.ensemble.external_water_flux= zeros( 1, numlabs) ;	%in m/day
 PARA.ensemble.hydraulic_conductivity= PARA.soil.hydraulic_conductivity * A;
 PARA.ensemble.water_table_altitude = nan(1, numlabs);
-PARA.ensemble.hydraulic_contact_length = PARA.ensemble.thermal_contact_length;
 PARA.ensemble.infiltration_altitude = nan(1, numlabs);
-PARA.ensemble.hydraulicDistance = [ 0, halfWidth_R, 0; halfWidth_R, 0, halfWidth_R; 0, halfWidth_R, 0 ];
+
 
 boundaryCondition={'NoBC','NoBC', SETUP.boundaryCondition_T}; 		% set to 'DarcyReservoir' for an external water reservoir
 Darcy_elevation= [ nan nan altitude_C+elevation_Reservoir ]; % Elevation of the Darcy reservoir that can drain or refill the worker it is connected to. NaN for workers withour this boundary condition
@@ -76,7 +104,7 @@ PARA.ensemble.snow_scaling = ones(1, numlabs);  % unclear if needed in ensemble 
 
 % parameters related to infiltration scheme
 % to be specificed by user
-PARA.ensemble.rootDepth = [0.2, 0.1, 0.2 ] ;
+PARA.ensemble.rootDepth = [0.2, 0.1, 0.2 ] ;%[0.2, 0.1, 0.2 ] ;
 PARA.ensemble.fieldCapacity = SETUP.fieldCapacity .* ones(1, numlabs);
 PARA.ensemble.external_water_flux = zeros(1, numlabs);
 

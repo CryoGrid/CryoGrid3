@@ -28,18 +28,20 @@ else
     SETUP.numRealizations = 3;
     SETUP.syncTimestep=6./24;
     SETUP.startDate = datenum( 1999, 10, 1 );
-    SETUP.endDate = datenum( 2010, 12, 31);
+    SETUP.endDate = datenum( 2099, 12, 31);
     SETUP.xH=1;
     SETUP.xW=1;
     SETUP.xS=1;
-    SETUP.xE=1;
+    SETUP.xE=0;
     SETUP.xice=0;
+    
+    SETUP.polygon_geometry = 2; % 1: hexagonal , 2: circular, cross-section
 
     SETUP.fieldCapacity = 0.50; % 0.40
-    SETUP.relMaxSnow = 0.4; % 1.0
+    SETUP.relMaxSnow = 0.40; % 1.0
     SETUP.snowDens = 250;%200..250
     SETUP.boundaryCondition_T = 'DarcyReservoir';
-    SETUP.e_Reservoir = -1.0;%-1.0;
+    SETUP.e_Reservoir = -2.0;%-1.0;
 
     % areal fractions
     SETUP.f_C = 0.3; % 0.5
@@ -61,22 +63,23 @@ else
     EL1 = [ 0.65, 0.30, 0.05, 1, 0.55 ] ;
     EL2 = [ 0.75, 0.20, 0.05, 1, 0.55 ] ;
     EL3 = [ 0.85, 0.10, 0.05, 1, 0.55 ] ;
+    EL4 = [ 0.95, 0.00, 0.05, 1, 0.55 ] ;
     BL1 = [ 0.10, 0.90, 0.00, 1, 0.10 ] ;
 
     stratigraphyMap = containers.Map( {'CENTER', 'RIM', 'TROUGH'}, ...
         { [ 0.00, OL1;...
             0.20, ML1;...
-            0.80, EL1;...
+            0.90, EL1;...
             9.00, BL1 ],...
           [ 0.00, OL2;...
             0.10, ML1;...
-            0.70, EL1;...
+            0.80, EL1;...
             0.90, EL2;...
             9.00+SETUP.e_R, BL1 ],...
           [ 0.00, OL1;
             0.20, ML1;
-            0.40, EL2;
-            0.60, EL3;
+            0.50, EL2;
+            0.70, EL4;
             9.00+SETUP.e_T, BL1 ] } );
 
     SETUP.stratigraphy = { stratigraphyMap('CENTER'), ...
@@ -101,8 +104,8 @@ else
        %  SETUP.K, SETUP.K_Reservoir, SETUP.e_Reservoir, SETUP.snowDens) ;
     %SETUP.runName = sprintf( [ 'SCENARIO_' SETUP.scenario '_' datestr( SETUP.startDate, 'yyyymm' ) '-' datestr(SETUP.endDate, 'yyyymm' ) '_xice%d_xH%d_xW%d_xS%d_%s_eRes%0.2f_snowDens%d_maxSnow%0.2f' ], ...
      %    SETUP.xice, SETUP.xH, SETUP.xW, SETUP.xS, SETUP.boundaryCondition_T, SETUP.e_Reservoir, SETUP.snowDens, SETUP.relMaxSnow ) ;
-    SETUP.runName = sprintf( [ 'STABILIZATION_' SETUP.scenario '_' datestr( SETUP.startDate, 'yyyymm' ) '-' datestr(SETUP.endDate, 'yyyymm' ) '_xice%d_xH%d_xW%d_xS%d_xE%d_%s_eRes%0.2f_snowDens%d_maxSnow%0.2f' ], ...
-         SETUP.xice, SETUP.xH, SETUP.xW, SETUP.xS, SETUP.xE, SETUP.boundaryCondition_T, SETUP.e_Reservoir, SETUP.snowDens, SETUP.relMaxSnow ) ; 
+    SETUP.runName = sprintf( [ 'SCENARIO_' datestr( SETUP.startDate, 'yyyymm' ) '-' datestr(SETUP.endDate, 'yyyymm' )  '_' SETUP.scenario '_xice%d_xE%d_xH%d_xW%d_xS%d_geometry%d_eRes%0.2f_snowDens%d_maxSnow%0.2f' ], ...
+         SETUP.xice, SETUP.xE, SETUP.xH, SETUP.xW, SETUP.xS, SETUP.polygon_geometry, SETUP.e_Reservoir, SETUP.snowDens, SETUP.relMaxSnow ) ; 
     [~, SETUP.git_commit_hash] = system('git rev-parse HEAD');
 
 end
