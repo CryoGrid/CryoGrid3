@@ -69,6 +69,9 @@ if precondition_sedimentExchange
         end
         thresholdRemoval = K_delta(firstSedimentCell) .* (GRID.soil.cT_mineral(firstSedimentCell) + GRID.soil.cT_organic(firstSedimentCell));
  
+        assert( thresholdDeposition>=0, 'threshold for deposition is negative' );
+        assert( -thresholdRemoval<=0, 'threshold for removal is positive' );        
+        
         % apply fluxes if thresholds exceeded
         residualSedimentToDeposit = double( GRID.soil.residualOrganic>0 ) .* GRID.soil.residualOrganic + double( GRID.soil.residualMineral>0 ) .* GRID.soil.residualMineral;
         residualSedimentToRemove  = double( GRID.soil.residualOrganic<0 ) .* GRID.soil.residualOrganic + double( GRID.soil.residualMineral<0 ) .* GRID.soil.residualMineral;
