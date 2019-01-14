@@ -53,6 +53,10 @@ if PARA.ensemble.distanceBetweenPoints(labindex,j)>0
         assert( abs( phi_land + phi_water - phi_tot)<1e-9 , 'CryoGridLateralErosion - water/air interfaces do not match total interface' ) ;
         K_eff = phi_tot ./ ( phi_land./K_land + phi_water./K_water );       % based on assuming "series junction" of erosion domains --> reciprocal addition of "conductivities"
         
+        % just to speed up things for testing
+        K_eff=100*K_eff;
+        
+        
         D = PARA.ensemble.distanceBetweenPoints(labindex,j);
         L = PARA.ensemble.thermal_contact_length(labindex,j);
         

@@ -14,6 +14,10 @@ firstSedimentCell = find( cT_sediment, 1, 'first' );
 
 sedimentToRemove = K_delta(firstSedimentCell) .* (GRID.soil.cT_mineral(firstSedimentCell) + GRID.soil.cT_organic(firstSedimentCell));
 
+fprintf( '\t\t\t\t sediment to remove:  %3.6e m \n', -sedimentToRemove );
+
+
+
 organicToRemove = sedimentToRemove .* double( GRID.soil.residualOrganic<0 ) .* GRID.soil.residualOrganic ./ ...
                    ( double( GRID.soil.residualOrganic<0 ) .* GRID.soil.residualOrganic + double( GRID.soil.residualMineral<0 ) .* GRID.soil.residualMineral ) ;
 
@@ -23,8 +27,8 @@ mineralToRemove = sedimentToRemove .* double( GRID.soil.residualMineral<0 ) .* G
 removedOrganic = K_delta(firstSedimentCell) .* GRID.soil.cT_organic(firstSedimentCell);
 removedMineral = K_delta(firstSedimentCell) .* GRID.soil.cT_mineral(firstSedimentCell);
 
-deltaOrganic = removedOrganic - organicToRemove;
-deltaMineral = removedMineral - mineralToRemove;
+deltaOrganic = removedOrganic + organicToRemove; % negative if not enough organic in upper cell --> reduce organic in cell below; positive if too much organic removed from upper cell --> increase organic in cell below
+deltaMineral = removedMineral + mineralToRemove;
 
 assert( abs( deltaOrganic + deltaMineral ) <= 1e-9, 'residuals organic/mineral do not match' );
 
@@ -32,6 +36,7 @@ GRID.soil.cT_organic(firstSedimentCell)=0;
 GRID.soil.cT_mineral(firstSedimentCell)=0;
 
 % adjust fractions in next cell
+
 GRID.soil.cT_organic(firstSedimentCell+1) = max( 0, GRID.soil.cT_organic(firstSedimentCell+1) + deltaOrganic ./ K_delta(firstSedimentCell+1) );
 GRID.soil.cT_mineral(firstSedimentCell+1) = max( 0, GRID.soil.cT_mineral(firstSedimentCell+1) + deltaMineral ./ K_delta(firstSedimentCell+1) );
 

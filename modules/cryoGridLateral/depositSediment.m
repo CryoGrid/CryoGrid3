@@ -21,7 +21,10 @@ if abs(sedimentToDeposit)<1e-6
 end
 
 fprintf( '\t\t\t\t sediment to deposit:  %3.6e m \n', sedimentToDeposit );
+fprintf( '\t\t\t\t deposition type:  %d \n', depositionType );
 
+
+assert( sedimentToDeposit >=0 , 'sediment to deposit is negative' );
 
 depositedFractionOrganic = double( GRID.soil.residualOrganic>0 ) .* GRID.soil.residualOrganic ./ ...
                             ( double( GRID.soil.residualOrganic>0 ) .* GRID.soil.residualOrganic + double( GRID.soil.residualMineral>0 ) .* GRID.soil.residualMineral );
