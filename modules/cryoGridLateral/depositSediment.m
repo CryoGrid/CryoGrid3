@@ -15,10 +15,13 @@ firstSedimentCell = find( cT_sediment, 1, 'first' );
 % determine amount to deposit
 sedimentToDeposit = K_delta(firstSedimentCell) .* ( 1 - GRID.soil.cT_natPor(firstSedimentCell) - GRID.soil.cT_mineral(firstSedimentCell) - GRID.soil.cT_organic(firstSedimentCell) );
 depositionType = 1;
-if abs(sedimentToDeposit)<1e-9
+if abs(sedimentToDeposit)<1e-6
     sedimentToDeposit = K_delta(firstSedimentCell) .* ( 1 - GRID.soil.cT_natPor(firstSedimentCell) );
     depositionType = 2;
 end
+
+fprintf( '\t\t\t\t sediment to deposit:  %3.6e m \n', sedimentToDeposit );
+
 
 depositedFractionOrganic = double( GRID.soil.residualOrganic>0 ) .* GRID.soil.residualOrganic ./ ...
                             ( double( GRID.soil.residualOrganic>0 ) .* GRID.soil.residualOrganic + double( GRID.soil.residualMineral>0 ) .* GRID.soil.residualMineral );
@@ -26,7 +29,7 @@ depositedFractionOrganic = double( GRID.soil.residualOrganic>0 ) .* GRID.soil.re
 depositedFractionMineral = double( GRID.soil.residualMineral>0 ) .* GRID.soil.residualMineral ./ ...
                             ( double( GRID.soil.residualOrganic>0 ) .* GRID.soil.residualOrganic + double( GRID.soil.residualMineral>0 ) .* GRID.soil.residualMineral );
 
-assert( depositedFractionOrganic + depositedFractionMineral == 1, 'fractions do not add up to 1');                        
+assert( abs( depositedFractionOrganic + depositedFractionMineral - 1 )<1e-9, 'fractions do not add up to 1');                        
 
 % case distinction: filling uppermost sediment cell versus creating new cell
 if depositionType == 1  % filling upppermost sediment cell
@@ -48,7 +51,7 @@ if depositionType == 1  % filling upppermost sediment cell
     wc(firstSedimentCell) = wc(firstSedimentCell) - excessWater ./ K_delta(firstSedimentCell);
     GRID.soil.cT_water(firstSedimentCell) = wc(firstSedimentCell);
     
-    assert( abs( 1- GRID.soil.cT_mineral(firstSedimentCell)-GRID.soil.cT_organic(firstSedimentCell)-wc(firstSedimentCell) ) < 1e-9, 'first sediment cell exceeded' );
+    assert( GRID.soil.cT_mineral(firstSedimentCell) + GRID.soil.cT_organic(firstSedimentCell) + wc(firstSedimentCell)  <=1+1e-9 , 'first sediment cell exceeded' );
     
     
 elseif depositionType == 2
@@ -122,7 +125,7 @@ elseif depositionType == 2
         wc(lastWaterCell) = wc(lastWaterCell) - excessWater ./ K_delta(lastWaterCell);
         GRID.soil.cT_water(lastWaterCell) = wc(lastWaterCell);
         
-        assert( GRID.soil.cT_mineral(lastWaterCell)+GRID.soil.cT_organic(lastWaterCell)+wc(lastWaterCell) <= 1, 'last water cell exceeded' );
+        assert( GRID.soil.cT_mineral(lastWaterCell)+GRID.soil.cT_organic(lastWaterCell)+wc(lastWaterCell) <= 1+1e-9, 'last water cell exceeded' );
         
     end
 end
