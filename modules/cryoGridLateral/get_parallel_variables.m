@@ -38,7 +38,7 @@ PARA.ensemble.hydraulicDistance = PARA.ensemble.distanceBetweenPoints;
 
 boundaryCondition={'DarcyReservoir','NoBC','NoBC','NoBC','NoBC'}; 		% set to 'DarcyReservoir' for an external water reservoir
 Darcy_elevation=[300 nan nan nan nan]; 				% Elevation of the Darcy reservoir that can drain or refill the worker it is connected to. NaN for workers without this boundary condition
-Darcy_fluxFactor=[100*5*1e-5/1.20 nan nan nan nan]; 			% Taken as the hydraulic_contact_length*hydraulic_conductivity/hydraulic_distance. Defined for now like this, lets see if we wantto define it differently. NaN for workers without this boundary condition
+Darcy_fluxFactor=[1000*5*1e-5/1.20 nan nan nan nan]; 			% Taken as the hydraulic_contact_length*hydraulic_conductivity/hydraulic_distance. Defined for now like this, lets see if we wantto define it differently. NaN for workers without this boundary condition
 PARA.ensemble.boundaryCondition(length(boundaryCondition)).type=boundaryCondition{end};
 [PARA.ensemble.boundaryCondition.type]=boundaryCondition{:};
 for i=1:numlabs
@@ -82,7 +82,7 @@ Strati_mire =[    0.0     0.80    0.05    0.15    1   0.80    ;...
 Strati_palsa_initial=Strati_mire; % Start from the mire strati
 Strati_palsa_initial(1,2)=PARA.soil.fieldCapacity; % Set the upper layer at FC
 palsaHeight=PARA.ensemble.initial_altitude(2:end)-PARA.ensemble.initial_altitude(1); % Base palsa height on elevations
-ActiveLayer=[0.90 0.60 0.50 0.40]; % Input active layers
+ActiveLayer=[0.9 0.9 0.8 0.7]; % Input active layers
 if labindex < 2;
     PARA.soil.layer_properties=Strati_mire;
 else

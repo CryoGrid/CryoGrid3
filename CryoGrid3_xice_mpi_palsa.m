@@ -23,8 +23,8 @@ if number_of_realizations>1 && isempty( gcp('nocreate') )
 end
 
 % Name, Forcing and diary
-run_number='181203_5w50y_morePrints';
-forcingname='Suossjavri_WRF_Norstore_adapted50yr.mat';
+run_number='181207_5w100y_onlyPPAL';
+forcingname='Suossjavri_WRF_Norstore_adapted100yr.mat';
 diary(['./runs/' run_number '_log.txt'])
 
 spmd
@@ -63,7 +63,7 @@ spmd
     PARA.soil.externalWaterFlux=0.0;        % external water flux / drainage in [m/day]
     PARA.soil.convectiveDomain=[];          % soil domain where air convection due to buoyancy is possible -> start and end [m] - if empty no convection is possible
     PARA.soil.mobileWaterDomain=[0 10.0];   % soil domain where water from excess ice melt is mobile -> start and end [m] - if empty water is not mobile
-    PARA.soil.relative_maxWater=1.0;        % depth at which a water table will form [m] - above excess water is removed, below it pools up
+    PARA.soil.relative_maxWater=0.0;        % depth at which a water table will form [m] - above excess water is removed, below it pools up
     PARA.soil.hydraulic_conductivity = 1e-5;% subsurface saturated hydraulic conductivity assumed for lateral water fluxes [m/s]
     PARA.soil.infiltration_limit_depth=2.0; % maxiumum depth [m] from the surface to which infiltration occurse
     PARA = loadSoilTypes( PARA );           % load the soil types ( silt, sand, water body )
@@ -233,6 +233,8 @@ spmd
     
     while t<PARA.technical.endtime
         
+        assert( sum( isnan(T))==0, 'Main : NaN in T begining');
+        
         %------ interpolate forcing data to time t ----------------------------
         FORCING = interpolateForcingData(t, FORCING);
         
@@ -247,6 +249,7 @@ spmd
         [PARA, GRID] = surfaceCondition(GRID, PARA, T);
         %calculate the surface energy balance
         [SEB, dwc_dt] = surfaceEnergyBalanceInfiltration(T, wc, FORCING, GRID, PARA, SEB);
+        assert( sum( isnan(T))==0, 'Main : NaN in T after SEBinf');
         
         %------ soil module  --------------------------------------------------
         %calculate heat conduction
@@ -268,6 +271,17 @@ spmd
             timestep = min( [timestep, TEMPORARY.syncTime-t] );
         end
         
+        try
+            assert(imag(timestep)==0,'Main Error : timestep is complex')
+        catch
+            Term1=GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain ) 
+            Term2=PARA.technical.targetDeltaE .* nanmin( abs(GRID.general.K_delta ./ SEB.dE_dt ) ) 
+            Term3=SEB.dE_dt
+            Term4=TEMPORARY.syncTime-t
+            assert(imag(timestep)==0,'Main Error : timestep is complex')
+        end
+        assert(imag(t)==0,'Main Error : t is complex')
+        
         % give a warning when timestep required by CFT criterion is below the minimum timestep specified
         if timestep > 0.5 * min( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain) ) / (24.*3600)
             warning( 'numerical stability not guaranteed' );
@@ -278,6 +292,7 @@ spmd
         T = T + SEB.dE_dt./c_cTgrid./GRID.general.K_delta.*timestep.*24.*3600;
         % set grid cells in air to air temperature
         T(GRID.air.cT_domain)=FORCING.i.Tair;
+        assert( sum( isnan(T))==0, 'Main : NaN in T after T update');
         
         %------- water body module --------------------------------------------
         T = mixingWaterBody(T, GRID);
@@ -286,6 +301,7 @@ spmd
         [T, GRID, PARA, SEB, BALANCE] = CryoGridSnow(T, GRID, FORCING, SEB, PARA, c_cTgrid, timestep, BALANCE);
         % GRID = checkFuckingSnow( GRID );
         [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE);
+        assert( sum( isnan(T))==0, 'Main : NaN in T after snow');
         
         %------- infiltration module-------------------------------------------
         if PARA.modules.infiltration
@@ -305,7 +321,9 @@ spmd
         end
         
         %------- update Lstar for next time step ------------------------------
+        assert( sum( isnan(T))==0, 'Main : NaN in T before L_star');
         SEB = L_star(FORCING, PARA, SEB);
+        assert( sum( isnan(SEB.L_star))==0, 'Main : L_star is NaN');
         
         %------- update auxiliary state variables
         PARA.location.altitude = getAltitude( PARA, GRID );
