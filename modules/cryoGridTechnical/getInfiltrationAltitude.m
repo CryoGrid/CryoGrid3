@@ -12,7 +12,7 @@ if isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0; % Condition t
         i=i+1;
     end
     inf_cT_index=i-1;
-    inf_altitude = PARA.location.initial_altitude-GRID.general.K_grid(GRID.soil.cT_domain_ub+inf_cT_index);
+    inf_altitude = PARA.location.initial_altitude - PARA.location.shrinkage - GRID.general.K_grid(GRID.soil.cT_domain_ub+inf_cT_index);
 end
 
 

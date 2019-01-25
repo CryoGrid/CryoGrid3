@@ -37,8 +37,7 @@ if  t==TEMPORARY.outputTime
 
 	TEMPORARY.waterTableElevation=TEMPORARY.waterTableElevation_sum ./ TEMPORARY.dt_out; % This is already stored in OUT.location. But is done here to compare if an average is useful
     TEMPORARY.bottomBucketSoilDepth=TEMPORARY.bottomBucketSoilDepth_sum ./ TEMPORARY.dt_out; % This is already stored in OUT.location. But is done here to compare if an average is useful        
-
-    TEMPORARY.water2pool=TEMPORARY.water2pool_sum ./ TEMPORARY.dt_out;    
+    TEMPORARY.water2pool=TEMPORARY.water2pool_sum ./ TEMPORARY.dt_out;
 
     TEMPORARY.timestep_out=TEMPORARY.timestep_sum./TEMPORARY.dt_out;             
     

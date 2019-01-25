@@ -35,13 +35,13 @@ function [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, 
 
     %%% step 2b) ponding of surface runoff below water table
     while surface_runoff>1e-6 && ...                                % not >0 as sometimes numerical errors occur during calculation of surface_runoff
-            PARA.location.initial_altitude-GRID.general.K_grid(GRID.soil.cT_domain_ub)<PARA.location.absolute_maxWater_altitude
+            PARA.location.initial_altitude - PARA.location.shrinkage - GRID.general.K_grid(GRID.soil.cT_domain_ub)<PARA.location.absolute_maxWater_altitude
             %wc(1)>=1   % this prevents a bug for very small
             %surface_runoff when upper cell not filled // but this
             %does not allow ponding on top of actual soil
         disp('infiltration - update GRID - ponding of water below water table')
 
-        h = PARA.location.absolute_maxWater_altitude - ( PARA.location.initial_altitude - GRID.general.K_grid(GRID.soil.cT_domain_ub) ) ;   % this is guruanteed to be >0
+        h = PARA.location.absolute_maxWater_altitude - ( PARA.location.initial_altitude - PARA.location.shrinkage - GRID.general.K_grid(GRID.soil.cT_domain_ub) ) ;   % this is guruanteed to be >0
 
         % create new water cell / change GRID domains
         GRID.soil.cT_domain(GRID.air.cT_domain_lb)=1;

@@ -32,11 +32,11 @@ if isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0   %no snow cov
 
     % remove water above water table in case of ponding, e.g. through rain (independent of xice module)
     if GRID.soil.cT_mineral(1)+GRID.soil.cT_organic(1)<1e-6 && ...
-            PARA.location.initial_altitude-GRID.general.K_grid(GRID.soil.cT_domain_ub)>PARA.location.absolute_maxWater_altitude
+            PARA.location.initial_altitude - PARA.location.shrinkage - GRID.general.K_grid(GRID.soil.cT_domain_ub)>PARA.location.absolute_maxWater_altitude
 
         cellSize = GRID.general.K_delta(GRID.soil.cT_domain_ub);
         actualWater = wc(1)*cellSize;
-        h = PARA.location.absolute_maxWater_altitude - (PARA.location.initial_altitude-GRID.general.K_grid(GRID.soil.cT_domain_ub+1));
+        h = PARA.location.absolute_maxWater_altitude - (PARA.location.initial_altitude - PARA.location.shrinkage - GRID.general.K_grid(GRID.soil.cT_domain_ub+1));
         if h<0
             warning('h<0. too much water above water table!')
         end

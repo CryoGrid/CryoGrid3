@@ -121,8 +121,9 @@ spmd
     PARA.location.soil_altitude = PARA.location.initial_altitude;           % refers to the soil surface, excluding water body and snow
     PARA.location.infiltration_altitude = nan;                              % defined at runtime
     PARA.location.water_table_altitude = nan;                               % defined at runtime
-    PARA.soil.infiltration_limit_altitude=PARA.location.initial_altitude-PARA.soil.infiltration_limit_depth;    % absolute altitude to which infiltration occurs, updated when ground subsides
+    PARA.soil.infiltration_limit_altitude= PARA.location.initial_altitude - PARA.soil.infiltration_limit_depth;    % absolute altitude to which infiltration occurs, updated when ground subsides
     PARA.location.bottomBucketSoilcTIndex = nan; % defined at runtime
+    PARA.location.shrinkage = 0; % Vertical shrinkage due to excess ice melt when the normal Xice procedure canoont apply because of overlying frozen layers
     
     % common thresholds
     PARA.location.absolute_maxWater_altitude = PARA.location.altitude + PARA.soil.relative_maxWater;
@@ -185,6 +186,14 @@ spmd
     %----------------create and initialize the grids --------------------------
     GRID=makeGrids(PARA);  %create all grids
     GRID=createStratigraphy(PARA,GRID);   %interpolate input stratigraphy to the soil grid
+    
+    % When Xice + lateral heat are on, check if cells are thick enough to
+    % support shrinking when the Xice module cannot route the water up
+    % because of overlying frozen cells.
+    if PARA.modules.xice && PARA.modules.exchange_heat;
+        flag = excessGroundIceCheckThickness(GRID, 0.02); % Here 0.02 m is the minimum thickness that is tolerated
+        assert(flag ~= 0,'Cells to small for the amount of excess ice')
+    end
     
     %----- initializie excess ground ice --------------------------------------
     [GRID,PARA] = initializeExcessIce(GRID,PARA);

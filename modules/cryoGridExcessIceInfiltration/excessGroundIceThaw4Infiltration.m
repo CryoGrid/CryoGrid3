@@ -19,7 +19,7 @@ water=GRID.general.K_delta(GRID.soil.cT_domain).*wc;
 
 K_delta=GRID.general.K_delta(GRID.soil.cT_domain);
 
-mobileWater = double(T(GRID.soil.cT_domain)>0) .* (water-natPor) .* double(water>natPor);
+mobileWater = double(T(GRID.soil.cT_domain)>0) .* (water-natPor) .* double(water>natPor); % 
 [startCell, ~]= LayerIndex(mobileWater~=0);
 
 %move solids down
@@ -95,7 +95,7 @@ soilGRIDsizeOld = sum( GRID.soil.cT_domain );   % to check if LUT update necessa
 
 % remove air cells and mixed air/water cells above water table and adjust the GRID domains
 while GRID.soil.cT_mineral(1)+GRID.soil.cT_organic(1)+wc(1)<=1e-6 || ...      % upper cell filled with pure air
-        (GRID.soil.cT_mineral(1)+GRID.soil.cT_organic(1)<=1e-6 && ( PARA.location.initial_altitude - GRID.general.K_grid(GRID.soil.cT_domain_ub+1) > PARA.location.absolute_maxWater_altitude) )  
+        (GRID.soil.cT_mineral(1)+GRID.soil.cT_organic(1)<=1e-6 && ( PARA.location.initial_altitude - PARA.location.shrinkage - GRID.general.K_grid(GRID.soil.cT_domain_ub+1) > PARA.location.absolute_maxWater_altitude) )  
 
     disp('xice - update GRID - removing grid cell ...')
     if wc(1)<=1e-6
@@ -136,12 +136,12 @@ end
 
 % check if the uppermost soil cell contains water above water table
 if GRID.soil.cT_mineral(1)+GRID.soil.cT_organic(1)<=1e-6 && ...
-                PARA.location.initial_altitude - GRID.general.K_grid(GRID.soil.cT_domain_ub) > PARA.location.absolute_maxWater_altitude
+                PARA.location.initial_altitude - PARA.location.shrinkage - GRID.general.K_grid(GRID.soil.cT_domain_ub) > PARA.location.absolute_maxWater_altitude
                 
     disp('xice - checking upper cell for excess water');
 
     actualWater = wc(1)*K_delta(1);
-    h = PARA.location.absolute_maxWater_altitude - (PARA.location.initial_altitude-GRID.general.K_grid(GRID.soil.cT_domain_ub+1));
+    h = PARA.location.absolute_maxWater_altitude - (PARA.location.initial_altitude - PARA.location.shrinkage - GRID.general.K_grid(GRID.soil.cT_domain_ub+1));
     
     if h<0
         warning('xice - h<0. too much water above water table!')
