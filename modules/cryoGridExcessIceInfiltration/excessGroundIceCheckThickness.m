@@ -5,7 +5,7 @@ function [ flag ] = excessGroundIceCheckThickness(GRID, threshold)
 
 cellThick = GRID.general.K_delta(GRID.soil.cT_domain);
 
-finalThick = cellThick .* (GRID.soil.cT_mineral + GRID.soil.cT_organic) / (1-GRID.soil.cT_natPor); % Caltuclate thickness of cell if skrinked by excess ice melt
+finalThick = cellThick .* (GRID.soil.cT_mineral + GRID.soil.cT_organic) ./ (1-GRID.soil.cT_natPor); % Caltuclate thickness of cell if skrinked by excess ice melt
 
 if sum(finalThick < threshold) > 0; % Check if some cells are thinner than threshold
     flag = 0;
