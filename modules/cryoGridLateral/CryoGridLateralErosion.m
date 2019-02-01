@@ -62,15 +62,22 @@ if precondition_sedimentExchange
         firstSedimentCell = find( cT_sediment, 1, 'first' );
         K_delta = GRID.general.K_delta(GRID.soil.cT_domain);
         
-        % determine thresholds for removal or creation of cell
+        % determine thresholds for filling or creating of cell (case
+        % distinction needed)
         thresholdDeposition = K_delta(firstSedimentCell) .* ( 1 - GRID.soil.cT_natPor(firstSedimentCell) - GRID.soil.cT_mineral(firstSedimentCell) - GRID.soil.cT_organic(firstSedimentCell) );
-        if abs(thresholdDeposition)<1e-9
-            thresholdDeposition = K_delta(firstSedimentCell) .* ( 1 - GRID.soil.cT_natPor(firstSedimentCell) );
+        if abs(thresholdDeposition)<1e-9 % this means the first sediment cell is "full" --> create new sediment cell above
+            if firstSedimentCell==1 % no water above sediment
+                thresholdDeposition = K_delta(firstSedimentCell) .* ( 1 - GRID.soil.cT_natPor(firstSedimentCell) );
+            else % water cells present above sediment
+                thresholdDeposition = K_delta(firstSedimentCell-1) .* ( 1 - GRID.soil.cT_natPor(firstSedimentCell-1) );
+            end
         end
+        
+        % determine threshold for removal of cell (no case distinction needed)
         thresholdRemoval = K_delta(firstSedimentCell) .* (GRID.soil.cT_mineral(firstSedimentCell) + GRID.soil.cT_organic(firstSedimentCell));
  
-        assert( thresholdDeposition>=0, 'threshold for deposition is negative' );
-        assert( -thresholdRemoval<=0, 'threshold for removal is positive' );        
+        assert( thresholdDeposition>=-1e-9, 'threshold for deposition is negative' );
+        assert( -thresholdRemoval<=1e-9, 'threshold for removal is positive' );        
         
         % apply fluxes if thresholds exceeded
         residualSedimentToDeposit = double( GRID.soil.residualOrganic>0 ) .* GRID.soil.residualOrganic + double( GRID.soil.residualMineral>0 ) .* GRID.soil.residualMineral;

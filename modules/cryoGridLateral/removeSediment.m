@@ -21,29 +21,29 @@ fprintf( '\t\t\t\t sediment to remove:  %3.6e m \n', -sedimentToRemove );
 organicToRemove = sedimentToRemove .* double( GRID.soil.residualOrganic<0 ) .* GRID.soil.residualOrganic ./ ...
                    ( double( GRID.soil.residualOrganic<0 ) .* GRID.soil.residualOrganic + double( GRID.soil.residualMineral<0 ) .* GRID.soil.residualMineral ) ;
                
-fprintf( '\t\t\t\t organic to remove:  %3.6e m \n', organicToRemove );
+%fprintf( '\t\t\t\t organic to remove:  %3.6e m \n', organicToRemove );
 
 mineralToRemove = sedimentToRemove .* double( GRID.soil.residualMineral<0 ) .* GRID.soil.residualMineral ./ ... 
                    ( double( GRID.soil.residualOrganic<0 ) .* GRID.soil.residualOrganic + double( GRID.soil.residualMineral<0 ) .* GRID.soil.residualMineral ) ;
 
-fprintf( '\t\t\t\t mineral to remove:  %3.6e m \n', mineralToRemove );
+%fprintf( '\t\t\t\t mineral to remove:  %3.6e m \n', mineralToRemove );
 
                
 removedOrganic = K_delta(firstSedimentCell) .* GRID.soil.cT_organic(firstSedimentCell);
 
-fprintf( '\t\t\t\t organic in upper cell:  %3.6e m \n', removedOrganic );
+%( '\t\t\t\t organic in upper cell:  %3.6e m \n', removedOrganic );
 
 
 removedMineral = K_delta(firstSedimentCell) .* GRID.soil.cT_mineral(firstSedimentCell);
 
-fprintf( '\t\t\t\t mineral in upper cell:  %3.6e m \n', removedMineral );
+%fprintf( '\t\t\t\t mineral in upper cell:  %3.6e m \n', removedMineral );
 
 
 deltaOrganic = removedOrganic - organicToRemove; % negative if not enough organic in upper cell --> reduce organic in cell below; positive if too much organic removed from upper cell --> increase organic in cell below
 deltaMineral = removedMineral - mineralToRemove;
 
-fprintf( '\t\t\t\t deltaOrganic:  %3.6e m \n', deltaOrganic );
-fprintf( '\t\t\t\t deltaMineral:  %3.6e m \n', deltaMineral );
+%fprintf( '\t\t\t\t deltaOrganic:  %3.6e m \n', deltaOrganic );
+%fprintf( '\t\t\t\t deltaMineral:  %3.6e m \n', deltaMineral );
 
 
 
@@ -58,12 +58,12 @@ GRID.soil.cT_mineral(firstSedimentCell)=0;
 
 GRID.soil.cT_organic(firstSedimentCell+1) = min( max( 0, GRID.soil.cT_organic(firstSedimentCell+1) + deltaOrganic ./ K_delta(firstSedimentCell+1) ), 1-GRID.soil.cT_actPor(firstSedimentCell+1)  );
 
-fprintf( '\t\t\t\t organic in cell below:  %3.6e m \n', GRID.soil.cT_organic(firstSedimentCell+1) );
+%fprintf( '\t\t\t\t organic in cell below:  %3.6e m \n', GRID.soil.cT_organic(firstSedimentCell+1) );
 
 
 GRID.soil.cT_mineral(firstSedimentCell+1) = min( max( 0, GRID.soil.cT_mineral(firstSedimentCell+1) + deltaMineral ./ K_delta(firstSedimentCell+1) ), 1-GRID.soil.cT_actPor(firstSedimentCell+1)  );
 
-fprintf( '\t\t\t\t mineral in cell below:  %3.6e m \n', GRID.soil.cT_mineral(firstSedimentCell+1) );
+%fprintf( '\t\t\t\t mineral in cell below:  %3.6e m \n', GRID.soil.cT_mineral(firstSedimentCell+1) );
 
 
 assert( GRID.soil.cT_organic(firstSedimentCell+1)+GRID.soil.cT_mineral(firstSedimentCell+1) <= 1-GRID.soil.cT_actPor(firstSedimentCell+1) + 1e-9, 'too much m+o in cell below removed cell');

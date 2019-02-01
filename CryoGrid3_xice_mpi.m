@@ -20,7 +20,7 @@ function CryoGrid3_xice_mpi(SETUP, startFromRun)
         run_number = SETUP.runName;
         
         % load/overwrite SETUP struct
-        load( [ startFromRunDir '/' startFromRunName '/' startFromRunName '_setup.mat' ] );
+        % load( [ startFromRunDir '/' startFromRunName '/' startFromRunName '_setup.mat' ] );
     end
 
     number_of_realizations=SETUP.numRealizations;
@@ -48,8 +48,21 @@ function CryoGrid3_xice_mpi(SETUP, startFromRun)
             BALANCE = initializeBALANCE(T, wc, c_cTgrid, lwc_cTgrid, GRID, PARA);
             
             %-------- provide arrays for data storage ---------------------------------
-            [TEMPORARY] = generateTemporaryFromState(t, T, PARA);
+            [~, TEMPORARY] = generateTemporary( T, PARA); % do not take t from PARA
+            
+            % this needs to be extracted from "generate temporary" to
+            % ensure the correct "t" is used for output, save etc.
+            TEMPORARY.outputTime=t+PARA.technical.outputTimestep;
+            TEMPORARY.syncTime=t+PARA.technical.syncTimeStep;            
+            if ~isempty(PARA.technical.saveInterval)
+                TEMPORARY.saveTime=datenum(str2num(datestr(t,'yyyy'))+2,  str2num(PARA.technical.saveDate(4:5)), str2num(PARA.technical.saveDate(1:2)))-PARA.technical.outputTimestep;
+            else
+                TEMPORARY.saveTime=PARA.technical.endtime+PARA.technical.outputTimestep;
+            end
+            
             OUT = generateOUT();
+
+            %PARA.soil.relative_maxWater=10.0; % temporary bugfix to allow deeper lakes with erosion enabled
             
         else
             %---------------define input parameters------------------------------------
@@ -86,9 +99,9 @@ function CryoGrid3_xice_mpi(SETUP, startFromRun)
             PARA.soil.externalWaterFlux=0.0;        % external water flux / drainage in [m/day]
             PARA.soil.convectiveDomain=[];          % soil domain where air convection due to buoyancy is possible -> start and end [m] - if empty no convection is possible
             PARA.soil.mobileWaterDomain=[0 10.0];   % soil domain where water from excess ice melt is mobile -> start and end [m] - if empty water is not mobile
-            PARA.soil.relative_maxWater=1.0;        % depth at which a water table will form [m] - above excess water is removed, below it pools up
+            PARA.soil.relative_maxWater=10.0;        % depth at which a water table will form [m] - above excess water is removed, below it pools up
             PARA.soil.hydraulic_conductivity = SETUP.K;% subsurface saturated hydraulic conductivity assumed for lateral water fluxes [m/s]
-            PARA.soil.infiltration_limit_depth=2.0; % maxiumum depth [m] from the surface to which infiltration occurse
+            PARA.soil.infiltration_limit_depth=10.0; % maxiumum depth [m] from the surface to which infiltration occurse
             PARA = loadSoilTypes( PARA );           % load the soil types ( silt, sand, water body )
 
             % parameters related to snow
@@ -259,172 +272,185 @@ function CryoGrid3_xice_mpi(SETUP, startFromRun)
         %                                                                         I
         %_________________________________________________________________________I
 
-        while t<PARA.technical.endtime
+        try
+        
+            while t<PARA.technical.endtime
 
-            %------ interpolate forcing data to time t ----------------------------
-            FORCING = interpolateForcingData(t, FORCING);
+                %------ interpolate forcing data to time t ----------------------------
+                FORCING = interpolateForcingData(t, FORCING);
 
-            %------determine the thermal properties of the model domains ----------
-            [c_cTgrid, k_cTgrid, k_Kgrid, lwc_cTgrid] = getThermalPropertiesInfiltration(T, wc, c_cTgrid, k_cTgrid, k_Kgrid, lwc_cTgrid, GRID, PARA);
+                %------determine the thermal properties of the model domains ----------
+                [c_cTgrid, k_cTgrid, k_Kgrid, lwc_cTgrid] = getThermalPropertiesInfiltration(T, wc, c_cTgrid, k_cTgrid, k_Kgrid, lwc_cTgrid, GRID, PARA);
 
-            %------- water and energy balance calculations ------------------------
-            BALANCE = updateBALANCE(T, wc, c_cTgrid, lwc_cTgrid, BALANCE, GRID, PARA);
+                %------- water and energy balance calculations ------------------------
+                BALANCE = updateBALANCE(T, wc, c_cTgrid, lwc_cTgrid, BALANCE, GRID, PARA);
 
-            %------ surface energy balance module ---------------------------------
-            %set surface conditions (albedo, roughness length, etc.)
-            [PARA, GRID] = surfaceCondition(GRID, PARA, T);
-            %calculate the surface energy balance
-            if PARA.modules.infiltration
-                [SEB, dwc_dt] = surfaceEnergyBalanceInfiltration(T, wc, FORCING, GRID, PARA, SEB);
-            else
-                %...
-            end
-
-            %------ soil module  --------------------------------------------------
-            %calculate heat conduction
-            SEB = heatConduction(T, k_Kgrid, GRID, PARA, SEB);
-
-            %------ sum up heat fluxes --------------------------------------------
-            SEB.dE_dt = SEB.dE_dt_cond + SEB.dE_dt_SEB;
-
-            %------ determine optimal timestep ------------------------------------
-            % account for min and max timesteps specified, max. energy change per grid cell and the CFT stability criterion.
-            % energy change due to advection of heat through water fluxes is still excluded.
-            % timestep in [days]
-            timestep = min( [ max( [ min( [ 0.5 * nanmin( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain ) ) ./ (24.*3600), ...
-                PARA.technical.targetDeltaE .* nanmin( abs(GRID.general.K_delta ./ SEB.dE_dt ) ) ./ (24.*3600), ...
-                PARA.technical.maxTimestep ] ), ...
-                PARA.technical.minTimestep ] ), ...
-                TEMPORARY.outputTime-t ] );
-            if PARA.modules.lateral
-                timestep = min( [timestep, TEMPORARY.syncTime-t] );
-            end
-
-            % give a warning when timestep required by CFL criterion is below the minimum timestep specified
-            if timestep > 0.5 * min( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain) ) / (24.*3600)
-                warning( 'numerical stability not guaranteed' );
-            end
-
-            %------ update T array ------------------------------------------------
-            % account for vertical heat fluxes from ground heat flux and heat conduction
-            T = T + SEB.dE_dt./c_cTgrid./GRID.general.K_delta.*timestep.*24.*3600;
-            % set grid cells in air to air temperature
-            T(GRID.air.cT_domain)=FORCING.i.Tair;
-
-            %------- water body module --------------------------------------------
-            T = mixingWaterBody(T, GRID);
-
-            %------- snow cover module --------------------------------------------
-            [T, GRID, PARA, SEB, BALANCE] = CryoGridSnow(T, GRID, FORCING, SEB, PARA, c_cTgrid, timestep, BALANCE);
-            [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE);
-
-            %------- infiltration module-------------------------------------------
-            if PARA.modules.infiltration
-                [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRID, PARA, FORCING, BALANCE);
-            end
-
-            %------- excess ice module --------------------------------------------
-            if PARA.modules.xice && ~PARA.modules.infiltration
-                warning( 'energy and water balances are not correct for this combination of modules');
-                [GRID, PARA] = excessGroundIce(T, GRID, PARA);
-                wc = wc( end-sum(GRID.soil.cT_domain)+1 : end );	% assure wc has correct length
-            elseif PARA.modules.xice && PARA.modules.infiltration
-                [GRID, PARA, wc, meltwaterGroundIce, TEMPORARY] = excessGroundIceInfiltration(T, wc, GRID, PARA, TEMPORARY);
-                GRID = updateGRID_excessiceInfiltration(meltwaterGroundIce, GRID);
-            end
-
-            %------- update Lstar for next time step ------------------------------
-            SEB = L_star(FORCING, PARA, SEB);
-
-            %------- update auxiliary state variables
-            PARA.location.altitude = getAltitude( PARA, GRID );
-            PARA.location.surface_altitude = getSurfaceAltitude( PARA, GRID );
-            PARA.location.soil_altitude = getSoilAltitude( PARA, GRID );
-            [PARA.location.infiltration_altitude, PARA.location.bottomBucketSoilcTIndex] = getInfiltrationAltitude( PARA, GRID, T);
-            [PARA.location.water_table_altitude] = getWaterTableAltitudeFC(T, wc, GRID, PARA);
-            PARA.soil.infiltration_limit_altitude = PARA.location.soil_altitude - PARA.soil.infiltration_limit_depth;
-
-            %------- update threshold variables if no lateral exchange processes occur, otherwise updated at sync time
-            if ~PARA.modules.lateral
-                PARA.location.absolute_maxWater_altitude = PARA.location.altitude + PARA.soil.relative_maxWater;
-                if isempty( PARA.snow.relative_maxSnow )
-                    PARA.location.absolute_maxSnow_altitude = [];
+                %------ surface energy balance module ---------------------------------
+                %set surface conditions (albedo, roughness length, etc.)
+                [PARA, GRID] = surfaceCondition(GRID, PARA, T);
+                %calculate the surface energy balance
+                if PARA.modules.infiltration
+                    [SEB, dwc_dt] = surfaceEnergyBalanceInfiltration(T, wc, FORCING, GRID, PARA, SEB);
                 else
-                    PARA.location.absolute_maxSnow_altitude =  PARA.location.altitude + PARA.snow.relative_maxSnow;
+                    %...
                 end
+
+                %------ soil module  --------------------------------------------------
+                %calculate heat conduction
+                SEB = heatConduction(T, k_Kgrid, GRID, PARA, SEB);
+
+                %------ sum up heat fluxes --------------------------------------------
+                SEB.dE_dt = SEB.dE_dt_cond + SEB.dE_dt_SEB;
+
+                %------ determine optimal timestep ------------------------------------
+                % account for min and max timesteps specified, max. energy change per grid cell and the CFT stability criterion.
+                % energy change due to advection of heat through water fluxes is still excluded.
+                % timestep in [days]
+                timestep = min( [ max( [ min( [ 0.5 * nanmin( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain ) ) ./ (24.*3600), ...
+                    PARA.technical.targetDeltaE .* nanmin( abs(GRID.general.K_delta ./ SEB.dE_dt ) ) ./ (24.*3600), ...
+                    PARA.technical.maxTimestep ] ), ...
+                    PARA.technical.minTimestep ] ), ...
+                    TEMPORARY.outputTime-t ] );
+                if PARA.modules.lateral
+                    timestep = min( [timestep, TEMPORARY.syncTime-t] );
+                end
+
+                % give a warning when timestep required by CFL criterion is below the minimum timestep specified
+                if timestep > 0.5 * min( GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain) ) / (24.*3600)
+                    warning( 'numerical stability not guaranteed' );
+                end
+
+                %------ update T array ------------------------------------------------
+                % account for vertical heat fluxes from ground heat flux and heat conduction
+                T = T + SEB.dE_dt./c_cTgrid./GRID.general.K_delta.*timestep.*24.*3600;
+                % set grid cells in air to air temperature
+                T(GRID.air.cT_domain)=FORCING.i.Tair;
+
+                %------- water body module --------------------------------------------
+                T = mixingWaterBody(T, GRID);
+
+                %------- snow cover module --------------------------------------------
+                [T, GRID, PARA, SEB, BALANCE] = CryoGridSnow(T, GRID, FORCING, SEB, PARA, c_cTgrid, timestep, BALANCE);
+                [GRID, T, BALANCE] = updateGRID_snow(T, GRID, PARA, BALANCE);
+
+                %------- infiltration module-------------------------------------------
+                if PARA.modules.infiltration
+                    [wc, GRID, BALANCE] = CryoGridInfiltration(T, wc, dwc_dt, timestep, GRID, PARA, FORCING, BALANCE);
+                end
+
+                %------- excess ice module --------------------------------------------
+                if PARA.modules.xice && ~PARA.modules.infiltration
+                    warning( 'energy and water balances are not correct for this combination of modules');
+                    [GRID, PARA] = excessGroundIce(T, GRID, PARA);
+                    wc = wc( end-sum(GRID.soil.cT_domain)+1 : end );	% assure wc has correct length
+                elseif PARA.modules.xice && PARA.modules.infiltration
+                    [GRID, PARA, wc, meltwaterGroundIce, TEMPORARY] = excessGroundIceInfiltration(T, wc, GRID, PARA, TEMPORARY);
+                    GRID = updateGRID_excessiceInfiltration(meltwaterGroundIce, GRID);
+                end
+
+                %------- update Lstar for next time step ------------------------------
+                SEB = L_star(FORCING, PARA, SEB);
+
+                %------- update auxiliary state variables
+                PARA.location.altitude = getAltitude( PARA, GRID );
+                PARA.location.surface_altitude = getSurfaceAltitude( PARA, GRID );
+                PARA.location.soil_altitude = getSoilAltitude( PARA, GRID );
+                [PARA.location.infiltration_altitude, PARA.location.bottomBucketSoilcTIndex] = getInfiltrationAltitude( PARA, GRID, T);
+                [PARA.location.water_table_altitude] = getWaterTableAltitudeFC(T, wc, GRID, PARA);
+                PARA.soil.infiltration_limit_altitude = PARA.location.soil_altitude - PARA.soil.infiltration_limit_depth;
+
+                %------- update threshold variables if no lateral exchange processes occur, otherwise updated at sync time
+                if ~PARA.modules.lateral
+                    PARA.location.absolute_maxWater_altitude = PARA.location.altitude + PARA.soil.relative_maxWater;
+                    if isempty( PARA.snow.relative_maxSnow )
+                        PARA.location.absolute_maxSnow_altitude = [];
+                    else
+                        PARA.location.absolute_maxSnow_altitude =  PARA.location.altitude + PARA.snow.relative_maxSnow;
+                    end
+                end
+
+                %------- lateral exchange module --------------------------------------
+                % all functions called in this block should go into
+                % /modules/cryoGridLateral
+                % calling PARA.ensemble is only allowed here
+                if PARA.modules.lateral
+                    if t==TEMPORARY.syncTime %communication between workers
+                        fprintf('\n\t\t\tCryoGridLateral: sync - start (Worker %1.0f)\n', labindex);
+
+                        % update auxiliary variables and common thresholds
+                        labBarrier();
+                        [PARA] = updateAuxiliaryVariablesAndCommonThresholds(T, wc, GRID, PARA);
+
+                        % HEAT exchange module
+                        if PARA.modules.exchange_heat
+                            [ T, TEMPORARY ] = CryoGridLateralHeat( PARA, GRID, BALANCE, TEMPORARY, T, k_cTgrid, c_cTgrid );
+                        end
+
+                        % WATER exchange module
+                        if PARA.modules.exchange_water
+                            [wc, GRID, BALANCE] = CryoGridLateralWater( PARA, GRID, BALANCE, T, wc);    
+                        end
+
+                        % SNOW exchange module
+                        if PARA.modules.exchange_snow
+                            PARA  = CryoGridLateralSnow( PARA, GRID );
+                        end
+
+                        % lateral EROSION module // SEDIMENT exchange module
+                        if PARA.modules.exchange_sediment
+                            [wc, GRID, TEMPORARY] = CryoGridLateralErosion(PARA, GRID, wc, T, TEMPORARY);
+                        end
+
+                        % update auxiliary variables and common thresholds
+                        labBarrier();
+                        [PARA] = updateAuxiliaryVariablesAndCommonThresholds(T, wc, GRID, PARA) ;
+
+                        % determine next sync time
+                        TEMPORARY.syncTime=round((TEMPORARY.syncTime + PARA.technical.syncTimeStep)./PARA.technical.syncTimeStep).*PARA.technical.syncTimeStep;
+                        fprintf('\t\t\tsync - done\n');
+                    end
+                end
+
+                %------- water balance calculations -----------------------------------
+                % rainfall
+                BALANCE.water.dp_rain = BALANCE.water.dp_rain + FORCING.i.rainfall.*timestep;   %sum up rainfall in [mm] per output interval
+                % snowfall
+                BALANCE.water.dp_snow = BALANCE.water.dp_snow + FORCING.i.snowfall.*timestep;   %sum up snowfall in [mm] SWE per output interval
+
+
+                %------- further diagnostics
+                % organic volume which is unfrozen multiplied with timestep
+                TEMPORARY.unfrozen_organic_volume_time = TEMPORARY.unfrozen_organic_volume_time + ...
+                                                         nansum( GRID.soil.cT_organic .* GRID.general.K_delta(GRID.soil.cT_domain) .* ( T(GRID.soil.cT_domain)>0 ) ) .* timestep.*24.*3600; 
+                TEMPORARY.unfrozen_organic_volume_time_aerobic = TEMPORARY.unfrozen_organic_volume_time_aerobic + ...
+                                                         nansum( GRID.soil.cT_organic .* GRID.general.K_delta(GRID.soil.cT_domain) .* ( T(GRID.soil.cT_domain)>0 ) .* ( wc<=PARA.soil.fieldCapacity ) ) .* timestep.*24.*3600; 
+                TEMPORARY.unfrozen_organic_volume_time_anaerobic = TEMPORARY.unfrozen_organic_volume_time_anaerobic + ...
+                                                         nansum( GRID.soil.cT_organic .* GRID.general.K_delta(GRID.soil.cT_domain) .* ( T(GRID.soil.cT_domain)>0 ) .* ( wc>PARA.soil.fieldCapacity ) ).* timestep.*24.*3600; 
+
+                %------- next time step -----------------------------------------------
+                t=t+timestep;
+                %---------- sum up + OUTPUT -------------------------------------------
+                [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc_cTgrid(GRID.soil.cT_domain), timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, FORCING, saveDir, run_number);
+
             end
 
-            %------- lateral exchange module --------------------------------------
-            % all functions called in this block should go into
-            % /modules/cryoGridLateral
-            % calling PARA.ensemble is only allowed here
-            if PARA.modules.lateral
-                if t==TEMPORARY.syncTime %communication between workers
-                    fprintf('\n\t\t\tCryoGridLateral: sync - start (Worker %1.0f)\n', labindex);
-
-                    % update auxiliary variables and common thresholds
-                    labBarrier();
-                    [PARA] = updateAuxiliaryVariablesAndCommonThresholds(T, wc, GRID, PARA);
-
-                    % HEAT exchange module
-                    if PARA.modules.exchange_heat
-                        [ T, TEMPORARY ] = CryoGridLateralHeat( PARA, GRID, BALANCE, TEMPORARY, T, k_cTgrid, c_cTgrid );
-                    end
-
-                    % WATER exchange module
-                    if PARA.modules.exchange_water
-                        [wc, GRID, BALANCE] = CryoGridLateralWater( PARA, GRID, BALANCE, T, wc);    
-                    end
-
-                    % SNOW exchange module
-                    if PARA.modules.exchange_snow
-                        PARA  = CryoGridLateralSnow( PARA, GRID );
-                    end
-                    
-                    % lateral EROSION module // SEDIMENT exchange module
-                    if PARA.modules.exchange_sediment
-                        [wc, GRID, TEMPORARY] = CryoGridLateralErosion(PARA, GRID, wc, T, TEMPORARY);
-                    end
-
-                    % update auxiliary variables and common thresholds
-                    labBarrier();
-                    [PARA] = updateAuxiliaryVariablesAndCommonThresholds(T, wc, GRID, PARA) ;
-
-                    % determine next sync time
-                    TEMPORARY.syncTime=round((TEMPORARY.syncTime + PARA.technical.syncTimeStep)./PARA.technical.syncTimeStep).*PARA.technical.syncTimeStep;
-                    fprintf('\t\t\tsync - done\n');
-                end
-            end
-
-            %------- water balance calculations -----------------------------------
-            % rainfall
-            BALANCE.water.dp_rain = BALANCE.water.dp_rain + FORCING.i.rainfall.*timestep;   %sum up rainfall in [mm] per output interval
-            % snowfall
-            BALANCE.water.dp_snow = BALANCE.water.dp_snow + FORCING.i.snowfall.*timestep;   %sum up snowfall in [mm] SWE per output interval
-
-
-            %------- further diagnostics
-            % organic volume which is unfrozen multiplied with timestep
-            TEMPORARY.unfrozen_organic_volume_time = TEMPORARY.unfrozen_organic_volume_time + ...
-                                                     nansum( GRID.soil.cT_organic .* GRID.general.K_delta(GRID.soil.cT_domain) .* ( T(GRID.soil.cT_domain)>0 ) ) .* timestep.*24.*3600; 
-            TEMPORARY.unfrozen_organic_volume_time_aerobic = TEMPORARY.unfrozen_organic_volume_time_aerobic + ...
-                                                     nansum( GRID.soil.cT_organic .* GRID.general.K_delta(GRID.soil.cT_domain) .* ( T(GRID.soil.cT_domain)>0 ) .* ( wc<=PARA.soil.fieldCapacity ) ) .* timestep.*24.*3600; 
-            TEMPORARY.unfrozen_organic_volume_time_anaerobic = TEMPORARY.unfrozen_organic_volume_time_anaerobic + ...
-                                                     nansum( GRID.soil.cT_organic .* GRID.general.K_delta(GRID.soil.cT_domain) .* ( T(GRID.soil.cT_domain)>0 ) .* ( wc>PARA.soil.fieldCapacity ) ).* timestep.*24.*3600; 
-
-            %------- next time step -----------------------------------------------
-            t=t+timestep;
-            %---------- sum up + OUTPUT -------------------------------------------
-            [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc_cTgrid(GRID.soil.cT_domain), timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, FORCING, saveDir, run_number);
-
+            % save final state and output at t=endtime
+            DIAG = diagnose_output_yearly( OUT, PARA, GRID, FORCING );
+            iSaveDIAG( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_diagnostics' datestr(t,'yyyy')  '.mat' ], DIAG);      
+            iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_output' datestr(t,'yyyy') '.mat'], OUT)
+            iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_finalState' datestr(t,'yyyy') '.mat'], T, wc, t, SEB, PARA, GRID)
+            iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_altitudes' datestr(t,'yyyy') '.png'], OUT, PARA );
+            
+        catch
+            % save final state and output at t=endtime
+            DIAG = diagnose_output_yearly( OUT, PARA, GRID, FORCING );
+            iSaveDIAG( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_diagnostics' datestr(t,'yyyy')  'CRASH.mat' ], DIAG);      
+            iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_output' datestr(t,'yyyy') 'CRASH.mat'], OUT)
+            iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_finalState' datestr(t,'yyyy') 'CRASH.mat'], T, wc, t, SEB, PARA, GRID)
+            iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_altitudes' datestr(t,'yyyy') 'CRASH.png'], OUT, PARA );
+            
+            
         end
-
-        % save final state and output at t=endtime
-        DIAG = diagnose_output_yearly( OUT, PARA, GRID, FORCING );
-        iSaveDIAG( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_diagnostics' datestr(t,'yyyy')  '.mat' ], DIAG);      
-        iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_output' datestr(t,'yyyy') '.mat'], OUT)
-        iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_finalState' datestr(t,'yyyy') '.mat'], T, wc, t, SEB, PARA, GRID)
-        iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_altitudes' datestr(t,'yyyy') '.png'], OUT, PARA );
     end
 
     if number_of_realizations>1

@@ -15,9 +15,13 @@ firstSedimentCell = find( cT_sediment, 1, 'first' );
 % determine amount to deposit
 sedimentToDeposit = K_delta(firstSedimentCell) .* ( 1 - GRID.soil.cT_natPor(firstSedimentCell) - GRID.soil.cT_mineral(firstSedimentCell) - GRID.soil.cT_organic(firstSedimentCell) );
 depositionType = 1;
-if abs(sedimentToDeposit)<1e-6
-    sedimentToDeposit = K_delta(firstSedimentCell) .* ( 1 - GRID.soil.cT_natPor(firstSedimentCell) );
+if abs(sedimentToDeposit)<1e-9 % create ne cell
     depositionType = 2;
+    if firstSedimentCell==1 % no water above sediment
+        sedimentToDeposit = K_delta(firstSedimentCell) .* ( 1 - GRID.soil.cT_natPor(firstSedimentCell) );
+    else % water cells present above sediment
+        sedimentToDeposit = K_delta(firstSedimentCell-1) .* ( 1 - GRID.soil.cT_natPor(firstSedimentCell-1) );
+    end
 end
 
 fprintf( '\t\t\t\t sediment to deposit:  %3.6e m \n', sedimentToDeposit );
@@ -114,6 +118,11 @@ elseif depositionType == 2
         GRID.soil.cT_organic(lastWaterCell) =  depositedFractionOrganic .* sedimentToDeposit ./ K_delta(lastWaterCell);
         GRID.soil.cT_mineral(lastWaterCell) =  depositedFractionMineral .* sedimentToDeposit ./ K_delta(lastWaterCell);
         GRID.soil.cT_actPor(lastWaterCell) = 1 - GRID.soil.cT_organic(lastWaterCell) - GRID.soil.cT_mineral(lastWaterCell);
+        
+        % nat por needs to be adjusted as well (usually this should be the
+        % same though)
+        GRID.soil.cT_natPor(lastWaterCell) =  GRID.soil.cT_natPor(firstSedimentCell);  % take natPor of cell below
+
         
         % inherit soil type from uppermost sediment cell
         GRID.soil.cT_soilType(lastWaterCell) = GRID.soil.cT_soilType(firstSedimentCell);

@@ -48,8 +48,11 @@ function DIAG = diagnose_output_yearly( OUT, PARA, GRID, FORCING )
     linindexes = sub2ind( [length(altitude_grid),length(ts)], indexes, [1:1:length(ts)] );
     DIAG.magt30m = mean( OUT.cryoGrid3(linindexes) );    
     
-    % maxiumum thaw depth (TDmax) [ m ]
-    [ DIAG.TDmax, idx ] = max( OUT.location.soil_altitude() - OUT.location.infiltration_altitude() ) ;
+    % maxiumum thaw depth (TDmax) [ m ] % this does not work for very deep
+    % thawing, since infiltration altitude is not defined when surface
+    % frozen 
+    [ ~, idx ] = min( OUT.location.infiltration_altitude() );
+    DIAG.TDmax = OUT.location.soil_altitude(idx) - OUT.location.infiltration_altitude(idx) ;
     DIAG.t_TDmax = ts(idx);
     DIAG.doy_TDmax = day( datetime( ts(idx), 'ConvertFrom','datenum'), 'dayofyear' );
     
@@ -99,7 +102,7 @@ function DIAG = diagnose_output_yearly( OUT, PARA, GRID, FORCING )
     DIAG.excessIceThawed = sum( OUT.xice.excessIceThawed );
     
     %total ground subsidence [ m ]
-    DIAG.subsidence = abs( OUT.location.soil_altitude(1) - OUT.location.soil_altitude(end) );
+    DIAG.subsidence = OUT.location.soil_altitude(end) - OUT.location.soil_altitude(1);
     
     %time-integrated unfrozen organic matter volume (aerobic/anearobic) [ m sec ]
     DIAG.unfrozenOrganic = sum( OUT.carbon.unfrozen_organic_volume_time );
