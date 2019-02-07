@@ -42,8 +42,8 @@ else
     SETUP.fieldCapacity = 0.50; % 0.40
     SETUP.relMaxSnow = 0.40; % 1.0
     SETUP.snowDens = 250;%200..250
-    SETUP.boundaryCondition_T = 'DarcyReservoir';
-    SETUP.e_Reservoir = -2.0;%-1.0;
+    SETUP.boundaryCondition_T = 'DarcyReservoirNoInflow';% 'DarcyReservoirNoInflow'
+    SETUP.e_Reservoir = -10.0;%-0.2;
 
     % areal fractions
     SETUP.f_C = 0.3; % 0.5
@@ -55,9 +55,11 @@ else
     SETUP.e_T = SETUP.e_R-0.1;
 
     % hydraulic conductivities
-    SETUP.K_Reservoir = 5e-5;
     SETUP.K=1e-5;
-
+    SETUP.K_subs=1e-5;
+    SETUP.K_surf=1e-4;
+    SETUP.K_Reservoir = 2*pi*SETUP.K_subs;
+    
     % stratigraphy
     OL1 = [ 0.85, 0.00, 0.15, 1, 0.85 ] ;
     OL2 = [ 0.75, 0.10, 0.15, 1, 0.75 ] ;
@@ -123,7 +125,7 @@ else
        %  SETUP.K, SETUP.K_Reservoir, SETUP.e_Reservoir, SETUP.snowDens) ;
     %SETUP.runName = sprintf( [ 'SCENARIO_' SETUP.scenario '_' datestr( SETUP.startDate, 'yyyymm' ) '-' datestr(SETUP.endDate, 'yyyymm' ) '_xice%d_xH%d_xW%d_xS%d_%s_eRes%0.2f_snowDens%d_maxSnow%0.2f' ], ...
      %    SETUP.xice, SETUP.xH, SETUP.xW, SETUP.xS, SETUP.boundaryCondition_T, SETUP.e_Reservoir, SETUP.snowDens, SETUP.relMaxSnow ) ;
-    SETUP.runName = sprintf( [ 'SCENARIO_' datestr( SETUP.startDate, 'yyyymm' ) '-' datestr(SETUP.endDate, 'yyyymm' )  '_' SETUP.scenario '_xice%d_xE%d_xH%d_xW%d_xS%d_%s_geometry%d_eRes%0.2f_snowDens%d_maxSnow%0.2f' ], ...
+    SETUP.runName = sprintf( [ 'SCENARIO_REV2_' datestr( SETUP.startDate, 'yyyymm' ) '-' datestr(SETUP.endDate, 'yyyymm' )  '_' SETUP.scenario '_xice%d_xE%d_xH%d_xW%d_xS%d_%s_geometry%d_eRes%0.2f_snowDens%d_maxSnow%0.2f' ], ...
          SETUP.xice, SETUP.xE, SETUP.xH, SETUP.xW, SETUP.xS, polygonType, SETUP.polygon_geometry, SETUP.e_Reservoir, SETUP.snowDens, SETUP.relMaxSnow ) ; 
     [~, SETUP.git_commit_hash] = system('git rev-parse HEAD');
 

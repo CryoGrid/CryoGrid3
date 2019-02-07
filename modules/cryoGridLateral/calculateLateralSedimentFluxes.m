@@ -36,9 +36,9 @@ if PARA.ensemble.distanceBetweenPoints(labindex,j)>0
         area_index = PARA.ensemble.area(labindex);
         
         % set hillslope diffusivities and critical angle
-        K_land = 3e-10; % in [m^2/sec] approx. 0.01 m^2/yr, reference: [ Kessler et al. 2012, JGR ]
-        K_water = 3e-8; % in [m^2/sec] approx 1.0 m^2/yr, reference: [ Kessler et al. 2012, JGR ]
-        alpha_crit = pi/4; % to be chosen depending on whether surface frozen or unfrozen, for now 45°
+        K_land = PARA.soil.hillslope_diffusivity_land;
+        K_water = PARA.soil.hillslope_diffusivity_water;
+        alpha_crit = PARA.soil.critical_hillslope_angle; % to be chosen depending on whether surface frozen or unfrozen, for now 45°
         
         % weighting of diffusive and advective transport
         w_diff = 1;
@@ -62,7 +62,7 @@ if PARA.ensemble.distanceBetweenPoints(labindex,j)>0
         % calculate sediment fluxes due to advection
         grad = (soil_surface_j - soil_surface_index) ./ D;
         
-        grad = sign(grad) .* min( abs(grad), 0.95.*alpha_crit ); % this is just a workaround to limit fluxes when they approach the critical angle
+        grad = sign(grad) .* min( abs(grad), 0.95.*tan(alpha_crit) ); % this is just a workaround to limit fluxes when they approach the critical angle
         
         
         assert( atan(grad)^2<alpha_crit^2, 'CryoGridLateralErosion - gradient exceeds critical slope angle' );

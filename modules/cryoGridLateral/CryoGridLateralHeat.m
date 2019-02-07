@@ -1,4 +1,4 @@
-function [ T, TEMPORARY ] = CryoGridLateralHeat( PARA, GRID, BALANCE, TEMPORARY, T, k_cTgrid, c_cTgrid )
+function [ T, TEMPORARY, BALANCE ] = CryoGridLateralHeat( PARA, GRID, BALANCE, TEMPORARY, T, k_cTgrid, c_cTgrid )
 
     labBarrier();
     % check preconditions

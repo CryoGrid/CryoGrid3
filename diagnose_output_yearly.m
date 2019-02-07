@@ -108,3 +108,14 @@ function DIAG = diagnose_output_yearly( OUT, PARA, GRID, FORCING )
     DIAG.unfrozenOrganic = sum( OUT.carbon.unfrozen_organic_volume_time );
     DIAG.unfrozenOrganicAerobic = sum( OUT.carbon.unfrozen_organic_volume_time_aerobic );
     DIAG.unfrozenOrganicAnaerobic = sum( OUT.carbon.unfrozen_organic_volume_time_anaerobic );
+    
+    %accumulated sediment fluxes per worker (no necessarily applied yet)
+    DIAG.accumSedimentOrganic = sum( sum( OUT.lateral.sediment_fluxes_o ) );
+    DIAG.accumSedimentMineral = sum( sum( OUT.lateral.sediment_fluxes_m ) );
+    DIAG.accumSedimentDiff = sum( sum( OUT.lateral.sediment_fluxes_diff ) );
+    DIAG.accumSedimentAdv = sum( sum( OUT.lateral.sediment_fluxes_adv ) );
+    
+    
+    
+    
+    

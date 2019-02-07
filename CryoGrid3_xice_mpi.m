@@ -99,8 +99,10 @@ function CryoGrid3_xice_mpi(SETUP, startFromRun)
             PARA.soil.externalWaterFlux=0.0;        % external water flux / drainage in [m/day]
             PARA.soil.convectiveDomain=[];          % soil domain where air convection due to buoyancy is possible -> start and end [m] - if empty no convection is possible
             PARA.soil.mobileWaterDomain=[0 10.0];   % soil domain where water from excess ice melt is mobile -> start and end [m] - if empty water is not mobile
-            PARA.soil.relative_maxWater=10.0;        % depth at which a water table will form [m] - above excess water is removed, below it pools up
+            PARA.soil.relative_maxWater=10.0;       % depth at which a water table will form [m] - above excess water is removed, below it pools up
             PARA.soil.hydraulic_conductivity = SETUP.K;% subsurface saturated hydraulic conductivity assumed for lateral water fluxes [m/s]
+            PARA.soil.hydraulic_conductivity_subs = SETUP.K_subs;
+            PARA.soil.hydraulic_conductivity_surf = SETUP.K_surf;
             PARA.soil.infiltration_limit_depth=10.0; % maxiumum depth [m] from the surface to which infiltration occurse
             PARA = loadSoilTypes( PARA );           % load the soil types ( silt, sand, water body )
 
@@ -127,6 +129,13 @@ function CryoGrid3_xice_mpi(SETUP, startFromRun)
             PARA.ice.rs=0.0;                    % surface resistance -> should be 0 for ice
             PARA.ice.z0=5e-4;                   % roughness length surface [m] % value for snow
             PARA.ice.extinction=4.5;            % [m^-1] light extinction coefficient of ice / Lei et al. (2011) shows a range of 1 to 5 m^-1
+
+            % parameters related to lateral sediemnt transport / erosion
+            % set hillslope diffusivities and critical angle
+            PARA.soil.hillslope_diffusivity_land = 3e-10; % in [m^2/sec] approx. 0.01 m^2/yr, reference: [ Kessler et al. 2012, JGR ]
+            PARA.soil.hillslope_diffusivity_water = 3e-8; % in [m^2/sec] approx 1.0 m^2/yr, reference: [ Kessler et al. 2012, JGR ]
+            PARA.soil.critical_hillslope_angle = pi/4; % to be chosen depending on whether surface frozen or unfrozen, for now 45°
+
 
             % technical parameters
             PARA.technical.z=2.0;                               % height of input air temperature above ground in [m] - assumed constant even when snow depth increases
@@ -383,7 +392,7 @@ function CryoGrid3_xice_mpi(SETUP, startFromRun)
 
                         % HEAT exchange module
                         if PARA.modules.exchange_heat
-                            [ T, TEMPORARY ] = CryoGridLateralHeat( PARA, GRID, BALANCE, TEMPORARY, T, k_cTgrid, c_cTgrid );
+                            [ T, TEMPORARY, BALANCE ] = CryoGridLateralHeat( PARA, GRID, BALANCE, TEMPORARY, T, k_cTgrid, c_cTgrid );
                         end
 
                         % WATER exchange module
@@ -420,12 +429,14 @@ function CryoGrid3_xice_mpi(SETUP, startFromRun)
 
                 %------- further diagnostics
                 % organic volume which is unfrozen multiplied with timestep
+                %aerobicThreshold = PARA.soil.fieldCapacity;
+                aerobicThreshold = GRID.soil.cT_actPor-1e-6;
                 TEMPORARY.unfrozen_organic_volume_time = TEMPORARY.unfrozen_organic_volume_time + ...
                                                          nansum( GRID.soil.cT_organic .* GRID.general.K_delta(GRID.soil.cT_domain) .* ( T(GRID.soil.cT_domain)>0 ) ) .* timestep.*24.*3600; 
                 TEMPORARY.unfrozen_organic_volume_time_aerobic = TEMPORARY.unfrozen_organic_volume_time_aerobic + ...
-                                                         nansum( GRID.soil.cT_organic .* GRID.general.K_delta(GRID.soil.cT_domain) .* ( T(GRID.soil.cT_domain)>0 ) .* ( wc<=PARA.soil.fieldCapacity ) ) .* timestep.*24.*3600; 
+                                                         nansum( GRID.soil.cT_organic .* GRID.general.K_delta(GRID.soil.cT_domain) .* ( T(GRID.soil.cT_domain)>0 ) .* ( wc<=aerobicThreshold ) ) .* timestep.*24.*3600; 
                 TEMPORARY.unfrozen_organic_volume_time_anaerobic = TEMPORARY.unfrozen_organic_volume_time_anaerobic + ...
-                                                         nansum( GRID.soil.cT_organic .* GRID.general.K_delta(GRID.soil.cT_domain) .* ( T(GRID.soil.cT_domain)>0 ) .* ( wc>PARA.soil.fieldCapacity ) ).* timestep.*24.*3600; 
+                                                         nansum( GRID.soil.cT_organic .* GRID.general.K_delta(GRID.soil.cT_domain) .* ( T(GRID.soil.cT_domain)>0 ) .* ( wc>aerobicThreshold ) ).* timestep.*24.*3600; 
 
                 %------- next time step -----------------------------------------------
                 t=t+timestep;

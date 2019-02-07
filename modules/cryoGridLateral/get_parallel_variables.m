@@ -78,22 +78,37 @@ PARA.ensemble.soil_altitude = PARA.ensemble.initial_altitude;
 % parameters related to WATER exchange
 PARA.ensemble.water_fluxes = zeros( numlabs, numlabs ); % total water flux in [m] per sync interval from each worker to worker index
 PARA.ensemble.external_water_flux= zeros( 1, numlabs) ;	%in m/day
-PARA.ensemble.hydraulic_conductivity= PARA.soil.hydraulic_conductivity * A;
+%PARA.ensemble.hydraulic_conductivity= PARA.soil.hydraulic_conductivity * A;
+PARA.ensemble.hydraulic_conductivity_subs = PARA.soil.hydraulic_conductivity_subs * A;
+PARA.ensemble.hydraulic_conductivity_surf = PARA.soil.hydraulic_conductivity_surf * A;
 PARA.ensemble.water_table_altitude = nan(1, numlabs);
 PARA.ensemble.infiltration_altitude = nan(1, numlabs);
 
-
 boundaryCondition={'NoBC','NoBC', SETUP.boundaryCondition_T}; 		% set to 'DarcyReservoir' for an external water reservoir
-Darcy_elevation= [ nan nan altitude_C+elevation_Reservoir ]; % Elevation of the Darcy reservoir that can drain or refill the worker it is connected to. NaN for workers withour this boundary condition
-Darcy_fluxFactor=[ nan nan SETUP.K_Reservoir ]; % Taken as the hydraulic_contact_length*hydraulic_conductivity/hydraulic_distance    Defined for now like this, lets see if we wantto define it differently
+Darcy_elevation=[ nan, nan, altitude_C+elevation_Reservoir ] ; 				% Elevation of the Darcy reservoir that can drain or refill the worker it is connected to. NaN for workers without this boundary condition
+Darcy_fluxFactor= [ nan nan K_Reservoir ];		% Taken as the hydraulic_contact_length*hydraulic_conductivity/hydraulic_distance. Defined for now like this, lets see if we wantto define it differently. NaN for workers without this boundary condition
+
+%boundaryCondition={'NoBC','NoBC', 'DarcyReservoirDynamicConductivity'}; 		% set to 'DarcyReservoir' for an external water reservoir
+% Darcy_fluxFactorMax= [ nan nan 2*pi*PARA.soil.hydraulic_conductivity_surf ];    % factor 2pi from assuming ciruclar reservoir in distance D
+% Darcy_fluxFactorMin=[ nan nan 2*pi*PARA.soil.hydraulic_conductivity_subs ];
+% Darcy_elevationMax=Darcy_elevation; % i.e. maximum reservoir cond. as soon as soil level underneath reservoir level
+% Darcy_elevationMin=[ nan nan PARA.ensemble.initial_altitude(1) ] ; % i.e. altitude of first tile sets
+
 PARA.ensemble.boundaryCondition(length(boundaryCondition)).type=boundaryCondition{end};
 [PARA.ensemble.boundaryCondition.type]=boundaryCondition{:};
 for i=1:numlabs
-    if strcmp(boundaryCondition{i},'DarcyReservoir')==1
+    if strcmp(boundaryCondition{i},'DarcyReservoir')==1 || strcmp(boundaryCondition{i},'DarcyReservoirNoInflow')==1
         PARA.ensemble.boundaryCondition(i).parameters.elevation=Darcy_elevation(i);  
         PARA.ensemble.boundaryCondition(i).parameters.fluxFactor=Darcy_fluxFactor(i); 
+%     elseif strcmp(boundaryCondition{i},'DarcyReservoirDynamicConductivity')==1
+%         PARA.ensemble.boundaryCondition(i).parameters.elevation=Darcy_elevation(i);  
+%         PARA.ensemble.boundaryCondition(i).parameters.fluxFactorMax=Darcy_fluxFactorMax(i); 
+%         PARA.ensemble.boundaryCondition(i).parameters.fluxFactorMin=Darcy_fluxFactorMin(i); 
+%         PARA.ensemble.boundaryCondition(i).parameters.elevationMax=Darcy_elevationMax(i);  
+%         PARA.ensemble.boundaryCondition(i).parameters.elevationMin=Darcy_elevationMin(i);        
     end
 end
+
 
 % parameters related to snow exchange
 % to be specificed by user
@@ -104,7 +119,7 @@ PARA.ensemble.snow_scaling = ones(1, numlabs);  % unclear if needed in ensemble 
 
 % parameters related to infiltration scheme
 % to be specificed by user
-PARA.ensemble.rootDepth = [0.2, 0.1, 0.2 ] ;%[0.2, 0.1, 0.2 ] ;
+PARA.ensemble.rootDepth = [0.2, 0.2, 0.2 ] ;%[0.2, 0.1, 0.2 ] ;
 PARA.ensemble.fieldCapacity = SETUP.fieldCapacity .* ones(1, numlabs);
 PARA.ensemble.external_water_flux = zeros(1, numlabs);
 
