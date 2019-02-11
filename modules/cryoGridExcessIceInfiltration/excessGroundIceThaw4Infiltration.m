@@ -79,7 +79,8 @@ while mobileWater>0 && i>=1
     i=i-1;
 end
 
-if mobileWater>0
+if mobileWater>1e-8
+    fprintf('xice - mobileWater that should be 0 : %3.2e m\n',mobileWater)
     error('xice - water infiltration - excess water after infiltration');
 end
 

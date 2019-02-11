@@ -108,3 +108,12 @@ SEB.Qg = Qg;
 SEB.Sout = Sout;
 SEB.Lout = Lout;
 
+assert(sum(imag(SEB.Qsurf))==0,'ERROR : surfaceEnergyBalanceInfiltration : SEB.Qsurf is complex');
+assert(sum(imag(SEB.dE_dt_SEB))==0,'ERROR : surfaceEnergyBalanceInfiltration : SEB.dE_dt_SEB is complex');
+assert(sum(imag(SEB.Qnet))==0,'ERROR : surfaceEnergyBalanceInfiltration : SEB.Qnet is complex');
+assert(sum(imag(SEB.Qh))==0,'ERROR : surfaceEnergyBalanceInfiltration : SEB.Qh is complex');
+assert(sum(imag(SEB.Qe))==0,'ERROR : surfaceEnergyBalanceInfiltration : SEB.Qe is complex');
+assert(sum(imag(SEB.Qg))==0,'ERROR : surfaceEnergyBalanceInfiltration : SEB.Qg is complex');
+assert(sum(imag(SEB.Sout))==0,'ERROR : surfaceEnergyBalanceInfiltration : SEB.Sout is complex');
+assert(sum(imag(SEB.Lout))==0,'ERROR : surfaceEnergyBalanceInfiltration : SEB.Lout is complex');
+

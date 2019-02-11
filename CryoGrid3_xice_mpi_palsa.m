@@ -18,7 +18,7 @@ add_modules;  %adds required modules
 
 %% Deal with possible restart from FINAL state
 startFromRun='190130_5w100y_redoSame_realization1_finalState1922.mat';
-SETUP = startFromRunSETUP(startFromRun);
+SETUP = startFromRunSETUP(startFromRun,'_v5');
 
 if SETUP.flag==0;
     number_of_realizations=5;
@@ -70,7 +70,7 @@ spmd
         TEMPORARY.outputTime=t+PARA.technical.outputTimestep;
         TEMPORARY.syncTime=t+PARA.technical.syncTimeStep;
         if ~isempty(PARA.technical.saveInterval)
-            TEMPORARY.saveTime=datenum(str2num(datestr(t,'yyyy'))+2,  str2num(PARA.technical.saveDate(4:5)), str2num(PARA.technical.saveDate(1:2)))-PARA.technical.outputTimestep;
+            TEMPORARY.saveTime=datenum(str2num(datestr(t,'yyyy'))+1,  str2num(PARA.technical.saveDate(4:5)), str2num(PARA.technical.saveDate(1:2)))-PARA.technical.outputTimestep;
         else
             TEMPORARY.saveTime=PARA.technical.endtime+PARA.technical.outputTimestep;
         end
@@ -244,10 +244,6 @@ spmd
         if PARA.modules.xice && PARA.modules.exchange_heat;
             flag = excessGroundIceCheckThickness(GRID, 0.02); % Here 0.02 m is the minimum thickness that is tolerated
             assert(flag ~= 0,'Cells to small for the amount of excess ice')
-            %         try
-            %         assert(flag ~= 0,'Cells to small for the amount of excess ice')
-            %         catch
-            %             PARA.
         end
         
         %----- initializie excess ground ice --------------------------------------
@@ -311,11 +307,10 @@ spmd
         BALANCE = updateBALANCE(T, wc, c_cTgrid, lwc_cTgrid, BALANCE, GRID, PARA);
         
         %------ surface energy balance module ---------------------------------
-        %set surface conditions (albedo, roughness length, etc.)
+        % set surface conditions (albedo, roughness length, etc.)
         [PARA, GRID] = surfaceCondition(GRID, PARA, T);
-        %calculate the surface energy balance
+        % calculate the surface energy balance
         [SEB, dwc_dt] = surfaceEnergyBalanceInfiltration(T, wc, FORCING, GRID, PARA, SEB);
-        assert( sum( isnan(T))==0, 'Main : NaN in T after SEBinf');
         
         %------ soil module  --------------------------------------------------
         %calculate heat conduction
@@ -323,6 +318,8 @@ spmd
         
         %------ sum up heat fluxes --------------------------------------------
         SEB.dE_dt = SEB.dE_dt_cond + SEB.dE_dt_SEB;
+        assert(sum(imag(SEB.dE_dt_SEB))==0,'ERROR main : SEB.dE_dt_SEB is complex');
+        assert(sum(imag(SEB.dE_dt_cond))==0,'ERROR main : SEB.dE_dt_cond is complex');
         
         %------ determine optimal timestep ------------------------------------
         % account for min and max timesteps specified, max. energy change per grid cell and the CFT stability criterion.
@@ -340,10 +337,9 @@ spmd
         try
             assert(imag(timestep)==0,'Main Error : timestep is complex')
         catch
-            Term1=GRID.general.K_delta.^2 .* c_cTgrid ./ k_cTgrid ./ (GRID.soil.cT_domain + GRID.snow.cT_domain )
-            Term2=PARA.technical.targetDeltaE .* nanmin( abs(GRID.general.K_delta ./ SEB.dE_dt ) )
-            Term3=SEB.dE_dt
-            Term4=TEMPORARY.syncTime-t
+            if sum(imag(SEB.dE_dt))~=0;
+               fprintf('Complex values in SEB.dE_dt\n') 
+            end
             assert(imag(timestep)==0,'Main Error : timestep is complex')
         end
         assert(imag(t)==0,'Main Error : t is complex')
