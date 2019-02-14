@@ -122,7 +122,8 @@ if  t==TEMPORARY.outputTime
         OUT.lateral.snow_flux = [ OUT.lateral.snow_flux;  TEMPORARY.snow_flux_lateral ];      % accumulated lateral snow fluxes per output interval in [m SWE] to the current worker
         OUT.lateral.dE_tot = [ OUT.lateral.dE_tot ; TEMPORARY.dE_tot_lateral];      % vector containing depth-integrated lateral heat fluxes per output interval in [J/m^2] to the current worker
         OUT.lateral.dE_cell = cat( 3, OUT.lateral.dE_cell, TEMPORARY.dE_cell_lateral );    % matrix containing cell-wise, accumulated lateral heat fluxes in [J/m^3] to the current worker
-    
+        OUT.lateral.snow_scaling = [ OUT.lateral.snow_scaling; PARA.ensemble.snow_scaling ];
+        
         TEMPORARY.snow_flux_lateral = 0 ;
         TEMPORARY.dE_cell_lateral = zeros( length(GRID.general.cT_grid), numlabs );
         TEMPORARY.dE_tot_lateral = zeros( 1, numlabs ) ;

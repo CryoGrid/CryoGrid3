@@ -52,6 +52,7 @@ end
 % to be specificed by user
 PARA.ensemble.terrain_index_snow = calculateTerrainIndexSnow(PARA.ensemble.altitude, PARA.ensemble.weight);
 PARA.ensemble.immobile_snow_height = [ 0.05 0.05 0.05 0.05 0.05 ];
+PARA.ensemble.snow_scaling = ones(1, numlabs);  % New variable for the new snow scheme from Jan
 
 % parameters related to infiltration scheme
 % to be specified by user

@@ -17,7 +17,7 @@ diary off
 add_modules;  %adds required modules
 
 %% Deal with possible restart from FINAL state
-startFromRun='190130_5w100y_redoSame_realization1_finalState1922.mat';
+startFromRun=[];
 SETUP = startFromRunSETUP(startFromRun,'_v8');
 
 if SETUP.flag==0;
@@ -32,7 +32,7 @@ end
 
 % Name, Forcing and diary
 if SETUP.flag==0;
-    run_number='190130_5w100y_redoSame';
+    run_number='190214_5w100y_trynewsnow';
     forcingname='Suossjavri_WRF_Norstore_adapted100yr.mat';
 else
     run_number=SETUP.run_name_new;
@@ -202,6 +202,7 @@ spmd
         PARA.forcing.filename=forcingname;  %must be in subfolder "forcing" and follow the conventions for CryoGrid 3 forcing files
         PARA.forcing.rain_fraction=1;
         PARA.forcing.snow_fraction=0.2;
+        PARA.forcing.snow_scaling=1.0;  % scaling factor for incoming snowfall of individual tile, used to emulate lateral snow redistribution
         
         % switches for modules
         PARA.modules.infiltration=1;    % true if infiltration into unfrozen ground occurs
@@ -435,7 +436,7 @@ spmd
                 
                 % SNOW exchange module
                 if PARA.modules.exchange_snow
-                    [T, GRID, BALANCE, TEMPORARY] = CryoGridLateralSnow( PARA, GRID, BALANCE, TEMPORARY, FORCING, T);
+                    PARA = CryoGridLateralSnow( PARA, GRID );
                 end
                 
                 % update auxiliary variables and common thresholds
