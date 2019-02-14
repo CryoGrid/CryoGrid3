@@ -1,9 +1,8 @@
-function [ boundary_water_flux, Darcy_fluxFactor ] = calculateLateralWaterBoundaryFluxes(PARA, GRID, T)
+function [ boundary_water_flux ] = calculateLateralWaterBoundaryFluxes(PARA, GRID, T)
 % Function that calculates the lateral water fluxes created by the boundary
 % conditions of the worker
 
 boundary_water_flux=0;
-Darcy_fluxFactor = nan;
 
 if double( T(GRID.soil.cT_domain_ub)>0 && isempty(GRID.snow.cT_domain_ub) )==1 % conditions ok for water fluxes
     

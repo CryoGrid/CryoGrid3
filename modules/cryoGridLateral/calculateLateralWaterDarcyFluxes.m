@@ -28,7 +28,7 @@ if PARA.ensemble.hydraulic_contact_length(index,j)>0
         [waterpotWindex, hasWater_index] = nanmax([wt_index, inf_index ] );
         [waterpotWj, hasWater_j]         = nanmax([wt_j,     inf_j     ] );
         
-        % determine lateral hydraulic conductitity (surface/subsurface
+        % determine lateral hydraulic conductivity (surface/subsurface)
         if  ( hasWater_index || hasWater_j ) && ( nanmax( [waterpotWindex, waterpotWj] ) > nanmax( [ soil_index, soil_j ] ) )
             K=PARA.ensemble.hydraulic_conductivity_surf(index,j);
         else

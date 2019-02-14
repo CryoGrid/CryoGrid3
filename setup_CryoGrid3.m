@@ -29,8 +29,8 @@ else
     % parameters
     SETUP.numRealizations = 3;
     SETUP.syncTimestep=6./24;
-    SETUP.startDate = datenum( 1999, 10, 1 );
-    SETUP.endDate = datenum( 2099, 12, 31);
+    SETUP.startDate = datenum( 2000, 6, 1 );
+    SETUP.endDate = datenum( 2000, 9, 1);
     SETUP.xH=1;
     SETUP.xW=1;
     SETUP.xS=1;
@@ -42,8 +42,8 @@ else
     SETUP.fieldCapacity = 0.50; % 0.40
     SETUP.relMaxSnow = 0.40; % 1.0
     SETUP.snowDens = 250;%200..250
-    SETUP.boundaryCondition_T = 'DarcyReservoirNoInflow';% 'DarcyReservoirNoInflow'
-    SETUP.e_Reservoir = -10.0;%-0.2;
+    SETUP.boundaryCondition_T = 'DarcyReservoir';%NoInflow';% 'DarcyReservoirNoInflow'
+    SETUP.e_Reservoir = -0.0;%-0.2;
 
     % areal fractions
     SETUP.f_C = 0.3; % 0.5
@@ -57,7 +57,7 @@ else
     % hydraulic conductivities
     SETUP.K=1e-5;
     SETUP.K_subs=1e-5;
-    SETUP.K_surf=1e-4;
+    SETUP.K_surf=1e-5;
     SETUP.K_Reservoir = 2*pi*SETUP.K_subs;
     
     % stratigraphy
@@ -112,8 +112,9 @@ else
     SETUP.forcingFile = ['Samoylov_' SETUP.scenario '_1901_2300_CryoGrid_windModified.mat'];
 
     % output directory
-    SETUP.saveDir = '/data/scratch/nitzbon/CryoGrid/CryoGrid3_infiltration_xice_mpi_polygon/runs';
-
+    %SETUP.saveDir = '/data/scratch/nitzbon/CryoGrid/CryoGrid3_infiltration_xice_mpi_polygon/runs';
+    SETUP.saveDir = './runs';
+    
     % compose runname
     %SETUP.runName = sprintf( [ 'VALIDATION_' datestr( SETUP.startDate, 'yyyymm' ) '-' datestr(SETUP.endDate, 'yyyymm' ) '_xice%d_xH%d_xW%d_xS%d_fC%0.1f_fR%0.1f_fT%0.1f_eR%0.2f_eT%0.2f_K%0.1e_KRes%0.1e_eRes%0.2f_fc%0.2f_snowDens%d' ], ...
      %   SETUP.xice, SETUP.xH, SETUP.xW, SETUP.xS, ...

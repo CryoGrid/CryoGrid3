@@ -86,7 +86,7 @@ PARA.ensemble.infiltration_altitude = nan(1, numlabs);
 
 boundaryCondition={'NoBC','NoBC', SETUP.boundaryCondition_T}; 		% set to 'DarcyReservoir' for an external water reservoir
 Darcy_elevation=[ nan, nan, altitude_C+elevation_Reservoir ] ; 				% Elevation of the Darcy reservoir that can drain or refill the worker it is connected to. NaN for workers without this boundary condition
-Darcy_fluxFactor= [ nan nan K_Reservoir ];		% Taken as the hydraulic_contact_length*hydraulic_conductivity/hydraulic_distance. Defined for now like this, lets see if we wantto define it differently. NaN for workers without this boundary condition
+Darcy_fluxFactor= [ nan nan SETUP.K_Reservoir ];		% Taken as the hydraulic_contact_length*hydraulic_conductivity/hydraulic_distance. Defined for now like this, lets see if we wantto define it differently. NaN for workers without this boundary condition
 
 %boundaryCondition={'NoBC','NoBC', 'DarcyReservoirDynamicConductivity'}; 		% set to 'DarcyReservoir' for an external water reservoir
 % Darcy_fluxFactorMax= [ nan nan 2*pi*PARA.soil.hydraulic_conductivity_surf ];    % factor 2pi from assuming ciruclar reservoir in distance D

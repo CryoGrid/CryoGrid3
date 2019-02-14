@@ -298,11 +298,7 @@ function CryoGrid3_xice_mpi(SETUP, startFromRun)
                 %set surface conditions (albedo, roughness length, etc.)
                 [PARA, GRID] = surfaceCondition(GRID, PARA, T);
                 %calculate the surface energy balance
-                if PARA.modules.infiltration
-                    [SEB, dwc_dt] = surfaceEnergyBalanceInfiltration(T, wc, FORCING, GRID, PARA, SEB);
-                else
-                    %...
-                end
+                [SEB, dwc_dt] = surfaceEnergyBalanceInfiltration(T, wc, FORCING, GRID, PARA, SEB);
 
                 %------ soil module  --------------------------------------------------
                 %calculate heat conduction
@@ -402,7 +398,7 @@ function CryoGrid3_xice_mpi(SETUP, startFromRun)
 
                         % SNOW exchange module
                         if PARA.modules.exchange_snow
-                            PARA  = CryoGridLateralSnow( PARA, GRID );
+                            PARA = CryoGridLateralSnow( PARA, GRID );
                         end
 
                         % lateral EROSION module // SEDIMENT exchange module
