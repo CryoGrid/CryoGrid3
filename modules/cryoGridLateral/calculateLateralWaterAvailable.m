@@ -13,31 +13,36 @@ workerFluxes=water_fluxes(labindex,:);
 lostWater=abs(sum(workerFluxes(workerFluxes<0)));
 lostWater=lostWater + abs(min(boundary_water_fluxes,0));
 
-if lostWater>0; % worker is loosing water
+if lostWater>0 % worker is loosing water
     
-   % available water
-   bottomBucketcTIndex = PARA.location.bottomBucketSoilcTIndex;
-   fieldC = PARA.soil.fieldCapacity;
-   K_deltaSoil=GRID.general.K_delta(GRID.soil.cT_domain);   
-   availableWaterVect=( wc(1:bottomBucketcTIndex)- fieldC) .* K_deltaSoil(1:bottomBucketcTIndex);
-   availableWaterVect( availableWaterVect < 0) = 0;
-   availableWater=sum(availableWaterVect);
-   fprintf('\t\t\tAvailable water (w%1.0f) : %3.2e m\n', labindex, availableWater)
-   loss=find(workerFluxes<0);
-   
-   % Use the losing point of view
-   if availableWater >= lostWater; % when there is enough water, use the darcy fluxes
+    % available water
+    bottomBucketcTIndex = PARA.location.bottomBucketSoilcTIndex;
+    soilType=GRID.soil.cT_soilType(1:bottomBucketcTIndex);
+    fieldCapacity = zeros(size(soilType));
+    for i=1:size(PARA.soil.soilTypes,1)
+        fieldCapacity(soilType==i) = PARA.soil.soilTypes( i, 2 );
+    end
+
+    K_deltaSoil=GRID.general.K_delta(GRID.soil.cT_domain);   
+    availableWaterVect=( wc(1:bottomBucketcTIndex)- fieldCapacity) .* K_deltaSoil(1:bottomBucketcTIndex);
+    availableWaterVect( availableWaterVect < 0) = 0;
+    availableWater=sum(availableWaterVect);
+    fprintf('\t\t\tAvailable water (w%1.0f) : %3.2e m\n', labindex, availableWater)
+    loss=find(workerFluxes<0);
+
+    % Use the losing point of view
+    if availableWater >= lostWater % when there is enough water, use the darcy fluxes
        scal_fact=1;
-   else % when there is not enough water, scale lost fluxes so that it matches the available water
+    else % when there is not enough water, scale lost fluxes so that it matches the available water
        scal_fact=availableWater/lostWater;
-   end
-   
-   % Fill the worker matrix from the losing point of view
-       for i=1:length(loss);
+    end
+
+    % Fill the worker matrix from the losing point of view
+       for i=1:length(loss)
            final_mat_worker(labindex,loss(i))=scal_fact*workerFluxes(loss(i));
            final_mat_worker(loss(i),labindex)=scal_fact*(-1)*workerFluxes(loss(i))*PARA.ensemble.area(labindex)/PARA.ensemble.area(loss(i));
        end
-       
+
     % Apply also to boundary fluxes
     boundary_water_fluxes=scal_fact*boundary_water_fluxes;
        

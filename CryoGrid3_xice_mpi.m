@@ -92,7 +92,7 @@ function CryoGrid3_xice_mpi(SETUP, startFromRun)
             PARA.soil.kh_bedrock=3.0;   % thermal conductivity of the mineral soil fraction [W/mK]
 
             % parameters related to hydrology scheme
-            PARA.soil.fieldCapacity=0.50;           % water holding capacity of the soil - this must be adapted to fit the upperlost layers!!
+            PARA.soil.fieldCapacity=SETUP.fieldCapacity;           % water holding capacity of the soil - this must be adapted to fit the upperlost layers!!
             PARA.soil.evaporationDepth=0.10;        % depth to which evaporation occurs - place on grid cell boundaries
             PARA.soil.rootDepth=0.20;               % depth affected by transpiration - place on grid cell boundaries
             PARA.soil.ratioET=0.5;                  % 1: only transpiration; 0: only evaporation, values in between must be made dependent on LAI, etc.
@@ -132,9 +132,9 @@ function CryoGrid3_xice_mpi(SETUP, startFromRun)
 
             % parameters related to lateral sediemnt transport / erosion
             % set hillslope diffusivities and critical angle
-            PARA.soil.hillslope_diffusivity_land = 3e-10; % in [m^2/sec] approx. 0.01 m^2/yr, reference: [ Kessler et al. 2012, JGR ]
-            PARA.soil.hillslope_diffusivity_water = 3e-8; % in [m^2/sec] approx 1.0 m^2/yr, reference: [ Kessler et al. 2012, JGR ]
-            PARA.soil.critical_hillslope_angle = pi/4; % to be chosen depending on whether surface frozen or unfrozen, for now 45°
+            PARA.soil.hillslope_diffusivity_land = SETUP.hillslope_diffusivity_land; % in [m^2/sec] approx. 0.01 m^2/yr, reference: [ Kessler et al. 2012, JGR ]
+            PARA.soil.hillslope_diffusivity_water = SETUP.soil.hillslope_diffusivity_water; % in [m^2/sec] approx 1.0 m^2/yr, reference: [ Kessler et al. 2012, JGR ]
+            PARA.soil.critical_hillslope_angle = SETUP.critical_hillslope_angle; % to be chosen depending on whether surface frozen or unfrozen, for now 45°
 
 
             % technical parameters
@@ -449,14 +449,14 @@ function CryoGrid3_xice_mpi(SETUP, startFromRun)
             iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_altitudes' datestr(t,'yyyy') '.png'], OUT, PARA );
             
         catch
+            fprintf('Catched exception. Saved final state under subscript CRASH.\n');
             % save final state and output at t=endtime
             DIAG = diagnose_output_yearly( OUT, PARA, GRID, FORCING );
             iSaveDIAG( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_diagnostics' datestr(t,'yyyy')  'CRASH.mat' ], DIAG);      
             iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_output' datestr(t,'yyyy') 'CRASH.mat'], OUT)
             iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_finalState' datestr(t,'yyyy') 'CRASH.mat'], T, wc, t, SEB, PARA, GRID)
             iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_altitudes' datestr(t,'yyyy') 'CRASH.png'], OUT, PARA );
-            
-            
+ 
         end
     end
 

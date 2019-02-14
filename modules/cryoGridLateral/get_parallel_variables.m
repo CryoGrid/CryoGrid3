@@ -78,7 +78,7 @@ PARA.ensemble.soil_altitude = PARA.ensemble.initial_altitude;
 % parameters related to WATER exchange
 PARA.ensemble.water_fluxes = zeros( numlabs, numlabs ); % total water flux in [m] per sync interval from each worker to worker index
 PARA.ensemble.external_water_flux= zeros( 1, numlabs) ;	%in m/day
-%PARA.ensemble.hydraulic_conductivity= PARA.soil.hydraulic_conductivity * A;
+PARA.ensemble.hydraulic_conductivity= PARA.soil.hydraulic_conductivity * A;
 PARA.ensemble.hydraulic_conductivity_subs = PARA.soil.hydraulic_conductivity_subs * A;
 PARA.ensemble.hydraulic_conductivity_surf = PARA.soil.hydraulic_conductivity_surf * A;
 PARA.ensemble.water_table_altitude = nan(1, numlabs);
@@ -119,9 +119,9 @@ PARA.ensemble.snow_scaling = ones(1, numlabs);  % unclear if needed in ensemble 
 
 % parameters related to infiltration scheme
 % to be specificed by user
-PARA.ensemble.rootDepth = [0.2, 0.2, 0.2 ] ;%[0.2, 0.1, 0.2 ] ;
-PARA.ensemble.fieldCapacity = SETUP.fieldCapacity .* ones(1, numlabs);
-PARA.ensemble.external_water_flux = zeros(1, numlabs);
+% PARA.ensemble.rootDepth = [0.2, 0.2, 0.2 ] ;%[0.2, 0.1, 0.2 ] ;
+% PARA.ensemble.fieldCapacity = SETUP.fieldCapacity .* ones(1, numlabs);
+% PARA.ensemble.external_water_flux = zeros(1, numlabs);
 
 % location-specific fix parameter values
 PARA.location.initial_altitude = PARA.ensemble.initial_altitude(index);

@@ -29,33 +29,37 @@ if PARA.ensemble.hydraulic_contact_length(index,j)>0
         [waterpotWj, hasWater_j]         = nanmax([wt_j,     inf_j     ] );
         
         % determine lateral hydraulic conductivity (surface/subsurface)
-        if  ( hasWater_index || hasWater_j ) && ( nanmax( [waterpotWindex, waterpotWj] ) > nanmax( [ soil_index, soil_j ] ) )
+        if  ( hasWater_index==1 || hasWater_j==1 ) && ( nanmax( [waterpotWindex, waterpotWj] ) > nanmax( [ soil_index, soil_j ] ) )
             K=PARA.ensemble.hydraulic_conductivity_surf(index,j);
         else
             K=PARA.ensemble.hydraulic_conductivity_subs(index,j);
         end
+        %fprintf('\t\t\tK(%d,%d)=\t%3.2e m/s\n',[index,j,K]);
         
         if (waterpotWj > waterpotWindex && hasWater_j==1)% Current worker is gaining water
 
             % Calculate the maximum exchanged water volume
             DeltaH = waterpotWj - waterpotWindex;
-            contact_height = waterpotWj - nanmax( [ waterpotWindex, inf_j ]);
-            Distance=sqrt(DeltaH^2 + PARA.ensemble.hydraulicDistance(j,index)^2);
+            %contact_height = waterpotWj - nanmax( [ waterpotWindex, inf_j ]);
+            contact_height = waterpotWj - nanmax( [ inf_index, inf_j ]);
+
+            %Distance=sqrt(DeltaH^2 + PARA.ensemble.hydraulicDistance(j,index)^2);
             section=contact_height .* PARA.ensemble.hydraulic_contact_length(j,index);
-            DarcyFlux=K * (DeltaH/Distance) * section; % in m3/sec
+            DarcyFlux=K * (DeltaH/PARA.ensemble.hydraulicDistance(j,index)) * section; % in m3/sec
             % Attribute water height changes
             water_fluxes(j,index) = -1 * (DarcyFlux * PARA.technical.syncTimeStep * 3600 * 24 / PARA.ensemble.area(j)); % syncTimeStep in days, Darcy flux in m3/sec
             water_fluxes(index,j) = DarcyFlux * PARA.technical.syncTimeStep * 3600 * 24 / PARA.ensemble.area(index); % syncTimeStep in days, Darcy flux in m3/sec
            
 
-        elseif (waterpotWindex > waterpotWj  && hasWater_index==1) % Current worker is loosing water
+        elseif (waterpotWindex > waterpotWj && hasWater_index==1) % Current worker is loosing water
 
             % Calculate maximum of the exchange water volume
             DeltaH= waterpotWindex - waterpotWj;
-            contact_height =waterpotWindex - nanmax( [ waterpotWj, inf_index ] );
-            Distance=sqrt(DeltaH^2 + PARA.ensemble.hydraulicDistance(j,index)^2);
+            %contact_height =waterpotWindex - nanmax( [ waterpotWj, inf_index ] );
+            contact_height =waterpotWindex - nanmax( [ inf_index, inf_j ] );
+            %Distance=sqrt(DeltaH^2 + PARA.ensemble.hydraulicDistance(j,index)^2);
             section=contact_height .* PARA.ensemble.hydraulic_contact_length(j,index);
-            DarcyFlux=K * (DeltaH/Distance) * section; % in m3/sec            % Attribute water height changes
+            DarcyFlux=K * (DeltaH/PARA.ensemble.hydraulicDistance(j,index)) * section; % in m3/sec            % Attribute water height changes
             water_fluxes(j,index) = DarcyFlux * PARA.technical.syncTimeStep *24 *3600 / PARA.ensemble.area(j); % syncTimeStep in days, Darcy flux in m3/sec
             water_fluxes(index,j) = -1 * (DarcyFlux * PARA.technical.syncTimeStep *24 *3600 / PARA.ensemble.area(index)); % syncTimeStep in days, Darcy flux in m3/sec
             

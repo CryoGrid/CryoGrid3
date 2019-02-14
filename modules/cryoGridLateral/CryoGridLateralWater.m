@@ -1,4 +1,4 @@
-function [wc, GRID, BALANCE, TEMPORARY] = CryoGridLateralWater( PARA, GRID, BALANCE, TEMPORARY, T, wc)
+function [wc, GRID, BALANCE] = CryoGridLateralWater( PARA, GRID, BALANCE, T, wc)
 
     labBarrier();
     % check preconditions
@@ -10,9 +10,8 @@ function [wc, GRID, BALANCE, TEMPORARY] = CryoGridLateralWater( PARA, GRID, BALA
         water_fluxes= zeros(numlabs,numlabs); % in m of height change
         PACKAGE_waterExchange.water_table_altitude = PARA.ensemble.water_table_altitude(labindex);
         PACKAGE_waterExchange.infiltration_altitude = PARA.ensemble.infiltration_altitude(labindex);
-        PACKAGE_waterExchange.soil_altitude = PARA.ensemble.soil_altitude(labindex);
         PACKAGE_waterExchange.infiltration_condition = T(GRID.soil.cT_domain_ub)>0 && isempty(GRID.snow.cT_domain_ub);
-
+        PACKAGE_waterExchange.soil_altitude = PARA.ensemble.soil_altitude(labindex);
 
         for j=1:numlabs
             if j~=labindex
@@ -27,7 +26,7 @@ function [wc, GRID, BALANCE, TEMPORARY] = CryoGridLateralWater( PARA, GRID, BALA
         end
 
         % Calculate possible boundary fluxes
-        [ boundary_water_flux, TEMPORARY.Darcy_fluxFactor ] = calculateLateralWaterBoundaryFluxes(PARA, GRID, T);
+        [ boundary_water_flux ] = calculateLateralWaterBoundaryFluxes(PARA, GRID, T);
         fprintf('\t\t\tBoundary contribution :\t%3.2e m\n',boundary_water_flux)
 
 
@@ -72,7 +71,7 @@ function [wc, GRID, BALANCE, TEMPORARY] = CryoGridLateralWater( PARA, GRID, BALA
             fprintf('\t\t\tExcess water :\t%3.2e m\n',excess_water)
             BALANCE.water.dr_lateralExcess=BALANCE.water.dr_lateralExcess + excess_water*1000;            % Added by Leo to have the lateral fluxes in BALANCE
         end
-        if strcmp(PARA.ensemble.boundaryCondition(labindex).type,'DarcyReservoir')==1 || strcmp(PARA.ensemble.boundaryCondition(labindex).type,'DarcyReservoirDynamicConductivity')==1
+        if strcmp(PARA.ensemble.boundaryCondition(labindex).type,'DarcyReservoir')==1
             BALANCE.water.dr_DarcyReservoir = BALANCE.water.dr_DarcyReservoir + boundary_water_flux*1000;
             fprintf('\t\t\tBoundary contribution :\t%3.2e m\n',boundary_water_flux)
         end
