@@ -11,4 +11,6 @@ while waterFlux>0 && j>=1
     j=j-1;
 end
 
+assert(sum(snow_a<0)==0,'Infiltrate Bottom2Top : Negative value of snow_a')
+
 

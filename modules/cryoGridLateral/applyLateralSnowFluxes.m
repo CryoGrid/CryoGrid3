@@ -1,10 +1,7 @@
 function [T, GRID] = applyLateralSnowFluxes( T, PARA, GRID, FORCING, my_snow_change )
-if sum(isnan(GRID.snow.Snow_i(:)))>0
-   fprintf('NaN in GRID.snow.Snow_i - aLF flag1\n') 
-end
-if sum(isnan(GRID.snow.Snow_a(:)))>0
-    fprintf('NaN in GRID.snow.Snow_a - aLF flag1\n')
-end
+
+assert(sum(GRID.snow.Snow_a<0)==0,'applyLateralSnowFluxes : Negative value of snow_a flag1')
+
     if ~isempty(GRID.snow.cT_domain_ub) %snow cover already exitis
         if my_snow_change>0 
             disp( 'depositing lateral snow' );
@@ -13,14 +10,12 @@ end
 
                 GRID.snow.Snow_i(GRID.snow.cT_domain_ub) = GRID.snow.Snow_i(GRID.snow.cT_domain_ub) ...
                                                             + temp_snow_flux;
-                if sum(isnan(GRID.snow.Snow_i(:)))>0
-                    fprintf('NaN in GRID.snow.Snow_i - aLF flag2\n')
-                end
+
                 GRID.snow.Snow_a(GRID.snow.cT_domain_ub) = GRID.snow.Snow_a(GRID.snow.cT_domain_ub) ... 
                                                             + (temp_snow_flux./(PARA.snow.rho_snow./PARA.constants.rho_w) - temp_snow_flux); % could replace this to assure correct fresh snow density
-                if sum(isnan(GRID.snow.Snow_a(:)))>0
-                    fprintf('NaN in GRID.snow.Snow_a - aLF flag2\n')
-                end
+
+                assert(sum(GRID.snow.Snow_a<0)==0,'applyLateralSnowFluxes : Negative value of snow_a flag2')
+
                                                         
                 % add an empty snow cell                             
                 GRID.snow.cT_domain(GRID.air.cT_domain_lb)=1;
@@ -34,16 +29,12 @@ end
                 [GRID.air.K_domain_lb, GRID.air.K_domain_ub] = LayerIndex(GRID.air.K_domain);
 
                 GRID.snow.Snow_i(GRID.snow.cT_domain_ub)=0;
-                if sum(isnan(GRID.snow.Snow_i(:)))>0
-                    fprintf('NaN in GRID.snow.Snow_i - aLF flag3\n')
-                end
                 GRID.snow.Snow_w(GRID.snow.cT_domain_ub)=0;
                 GRID.snow.Snow_a(GRID.snow.cT_domain_ub)=0;
                 T(GRID.snow.cT_domain_ub)=T(GRID.snow.cT_domain_ub+1);
                 
-                if sum(isnan(GRID.snow.Snow_a(:)))>0
-                    fprintf('NaN in GRID.snow.Snow_a - aLF flag3\n')
-                end
+                assert(sum(GRID.snow.Snow_a<0)==0,'applyLateralSnowFluxes : Negative value of snow_a flag3')
+
 
                 my_snow_change = my_snow_change - temp_snow_flux;
 
@@ -57,15 +48,11 @@ end
                 GRID.snow.Snow_w(GRID.snow.cT_domain_ub+1) = GRID.snow.Snow_w(GRID.snow.cT_domain_ub+1) + GRID.snow.Snow_w(GRID.snow.cT_domain_ub); % this will not work if only one snow cell left
                 % clean upper cell
                 GRID.snow.Snow_i(GRID.snow.cT_domain_ub)=0;
-                if sum(isnan(GRID.snow.Snow_i(:)))>0
-                    fprintf('NaN in GRID.snow.Snow_i - aLF flag4\n')
-                end
                 GRID.snow.Snow_w(GRID.snow.cT_domain_ub)=0;
                 GRID.snow.Snow_a(GRID.snow.cT_domain_ub)=0;
                 T(GRID.snow.cT_domain_ub)=FORCING.i.Tair;
-                if sum(isnan(GRID.snow.Snow_a(:)))>0
-                    fprintf('NaN in GRID.snow.Snow_a - aLF flag4\n')
-                end
+                assert(sum(GRID.snow.Snow_a<0)==0,'applyLateralSnowFluxes : Negative value of snow_a flag4')
+
                 % remove upper cell
                 GRID.snow.cT_domain(GRID.snow.cT_domain_ub)=0;
                 GRID.snow.K_domain(GRID.snow.cT_domain_ub)=0;
@@ -81,17 +68,13 @@ end
 
             % remove remaining snow_flux from upper cell
             GRID.snow.Snow_i(GRID.snow.cT_domain_ub) = GRID.snow.Snow_i(GRID.snow.cT_domain_ub) + my_snow_change;
-            if sum(isnan(GRID.snow.Snow_i(:)))>0
-                fprintf('NaN in GRID.snow.Snow_i - aLF flag5\n')
-            end
+
             %GRID.snow.Snow_a(GRID.snow.cT_domain_ub) = GRID.snow.Snow_a(GRID.snow.cT_domain_ub) + (my_snow_change./(PARA.snow.rho_snow./PARA.constants.rho_w) - my_snow_change);
-            if sum(isnan(GRID.snow.Snow_a(:)))>0
-                fprintf('NaN in GRID.snow.Snow_a - aLF flag5\n')
-            end
+            assert(sum(GRID.snow.Snow_a<0)==0,'applyLateralSnowFluxes : Negative value of snow_a flag5')
+
             GRID.snow.Snow_a(GRID.snow.cT_domain_ub) = GRID.snow.Snow_i(GRID.snow.cT_domain_ub) .* ( (PARA.constants.rho_w ./ PARA.snow.rho_snow ) - 1 ); % this assures fresh snow density for upper cell
-            if sum(isnan(GRID.snow.Snow_a(:)))>0
-                fprintf('NaN in GRID.snow.Snow_a - aLF flag6\n')
-            end
+            assert(sum(GRID.snow.Snow_a<0)==0,'applyLateralSnowFluxes : Negative value of snow_a flag6')
+
         else % lateral_snow_flux==0
             %do nothing
         end

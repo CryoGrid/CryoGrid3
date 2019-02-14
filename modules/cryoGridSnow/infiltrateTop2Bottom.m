@@ -17,4 +17,5 @@ for j=1:size(snow_w,1)
     waterFlux=double((waterFlux - maxLiqWater(j))>0).*(waterFlux - maxLiqWater(j));
 end
 
+assert(sum(snow_a<0)==0,'Infiltrate Bottom2Top : Negative value of snow_a')
    

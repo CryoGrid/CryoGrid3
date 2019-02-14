@@ -18,7 +18,7 @@ add_modules;  %adds required modules
 
 %% Deal with possible restart from FINAL state
 startFromRun='190130_5w100y_redoSame_realization1_finalState1922.mat';
-SETUP = startFromRunSETUP(startFromRun,'_v5');
+SETUP = startFromRunSETUP(startFromRun,'_v8');
 
 if SETUP.flag==0;
     number_of_realizations=5;

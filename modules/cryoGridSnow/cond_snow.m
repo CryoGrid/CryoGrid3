@@ -9,11 +9,15 @@ assert(sum(imag(snow_a))==0,'cond_snow : snow_a is complex')
 
 %cond_snow=conductivity2(snow_w./total, snow_i./total, 0, 0, 2);
 cond_snow = 2.2.*((snow_w+snow_i)./total).^1.88; % Yen (1981)
-
-assert(sum(imag(cond_snow))==0,'cond_snow : cond_snow is complex at flag 1')
+try
+    assert(sum(imag(cond_snow))==0,'cond_snow : cond_snow is complex at flag 1')
+catch
+    snow_w
+    snow_i
+    snow_a
+    assert(sum(imag(cond_snow))==0,'cond_snow : cond_snow is complex at flag 1')
+end
 
 cond_snow(find(isnan(cond_snow)==1),1)=0.3;
 
 assert(sum(imag(cond_snow))==0,'cond_snow : cond_snow is complex at flag 2')
-
-    
