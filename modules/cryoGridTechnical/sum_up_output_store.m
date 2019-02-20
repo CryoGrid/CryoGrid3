@@ -1,4 +1,4 @@
-function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, saveDir, run_number) 
+function [TEMPORARY, OUT, BALANCE, PARA] = sum_up_output_store(t, T, wc, lwc, timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, saveDir, run_number) 
 
 TEMPORARY.timestep_sum=TEMPORARY.timestep_sum+(timestep*24*3600)*timestep;
 TEMPORARY.T_sum=TEMPORARY.T_sum+T.*timestep;
@@ -15,8 +15,14 @@ TEMPORARY.waterTableElevation_sum = TEMPORARY.waterTableElevation_sum + PARA.loc
 TEMPORARY.bottomBucketSoilDepth_sum = TEMPORARY.bottomBucketSoilDepth_sum + PARA.location.infiltration_altitude * timestep;
 TEMPORARY.water2pool_sum=TEMPORARY.water2pool_sum + GRID.soil.water2pool * timestep;
 
+%----check if it's time to do the punctual saving
+if PARA.technical.punctualSaveFlag==0;
+    if t > PARA.technical.punctualSaveTime - (1/24/60); % Do it in the last minute before the time requested
+        PARA.technical.punctualSaveFlag=2;
+    end
+end
 %----store in output table --------------------------------------------
-if  t==TEMPORARY.outputTime
+if  t==TEMPORARY.outputTime || PARA.technical.punctualSaveFlag==2
        
     TEMPORARY.counter = TEMPORARY.counter+1;
    
@@ -214,13 +220,20 @@ if  t==TEMPORARY.outputTime
     TEMPORARY.outputTime=round((TEMPORARY.outputTime+PARA.technical.outputTimestep)./PARA.technical.outputTimestep).*PARA.technical.outputTimestep;
  
     %write output files      
-    if  round((t-TEMPORARY.saveTime).*48)==0
+    if  round((t-TEMPORARY.saveTime).*48)==0 || PARA.technical.punctualSaveFlag==2
         fprintf('Saving Output\n')
-        iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_output' datestr(t,'yyyy')  '.mat' ], OUT);
-        iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_finalState'  datestr(t,'yyyy') '.mat' ], T, wc, t, SEB, PARA, GRID);
-        iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_altitudes' datestr(t,'yyyy') '.png'], OUT, PARA );
+        suffix=[];
+        if PARA.technical.punctualSaveFlag==2
+            suffix='_punctualSave';
+        end
+        iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_output' datestr(t,'yyyy') suffix  '.mat' ], OUT);
+        iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_finalState'  datestr(t,'yyyy') suffix '.mat' ], T, wc, t, SEB, PARA, GRID);
+        iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_altitudes' datestr(t,'yyyy') suffix '.png'], OUT, PARA );
         OUT = generateOUT();  
         TEMPORARY.saveTime=datenum(str2num(datestr(t,'yyyy'))+1, str2num(datestr(t,'mm')), str2num(datestr(t,'dd')), str2num(datestr(t,'HH')), str2num(datestr(t,'MM')), 0);
+    end
+    if PARA.technical.punctualSaveFlag==2
+        PARA.technical.punctualSaveFlag=1;
     end
 end
 end

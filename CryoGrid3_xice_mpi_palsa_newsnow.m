@@ -18,7 +18,7 @@ add_modules;  %adds required modules
 
 %% Deal with possible restart from FINAL state
 startFromRun='190219_7w100y_higherPalsa7w_realization3_finalState1928';
-SETUP = startFromRunSETUP(startFromRun,'_v1');
+SETUP = startFromRunSETUP(startFromRun,'_v2');
 
 if SETUP.flag==0;
     number_of_realizations=5;  % <------ Number of realization ! 
@@ -51,7 +51,10 @@ spmd
         
         disp( ['Starting from ' SETUP.run_name_old '_realization' num2str(labindex) '_finalState' num2str(SETUP.restartyear) ' at t=' datestr(t) ] );
         
+        % ------assign some variables
         saveDir=SETUP.saveDir;
+        PARA.technical.punctualSaveFlag=0;                  % used to save the state of the model at a punctual time. -1 : Do not use the functionality, 0 : Not done, 1 : Done, 2 : Do it now !
+        PARA.technical.punctualSaveTime=datenum('23-Oct-1928 12:00:00'); % used to save the state of the model at a punctual time - Punctual time to save
         
         % ------load forcing
         [FORCING, ~]=load_forcing_from_file(PARA); % load FORCING mat-file
@@ -158,6 +161,8 @@ spmd
         PARA.technical.saveDate='01.08.';                   % date of year when output file is written - no effect if "saveInterval" is empty
         PARA.technical.saveInterval=1;                      % interval [years] in which output files are written - if empty the entire time series is written - minimum is 1 year
         PARA.technical.waterCellSize=0.02;                  % default size of a newly added water cell when water ponds below water table [m]
+        PARA.technical.punctualSaveFlag=0;                  % used to save the state of the model at a punctual time. -1 : Do not use the functionality, 0 : Not done, 1 : Done, 2 : Do it now !
+        PARA.technical.punctualSaveTime=datenum('23-Oct-1928 12:00:00'); % used to save the state of the model at a punctual time - Punctual time to save
         
         % subsurface grid
         PARA.technical.subsurfaceGrid = [0:0.05:2 2.1:0.1:5 5.2:0.2:20 21:1:30 35:5:50 60:10:100 200:100:1000]'; % the subsurface K-grid in [m]
@@ -453,7 +458,7 @@ spmd
         %------- next time step -----------------------------------------------
         t=t+timestep;
         %---------- sum up + OUTPUT -------------------------------------------
-        [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc_cTgrid(GRID.soil.cT_domain), timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, saveDir, run_number);
+        [TEMPORARY, OUT, BALANCE, PARA] = sum_up_output_store(t, T, wc, lwc_cTgrid(GRID.soil.cT_domain), timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, saveDir, run_number);
         
     end
     
