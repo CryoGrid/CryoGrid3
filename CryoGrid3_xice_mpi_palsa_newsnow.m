@@ -17,11 +17,11 @@ diary off
 add_modules;  %adds required modules
 
 %% Deal with possible restart from FINAL state
-startFromRun=[];
-SETUP = startFromRunSETUP(startFromRun,'_v8');
+startFromRun='190219_7w100y_higherPalsa7w_realization3_finalState1928';
+SETUP = startFromRunSETUP(startFromRun,'_v1');
 
 if SETUP.flag==0;
-    number_of_realizations=5;
+    number_of_realizations=5;  % <------ Number of realization ! 
 else
     number_of_realizations=SETUP.nbreal;
 end
@@ -32,7 +32,7 @@ end
 
 % Name, Forcing and diary
 if SETUP.flag==0;
-    run_number='190214_5w100y_trynewsnow';
+    run_number='190220_5w100y_lowerPalsa';
     forcingname='Suossjavri_WRF_Norstore_adapted100yr.mat';
 else
     run_number=SETUP.run_name_new;

@@ -4,6 +4,9 @@ function [SETUP] = startFromRunSETUP(startFromRun, suffix)
 
 if isempty(startFromRun)==0;
     SETUP.flag=1;
+    if strcmp(startFromRun(end-3:end),'.mat')==0;
+        startFromRun=[startFromRun '.mat'];
+    end
     if nargin==1;
         suffix=[];
     end

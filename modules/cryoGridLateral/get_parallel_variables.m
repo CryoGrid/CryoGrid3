@@ -18,7 +18,7 @@ PARA.ensemble.distanceBetweenPoints= A; %   %in m. Put 0 for all non-connected e
 A = double( PARA.ensemble.distanceBetweenPoints > 0 ); % adjacency matrix of the network (auxiliary)
 
 % topographical relations
-PARA.ensemble.initial_altitude = [300.0 300.50 301.0 301.50 302.0];	%in m a.s.l., this is the reference for the "zero" position of the grids
+PARA.ensemble.initial_altitude = [300.0000  300.2500  300.5000  300.7500  301.0000];	%in m a.s.l., this is the reference for the "zero" position of the grids
 PARA.ensemble.altitude = PARA.ensemble.initial_altitude;
 PARA.ensemble.surface_altitude = PARA.ensemble.initial_altitude;
 PARA.ensemble.soil_altitude = PARA.ensemble.initial_altitude;
