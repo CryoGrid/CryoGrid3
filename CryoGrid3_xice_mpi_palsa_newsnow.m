@@ -18,7 +18,7 @@ add_modules;  %adds required modules
 
 %% Deal with possible restart from FINAL state
 startFromRun='190219_7w100y_higherPalsa7w_realization3_finalState1928';
-SETUP = startFromRunSETUP(startFromRun,'_v2');
+SETUP = startFromRunSETUP(startFromRun,'_v13');
 
 if SETUP.flag==0;
     number_of_realizations=5;  % <------ Number of realization ! 
