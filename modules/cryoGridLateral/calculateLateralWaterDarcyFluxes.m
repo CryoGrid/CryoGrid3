@@ -40,8 +40,8 @@ if PARA.ensemble.hydraulic_contact_length(index,j)>0
 
             % Calculate the maximum exchanged water volume
             DeltaH = waterpotWj - waterpotWindex;
-            %contact_height = waterpotWj - nanmax( [ waterpotWindex, inf_j ]);
-            contact_height = waterpotWj - nanmax( [ inf_index, inf_j ]);
+            contact_height = waterpotWj - nanmax( [ waterpotWindex, inf_j ]);
+            %contact_height = waterpotWj - nanmax( [ inf_index, inf_j ]);
 
             %Distance=sqrt(DeltaH^2 + PARA.ensemble.hydraulicDistance(j,index)^2);
             section=contact_height .* PARA.ensemble.hydraulic_contact_length(j,index);
@@ -55,8 +55,8 @@ if PARA.ensemble.hydraulic_contact_length(index,j)>0
 
             % Calculate maximum of the exchange water volume
             DeltaH= waterpotWindex - waterpotWj;
-            %contact_height =waterpotWindex - nanmax( [ waterpotWj, inf_index ] );
-            contact_height =waterpotWindex - nanmax( [ inf_index, inf_j ] );
+            contact_height =waterpotWindex - nanmax( [ waterpotWj, inf_index ] );
+            %contact_height =waterpotWindex - nanmax( [ inf_index, inf_j ] );
             %Distance=sqrt(DeltaH^2 + PARA.ensemble.hydraulicDistance(j,index)^2);
             section=contact_height .* PARA.ensemble.hydraulic_contact_length(j,index);
             DarcyFlux=K * (DeltaH/PARA.ensemble.hydraulicDistance(j,index)) * section; % in m3/sec            % Attribute water height changes

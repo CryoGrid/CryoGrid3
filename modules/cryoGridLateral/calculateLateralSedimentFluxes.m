@@ -41,8 +41,8 @@ if PARA.ensemble.distanceBetweenPoints(labindex,j)>0
         alpha_crit = PARA.soil.critical_hillslope_angle; % to be chosen depending on whether surface frozen or unfrozen, for now 45°
         
         % weighting of diffusive and advective transport
-        w_diff = 1;
-        w_adv = 1;
+        w_diff = PARA.soil.weight_diffusion;
+        w_adv = PARA.soil.weight_advection;
         
         % determine Keff for mixed interface
         phi_tot = abs( soil_surface_index - soil_surface_j );

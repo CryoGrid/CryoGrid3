@@ -28,22 +28,29 @@ else
 
     % parameters
     SETUP.numRealizations = 3;
-    SETUP.syncTimestep=6./24;
-    SETUP.startDate = datenum( 1949, 10, 1 );
-    SETUP.endDate = datenum( 1999, 12, 31);
+    SETUP.syncTimestep=1./24;
+    SETUP.startDate = datenum( 1999, 10, 1 );
+    SETUP.endDate = datenum( 2099, 12, 31);
     SETUP.xH=1;
     SETUP.xW=1;
     SETUP.xS=1;
-    SETUP.xE=0;
-    SETUP.xice=0;
+    SETUP.xE=1;
+    SETUP.xice=1;
     
     SETUP.polygon_geometry = 2; % 1: hexagonal , 2: circular, cross-section
-
+    
+    SETUP.scenario='rcp85';
+    
+    polygonType = 'epigenetic'; %'syngenetic'
+    
+    
+    SETUP.DeltaXice = 0.0; % use this to shift the excess ice layers
+    
     SETUP.fieldCapacity = 0.50; % 0.40
     SETUP.relMaxSnow = 0.40; % 1.0
     SETUP.snowDens = 250;%200..250
     SETUP.boundaryCondition_T = 'DarcyReservoirNoInflow';%NoInflow';% 'DarcyReservoirNoInflow'
-    SETUP.e_Reservoir = -10.0;%-0.2;
+    SETUP.e_Reservoir = 0.0;%-10.0;
 
     % areal fractions
     SETUP.f_C = 0.3; % 0.5
@@ -57,13 +64,17 @@ else
     % hydraulic conductivities
     SETUP.K=1e-5;
     SETUP.K_subs=1e-5;
-    SETUP.K_surf=1e-4;
+    SETUP.K_surf=1e-5;
     SETUP.K_Reservoir = 2*pi*SETUP.K_subs;
     
     % hillslope diffusitivities
-    SETUP.hillslope_diffusivity_land = 3e-10; % in [m^2/sec] approx. 0.01 m^2/yr, reference: [ Kessler et al. 2012, JGR ]
-    SETUP.hillslope_diffusivity_water = 3e-8; % in [m^2/sec] approx 1.0 m^2/yr, reference: [ Kessler et al. 2012, JGR ]
+    SETUP.weight_diffusion = 1;
+    SETUP.weight_advection = 1;
+    SETUP.hillslope_diffusivity_land =  1e-10; % [m^2/sec] 3e-10 m^2/sec approx. 0.01 m^2/yr, reference: [ Kessler et al. 2012, JGR ]
+    SETUP.hillslope_diffusivity_water = 1e-8; % [m^2/sec]  3e-8  m^2/sec approx  1.00 m^2/yr, reference: [ Kessler et al. 2012, JGR ]
     SETUP.critical_hillslope_angle = pi/4;
+    
+     
     
     % stratigraphy
     OL1 = [ 0.85, 0.00, 0.15, 1, 0.85 ] ;
@@ -75,9 +86,8 @@ else
     EL4 = [ 0.95, 0.00, 0.05, 1, 0.55 ] ;
     BL1 = [ 0.10, 0.90, 0.00, 1, 0.10 ] ;   % bedrock layer
     
-    polygonType = 'epigenetic'; %'syngenetic'
 
-    SETUP.DeltaXice = 0.0;
+
     
     stratigraphyMap = containers.Map( {'CENTERsyngenetic', 'RIMsyngenetic', 'TROUGHsyngenetic', 'CENTERepigenetic', 'RIMepigenetic', 'TROUGHepigenetic'}, ...
         { [ 0.00, OL1;...
@@ -113,9 +123,32 @@ else
     SETUP.stratigraphy = { stratigraphyMap([ 'CENTER' polygonType ]), ...
         stratigraphyMap([ 'RIM' polygonType ]), ...
         stratigraphyMap([ 'TROUGH' polygonType ]) };
+    
+    
+    % initialization / spin-up
+    SETUP.spinupDir = '/data/scratch/nitzbon/CryoGrid/CryoGrid3_infiltration_xice_mpi_polygon/runs';
+    SETUP.spinupFile = sprintf( 'SPINUP_REV2_194910-199912_rcp45_xice0_xE0_xH1_xW1_xS1_%s_DarcyReservoirNoInflow_eRes%0.2f_snowDens250_maxSnow0.40_DeltaXice0.00', polygonType, SETUP.e_Reservoir );
+    SETUP.spinupDate = SETUP.startDate;
+    dv=datevec(SETUP.spinupDate);
+    yr=dv(:,1);
+    
+    SETUP.Tinitial = {};
+    for i=1:SETUP.numRealizations
+        
+        load( [ SETUP.spinupDir '/' SETUP.spinupFile '/' SETUP.spinupFile '_realization' num2str(i) '_output' num2str(yr) '.mat' ] );
+        load( [ SETUP.spinupDir '/' SETUP.spinupFile '/' SETUP.spinupFile '_realization' num2str(i) '_settings.mat' ] );
+        T_temp = OUT.cryoGrid3();
+        t_temp = OUT.timestamp();
+        cT_grid_temp = GRID.general.cT_grid();
+        cT_domain_temp = GRID.soil.cT_domain();
+        
+        [~,idx] = min( abs( t_temp - SETUP.spinupDate ) );
+             
+        SETUP.Tinitial{i} = [ cT_grid_temp(cT_domain_temp), T_temp(cT_domain_temp,idx) ];    
+        
+    end
 
-    SETUP.scenario='rcp45';
-
+    % forcing data 
     SETUP.forcingFile = ['Samoylov_' SETUP.scenario '_1901_2300_CryoGrid_windModified.mat'];
 
     % output directory
@@ -133,10 +166,13 @@ else
        %  SETUP.K, SETUP.K_Reservoir, SETUP.e_Reservoir, SETUP.snowDens) ;
     %SETUP.runName = sprintf( [ 'SCENARIO_' SETUP.scenario '_' datestr( SETUP.startDate, 'yyyymm' ) '-' datestr(SETUP.endDate, 'yyyymm' ) '_xice%d_xH%d_xW%d_xS%d_%s_eRes%0.2f_snowDens%d_maxSnow%0.2f' ], ...
      %    SETUP.xice, SETUP.xH, SETUP.xW, SETUP.xS, SETUP.boundaryCondition_T, SETUP.e_Reservoir, SETUP.snowDens, SETUP.relMaxSnow ) ;
-    SETUP.runName = sprintf( [ 'SPINUP_REV2_' datestr( SETUP.startDate, 'yyyymm' ) '-' datestr(SETUP.endDate, 'yyyymm' )  '_' SETUP.scenario '_xice%d_xE%d_xH%d_xW%d_xS%d_%s_%s_eRes%0.2f_snowDens%d_maxSnow%0.2f_DeltaXice%0.2f' ], ...
-         SETUP.xice, SETUP.xE, SETUP.xH, SETUP.xW, SETUP.xS, polygonType, SETUP.boundaryCondition_T, SETUP.e_Reservoir, SETUP.snowDens, SETUP.relMaxSnow, SETUP.DeltaXice ) ; 
+%     SETUP.runName = sprintf( [ 'SPINUP_REV2_' datestr( SETUP.startDate, 'yyyymm' ) '-' datestr(SETUP.endDate, 'yyyymm' )  '_' SETUP.scenario '_xice%d_xE%d_xH%d_xW%d_xS%d_%s_%s_eRes%0.2f_snowDens%d_maxSnow%0.2f_DeltaXice%0.2f' ], ...
+%          SETUP.xice, SETUP.xE, SETUP.xH, SETUP.xW, SETUP.xS, polygonType, SETUP.boundaryCondition_T, SETUP.e_Reservoir, SETUP.snowDens, SETUP.relMaxSnow, SETUP.DeltaXice ) ; 
+    SETUP.runName = sprintf( [ 'SCENARIO_REV3_' datestr( SETUP.startDate, 'yyyymm' ) '-' datestr(SETUP.endDate, 'yyyymm' )  '_' SETUP.scenario '_xice%d_xE%d_xH%d_xW%d_xS%d_%s_%s_eRes%0.2f_snowDens%d_DeltaXice%0.2f_diff%0.1f_adv%0.1f_Kland%0.1e_Kwater%0.1e' ], ...
+         SETUP.xice, SETUP.xE, SETUP.xH, SETUP.xW, SETUP.xS, polygonType, SETUP.boundaryCondition_T, SETUP.e_Reservoir, SETUP.snowDens, SETUP.DeltaXice,...
+         SETUP.weight_diffusion, SETUP.weight_advection, SETUP.hillslope_diffusivity_land, SETUP.hillslope_diffusivity_water ) ; 
+    
     [~, SETUP.git_commit_hash] = system('git rev-parse HEAD');
-
 end
 
 

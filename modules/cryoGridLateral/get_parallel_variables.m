@@ -143,4 +143,7 @@ PARA.soil.layer_properties = PARA.soil.layer_properties{index};
 
 % different initial conditions
 % to be specificed by user
+PARA.Tinitial = SETUP.Tinitial{labindex};
+
+
 end

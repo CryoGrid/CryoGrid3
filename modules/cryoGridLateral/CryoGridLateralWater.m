@@ -27,14 +27,14 @@ function [wc, GRID, BALANCE] = CryoGridLateralWater( PARA, GRID, BALANCE, T, wc)
 
         % Calculate possible boundary fluxes
         [ boundary_water_flux ] = calculateLateralWaterBoundaryFluxes(PARA, GRID, T);
-        fprintf('\t\t\tBoundary contribution :\t%3.2e m\n',boundary_water_flux)
+        %fprintf('\t\t\tBoundary contribution :\t%3.2e m\n',boundary_water_flux)
 
 
         % Check for water availability and set real water fluxes
         [ water_fluxes_worker, boundary_water_flux ] = calculateLateralWaterAvailable( PARA,GRID, wc, water_fluxes,boundary_water_flux );
         water_fluxes_gather=zeros(numlabs,numlabs,numlabs);
         water_fluxes_gather(:,:,labindex)=water_fluxes_worker;
-        fprintf('\t\t\tBoundary contribution :\t%3.2e m\n',boundary_water_flux)
+        %fprintf('\t\t\tBoundary contribution :\t%3.2e m\n',boundary_water_flux)
 
 
         % Send real fluxes all around
@@ -71,10 +71,10 @@ function [wc, GRID, BALANCE] = CryoGridLateralWater( PARA, GRID, BALANCE, T, wc)
             fprintf('\t\t\tExcess water :\t%3.2e m\n',excess_water)
             BALANCE.water.dr_lateralExcess=BALANCE.water.dr_lateralExcess + excess_water*1000;            % Added by Leo to have the lateral fluxes in BALANCE
         end
-        if strcmp(PARA.ensemble.boundaryCondition(labindex).type,'DarcyReservoir')==1
-            BALANCE.water.dr_DarcyReservoir = BALANCE.water.dr_DarcyReservoir + boundary_water_flux*1000;
-            fprintf('\t\t\tBoundary contribution :\t%3.2e m\n',boundary_water_flux)
-        end
+        %if strcmp(PARA.ensemble.boundaryCondition(labindex).type,'DarcyReservoir')==1 || strcmp(PARA.ensemble.boundaryCondition(labindex).type,'DarcyReservoirNoInflow')==1
+        BALANCE.water.dr_DarcyReservoir = BALANCE.water.dr_DarcyReservoir + boundary_water_flux*1000;
+        fprintf('\t\t\tBoundary contribution :\t%3.2e m\n',boundary_water_flux)
+        %end
     end
 
 end

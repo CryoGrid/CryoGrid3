@@ -13,7 +13,9 @@ if double( T(GRID.soil.cT_domain_ub)>0 && isempty(GRID.snow.cT_domain_ub) )==1 %
         Darcy_elevation=PARA.ensemble.boundaryCondition(labindex).parameters.elevation;
         Darcy_fluxFactor=PARA.ensemble.boundaryCondition(labindex).parameters.fluxFactor;
         DeltaH=abs(waterpot - Darcy_elevation);
-        contact_height = max( [ waterpot, Darcy_elevation ] ) -  inf_altitude;
+        %contact_height = max( [ waterpot, Darcy_elevation ] ) -  inf_altitude;
+        contact_height = abs( waterpot - max( [ Darcy_elevation, inf_altitude ] ) );
+        
         DarcyFlux= Darcy_fluxFactor * DeltaH * contact_height; % DeltaH is multiplied twice, once as a pressure gradient and the second as the height of the section through which the flux is going
         waterHeight_change=DarcyFlux * PARA.technical.syncTimeStep *24 *3600 / PARA.ensemble.area(labindex); % syncTimeStep in days, Darcy flux in m3/sec
         

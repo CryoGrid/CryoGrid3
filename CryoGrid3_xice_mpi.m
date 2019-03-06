@@ -64,6 +64,8 @@ function CryoGrid3_xice_mpi(SETUP, startFromRun)
 
             %PARA.soil.relative_maxWater=10.0; % temporary bugfix to allow deeper lakes with erosion enabled
             
+            PARA.technical.syncTimeStep = 1./24.;
+            
         else
             %---------------define input parameters------------------------------------
             % here you provide the ground stratigraphy
@@ -132,10 +134,12 @@ function CryoGrid3_xice_mpi(SETUP, startFromRun)
 
             % parameters related to lateral sediemnt transport / erosion
             % set hillslope diffusivities and critical angle
+            PARA.soil.weight_diffusion = SETUP.weight_diffusion;
+            PARA.soil.weight_advection = SETUP.weight_advection;
             PARA.soil.hillslope_diffusivity_land = SETUP.hillslope_diffusivity_land; % in [m^2/sec] approx. 0.01 m^2/yr, reference: [ Kessler et al. 2012, JGR ]
-            PARA.soil.hillslope_diffusivity_water = SETUP.soil.hillslope_diffusivity_water; % in [m^2/sec] approx 1.0 m^2/yr, reference: [ Kessler et al. 2012, JGR ]
+            PARA.soil.hillslope_diffusivity_water = SETUP.hillslope_diffusivity_water; % in [m^2/sec] approx 1.0 m^2/yr, reference: [ Kessler et al. 2012, JGR ]
             PARA.soil.critical_hillslope_angle = SETUP.critical_hillslope_angle; % to be chosen depending on whether surface frozen or unfrozen, for now 45°
-
+            
 
             % technical parameters
             PARA.technical.z=2.0;                               % height of input air temperature above ground in [m] - assumed constant even when snow depth increases
