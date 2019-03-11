@@ -50,7 +50,7 @@ else
     SETUP.relMaxSnow = 0.40; % 1.0
     SETUP.snowDens = 250;%200..250
     SETUP.boundaryCondition_T = 'DarcyReservoirNoInflow';%NoInflow';% 'DarcyReservoirNoInflow'
-    SETUP.e_Reservoir = 0.0;%-10.0;
+    SETUP.e_Reservoir = -10.0;%-10.0;
 
     % areal fractions
     SETUP.f_C = 0.3; % 0.5
@@ -68,10 +68,10 @@ else
     SETUP.K_Reservoir = 2*pi*SETUP.K_subs;
     
     % hillslope diffusitivities
-    SETUP.weight_diffusion = 1;
+    SETUP.weight_diffusion = 0;
     SETUP.weight_advection = 1;
-    SETUP.hillslope_diffusivity_land =  1e-10; % [m^2/sec] 3e-10 m^2/sec approx. 0.01 m^2/yr, reference: [ Kessler et al. 2012, JGR ]
-    SETUP.hillslope_diffusivity_water = 1e-8; % [m^2/sec]  3e-8  m^2/sec approx  1.00 m^2/yr, reference: [ Kessler et al. 2012, JGR ]
+    SETUP.hillslope_diffusivity_land =  3e-10; % [m^2/sec] 3e-10 m^2/sec approx. 0.01 m^2/yr, reference: [ Kessler et al. 2012, JGR ]
+    SETUP.hillslope_diffusivity_water = 3e-8; % [m^2/sec]  3e-8  m^2/sec approx  1.00 m^2/yr, reference: [ Kessler et al. 2012, JGR ]
     SETUP.critical_hillslope_angle = pi/4;
     
      
@@ -168,10 +168,13 @@ else
      %    SETUP.xice, SETUP.xH, SETUP.xW, SETUP.xS, SETUP.boundaryCondition_T, SETUP.e_Reservoir, SETUP.snowDens, SETUP.relMaxSnow ) ;
 %     SETUP.runName = sprintf( [ 'SPINUP_REV2_' datestr( SETUP.startDate, 'yyyymm' ) '-' datestr(SETUP.endDate, 'yyyymm' )  '_' SETUP.scenario '_xice%d_xE%d_xH%d_xW%d_xS%d_%s_%s_eRes%0.2f_snowDens%d_maxSnow%0.2f_DeltaXice%0.2f' ], ...
 %          SETUP.xice, SETUP.xE, SETUP.xH, SETUP.xW, SETUP.xS, polygonType, SETUP.boundaryCondition_T, SETUP.e_Reservoir, SETUP.snowDens, SETUP.relMaxSnow, SETUP.DeltaXice ) ; 
-    SETUP.runName = sprintf( [ 'SCENARIO_REV3_' datestr( SETUP.startDate, 'yyyymm' ) '-' datestr(SETUP.endDate, 'yyyymm' )  '_' SETUP.scenario '_xice%d_xE%d_xH%d_xW%d_xS%d_%s_%s_eRes%0.2f_snowDens%d_DeltaXice%0.2f_diff%0.1f_adv%0.1f_Kland%0.1e_Kwater%0.1e' ], ...
-         SETUP.xice, SETUP.xE, SETUP.xH, SETUP.xW, SETUP.xS, polygonType, SETUP.boundaryCondition_T, SETUP.e_Reservoir, SETUP.snowDens, SETUP.DeltaXice,...
-         SETUP.weight_diffusion, SETUP.weight_advection, SETUP.hillslope_diffusivity_land, SETUP.hillslope_diffusivity_water ) ; 
-    
+    SETUP.runName = sprintf( [ 'SCENARIO_REV4_' datestr( SETUP.startDate, 'yyyymm' ) '-' datestr(SETUP.endDate, 'yyyymm' )  '_' SETUP.scenario '_xice%d_xE%d_xH%d_xW%d_xS%d_%s_%s_eRes%0.2f_snowDens%d_DeltaXice%0.2f' ], ...
+         SETUP.xice, SETUP.xE, SETUP.xH, SETUP.xW, SETUP.xS, polygonType, SETUP.boundaryCondition_T, SETUP.e_Reservoir, SETUP.snowDens, SETUP.DeltaXice );% ,...
+
+    if SETUP.xE == 1
+        SETUP.runName = sprintf( [ SETUP.runName '_diff%0.1f_adv%0.1f_Kland%0.1e_Kwater%0.1e' ], SETUP.weight_diffusion, SETUP.weight_advection, SETUP.hillslope_diffusivity_land, SETUP.hillslope_diffusivity_water ) ;
+    end
+        
     [~, SETUP.git_commit_hash] = system('git rev-parse HEAD');
 end
 
