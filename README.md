@@ -1,4 +1,7 @@
-# CryoGrid3
+# CryoGrid3 
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2601973.svg)](https://doi.org/10.5281/zenodo.2601973)
+
 CryoGrid 3 is a simple land-surface scheme dedicated to modeling of ground temperatures in permafrost environments.
 
 The model version of this branch ("xice_mpi_polygon_TC") has been used for the simulations related to the research article "Modelling the degradation of ice-wedges in polygonal tundra under different hydrological conditions" which is intended to be published in the scientific journal "The Cryosphere".
