@@ -62,9 +62,8 @@ function CryoGrid3_xice_mpi(SETUP, startFromRun)
             
             OUT = generateOUT();
 
-            %PARA.soil.relative_maxWater=10.0; % temporary bugfix to allow deeper lakes with erosion enabled
-            
-            PARA.technical.syncTimeStep = 1./24.;
+           
+            %PARA.technical.endtime = datenum(2044,2,1);
             
         else
             %---------------define input parameters------------------------------------

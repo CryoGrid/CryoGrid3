@@ -15,8 +15,8 @@ if SETUP.startFromRun
 
 
     SETUP.startFromRunDir='/data/scratch/nitzbon/CryoGrid/CryoGrid3_infiltration_xice_mpi_polygon/runs';
-    SETUP.startFromRunName='SCENARIO_199910-209912_rcp85_xice1_xE1_xH1_xW1_xS1_geometry1_eRes-0.20_snowDens250_maxSnow0.40_CONTINUED_CONTINUED';
-    SETUP.startFromRunYear=2083;
+    SETUP.startFromRunName='SCENARIO_REV4_199910-209912_rcp45_xice1_xE0_xH1_xW1_xS1_epigenetic_DarcyReservoirNoInflow_eRes0.00_snowDens250_DeltaXice0.00';
+    SETUP.startFromRunYear=2042;
 
     % output directory
     SETUP.saveDir = SETUP.startFromRunDir;
@@ -34,8 +34,8 @@ else
     SETUP.xH=1;
     SETUP.xW=1;
     SETUP.xS=1;
-    SETUP.xE=1;
-    SETUP.xice=1;
+    SETUP.xE=0;
+    SETUP.xice=0;
     
     SETUP.polygon_geometry = 2; % 1: hexagonal , 2: circular, cross-section
     
@@ -44,13 +44,13 @@ else
     polygonType = 'epigenetic'; %'syngenetic'
     
     
-    SETUP.DeltaXice = 0.0; % use this to shift the excess ice layers
+    SETUP.DeltaXice = 0.1; % use this to shift the excess ice layers
     
     SETUP.fieldCapacity = 0.50; % 0.40
     SETUP.relMaxSnow = 0.40; % 1.0
     SETUP.snowDens = 250;%200..250
     SETUP.boundaryCondition_T = 'DarcyReservoirNoInflow';%NoInflow';% 'DarcyReservoirNoInflow'
-    SETUP.e_Reservoir = -10.0;%-10.0;
+    SETUP.e_Reservoir = -10.0;%10.0;
 
     % areal fractions
     SETUP.f_C = 0.3; % 0.5
