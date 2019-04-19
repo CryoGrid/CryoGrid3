@@ -4,7 +4,6 @@ Q=PARA.soil.Qgeo;
 cT_delta = GRID.general.cT_delta;
 cT_cellAboveSurface = GRID.air.cT_domain_lb;
 
-
 dE_dt=T.*0;
 
 dE_dt(cT_cellAboveSurface+1)= k_eff(cT_cellAboveSurface+2).*(T(cT_cellAboveSurface+2)-T(cT_cellAboveSurface+1))./cT_delta(cT_cellAboveSurface+1) ;

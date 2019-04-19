@@ -1,51 +1,59 @@
 function [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, surface_runoff)
 
-    %%% step 2: GRID update
+% create log files before run execution manually...
+
+%    fileID = fopen('exp.txt','w');
+%    logfile=['log_updateGridInfil_',num2str(labindex)];
+   
+%%% step 2: GRID update
     %%% TODO: add a function updateGRID_infiltration
 
-    soilGRIDsizeOld = sum(GRID.soil.cT_domain);
+    soilGRIDsizeOld = sum(GRID.soil.cT_domain); %zzz use grid + lake?
 
-    %%% step 2a) remove cells filled with air (e.g. due to evaporation
-    %%% of uppermost grid cell )
-    while (GRID.soil.cT_mineral(1)+GRID.soil.cT_organic(1)+wc(1)<=0)
-        disp('infiltration - update GRID - removing air cell')
+    %%% step 2a) remove cells filled with air (e.g. due to evaporation of uppermost grid cell )
+ 
+    if(isempty(GRID.lake.water.cT_domain_ub)) %tsvd only update grid when no lake exists   zzz include case when lake level is dynamic!
+        while (GRID.soil.cT_mineral(1)+GRID.soil.cT_organic(1)+wc(1)<=0)  
+%ttt             disp('infiltration - update GRID - updating air cell')  
+%             if labindex==1
+%                 disp('fileID1')
+%                 fileID1
+%                 fprintf(fileID1,['infiltration - update GRID - updating air cell for worker ',num2str(labindex)]) 
+%             elseif labindex==2
+%                 fprintf(fileID2,['infiltration - update GRID - updating air cell for worker ',num2str(labindex)]) 
+%             end
+            % adjust air and soil domains and boundaries   zzz check how to adapt for lake...
+            GRID.air.cT_domain(GRID.soil.cT_domain_ub)=1;
+            GRID.air.K_domain(GRID.soil.K_domain_ub)=1;
+            GRID.air.cT_domain_lb=GRID.air.cT_domain_lb+1;
+            GRID.air.K_domain_lb=GRID.air.K_domain_lb+1;
+            GRID.soil.cT_domain(GRID.soil.cT_domain_ub)=0;
+            GRID.soil.K_domain(GRID.soil.K_domain_ub)=0;
+            GRID.soil.cT_domain_ub=GRID.soil.cT_domain_ub+1;
+            GRID.soil.K_domain_ub=GRID.soil.K_domain_ub+1;
+            GRID.soil.soilGrid(1)=[];
 
-        % adjust air and soil domains and boundaries
-        GRID.air.cT_domain(GRID.soil.cT_domain_ub)=1;
-        GRID.air.K_domain(GRID.soil.K_domain_ub)=1;
-        GRID.air.cT_domain_lb=GRID.air.cT_domain_lb+1;
-        GRID.air.K_domain_lb=GRID.air.K_domain_lb+1;
-        GRID.soil.cT_domain(GRID.soil.cT_domain_ub)=0;
-        GRID.soil.K_domain(GRID.soil.K_domain_ub)=0;
-        GRID.soil.cT_domain_ub=GRID.soil.cT_domain_ub+1;
-        GRID.soil.K_domain_ub=GRID.soil.K_domain_ub+1;
-        GRID.soil.soilGrid(1)=[];
+            wc(1)=[];
 
-        wc(1)=[];
+            GRID.soil.cT_organic(1)=[];
+            GRID.soil.cT_natPor(1)=[];
+            GRID.soil.cT_actPor(1)=[];
+            GRID.soil.cT_mineral(1)=[];
+            GRID.soil.cT_soilType(1)=[];
 
-        GRID.soil.cT_organic(1)=[];
-        GRID.soil.cT_natPor(1)=[];
-        GRID.soil.cT_mineral(1)=[];
-        GRID.soil.cT_soilType(1)=[];
-        % K fields are not used currently
-%                 GRID.soil.K_water(1)=[];
-%                 GRID.soil.K_organic(1)=[];
-%                 GRID.soil.K_mineral(1)=[];
-%                 GRID.soil.K_soilType(1)=[];
-        GRID.soil.excessGroundIce(1)=[];
-
+            GRID.soil.excessGroundIce(1)=[];
+        end
     end
-
+       
     %%% step 2b) ponding of surface runoff below water table
     while surface_runoff>1e-6 && ...                                % not >0 as sometimes numerical errors occur during calculation of surface_runoff
-            GRID.general.K_grid(GRID.soil.K_domain_ub)>PARA.soil.waterTable %&& ...
+            PARA.location.initial_altitude-GRID.general.K_grid(GRID.soil.cT_domain_ub)<PARA.location.absolute_maxWater_altitude
             %wc(1)>=1   % this prevents a bug for very small
             %surface_runoff when upper cell not filled // but this
             %does not allow ponding on top of actual soil
         disp('infiltration - update GRID - ponding of water below water table')
 
-        h = GRID.general.K_grid(GRID.soil.K_domain_ub)-PARA.soil.waterTable;    % this is guruanteed to be >0
-
+        h = PARA.location.absolute_maxWater_altitude - ( PARA.location.initial_altitude - GRID.general.K_grid(GRID.soil.cT_domain_ub) ) ;   % this is guruanteed to be >0
 
         % create new water cell / change GRID domains
         GRID.soil.cT_domain(GRID.air.cT_domain_lb)=1;
@@ -58,7 +66,6 @@ function [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, 
         GRID.air.K_domain_lb=GRID.air.K_domain_lb-1;
 
         % fill new water cell
-        %cellSize = GRID.general.K_delta(GRID.soil.cT_domain_ub);
         cellSize = PARA.technical.waterCellSize;
         waterAdded = min( [surface_runoff, cellSize, h] ); % add water until water table is reached or surface_runoff "empty"
         wc = [ waterAdded./cellSize ; wc ];
@@ -67,13 +74,10 @@ function [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, 
         % update remaining soil fields with exception of cT_water
         GRID.soil.cT_organic =  [ 0 ; GRID.soil.cT_organic ];
         GRID.soil.cT_natPor =   [ GRID.soil.cT_natPor(1); GRID.soil.cT_natPor ];    % take natPor of cell below
+        GRID.soil.cT_actPor =   [ 1; GRID.soil.cT_actPor ];                         % set actual porosity to 1
         GRID.soil.cT_mineral =  [ 0 ; GRID.soil.cT_mineral ];
-        GRID.soil.cT_soilType = [ 1; GRID.soil.cT_soilType];                        % assume sand as soil type for water cell
-        % K fields are not used currently
-        %GRID.soil.K_water = [ wc(1); GRID.soil.K_water ];
-        %GRID.soil.K_organic = [ 0 ; GRID.soil.K_organic ];
-        %GRID.soil.K_mineral = [ 0 ; GRID.soil.K_mineral ];
-        %GRID.soil.K_soilType = [ GRID.soil.K_soilType(1); GRID.soil.K_soilType];
+        GRID.soil.cT_soilType = [ 3; GRID.soil.cT_soilType];                        % soilType 3 = pond (sand freeze curve, field cap =0 )
+
         GRID.soil.excessGroundIce = [ 0 ; GRID.soil.excessGroundIce ];
 
         % update GRID spacings
@@ -83,19 +87,33 @@ function [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, 
         GRID.general.cT_delta = (- GRID.general.cT_grid(1:end-1,1)+ GRID.general.cT_grid(2:end,1));
         GRID.general.K_delta = (- GRID.general.K_grid(1:end-1,1)+ GRID.general.K_grid(2:end,1));
         GRID.soil.soilGrid = [ GRID.general.K_grid(GRID.soil.cT_domain_ub) ; GRID.soil.soilGrid ];
+    end   
+    
+%     %%% step 2c)  check if soil/air domains changed --> LUT update
+%     soilGRIDsizeNew = sum(GRID.soil.cT_domain);
+%     if soilGRIDsizeOld~=soilGRIDsizeNew
+%         disp(['infiltration - reinitializing LUT - soil/air domains changed  on worker ',num2str(labindex)]);
+%         GRID.soil.cT_water = wc;
+%         GRID = initializeSoilThermalProperties(GRID, PARA);   
+%     end
 
-    end
-    
-    
-    
-    %%% step 2c)  check if soil/air domains changed --> LUT update
+%tsvd       %%% step 2c)  check if soil/air domains changed --> LUT update
     soilGRIDsizeNew = sum(GRID.soil.cT_domain);
-    if soilGRIDsizeOld~=soilGRIDsizeNew
-        disp('infiltration - reinitializing LUT - soil/air domains changed');
+    cellsChanged = soilGRIDsizeNew - soilGRIDsizeOld;
+    if cellsChanged > 0
+        disp('infiltration - reinitializing LUT - new water cell(s)');
         GRID.soil.cT_water = wc;
         GRID = initializeSoilThermalProperties(GRID, PARA);   
+    elseif cellsChanged < 0
+        disp('infiltration - shortening LUT - removed water cell(s)');
+        GRID.soil.cT_water(1) = [];
+        GRID.soil.cT_frozen(1) = [];
+        GRID.soil.cT_thawed(1) = [];
+        GRID.soil.K_frozen(1) = [];
+        GRID.soil.K_thawed(1) = [];
+        GRID.soil.conductivity(1,:) = [];
+        GRID.soil.capacity(1,:) = [];
+        GRID.soil.liquidWaterContent(1,:) = [];
     end
-
-
-
+    
 end

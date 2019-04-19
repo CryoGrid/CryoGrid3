@@ -1,15 +1,13 @@
 function OUT = generateOUT()
 
-    OUT.snow.outSnow_i=[];
-    OUT.snow.outSnow_a=[];
-    OUT.snow.outSnow_w=[];
-
+    % key state variables
     OUT.cryoGrid3=[];
     OUT.water=[];
     OUT.liquidWater=[]; % for distinction between total and liquid water content
     OUT.timestamp=[];
     OUT.TIMESTEP=[];
 
+    % realated to surface energy balance
     OUT.SEB.Lsta=[];
     OUT.SEB.QE=[];
     OUT.SEB.QH=[];
@@ -19,12 +17,31 @@ function OUT = generateOUT()
     OUT.SEB.albedo_stored=[];
     OUT.SEB.Qsurf=[];
 
-    OUT.soil.topPosition=[];
-    OUT.soil.lakeFloor=[];
+    % related to soil
+    OUT.soil.topPosition=[];    % relative to initial altitude
+    OUT.soil.lakeFloor=[];      % relative to initial altitude
     OUT.soil.soil=cell(0);
 
-    OUT.snow.topPosition=[];
-    OUT.snow.botPosition=[];
+    % related to snow
+    OUT.snow.outSnow_i=[];
+    OUT.snow.outSnow_a=[];
+    OUT.snow.outSnow_w=[];
+    OUT.snow.topPosition=[];    % relative to initial altitude
+    OUT.snow.botPosition=[];    % relative to initial altitude
+    
+    % derived characteristics and related to geometry
+    OUT.location.area = [];
+    OUT.location.altitude=[];
+    OUT.location.soil_altitude = [];
+    OUT.location.surface_altitude=[];
+    OUT.location.active_layer_depth_altitude = [];
+    OUT.location.water_table_altitude=[];
+
+    % lateral fluxes
+    OUT.lateral.terrain_index_snow=[];
+    OUT.lateral.water_fluxes = [];     % vector containing water fluxes in [m/s] to the current worker
+    OUT.lateral.snow_fluxes = [];      % vector containing snow fluxes in [m SWE / s] to the current worker
+    OUT.lateral.heat_fluxes = [];      % vector containing depth-integrated heat fluxes in [J/m^2 s ] to the current worker
 
     % water balance (WB)
     % all flows are defined as positive when they go into the soil/snow column
@@ -40,11 +57,16 @@ function OUT = generateOUT()
     OUT.WB.ds=[];
     % runoff
     OUT.WB.dr_surface=[];
-    OUT.WB.dr_subsurface=[];
+    OUT.WB.dr_external=[];
     OUT.WB.dr_snowmelt=[];
     OUT.WB.dr_excessSnow=[];
-    OUT.WB.dr_rain=[];  % this is only rain on frozen ground
-    
+    OUT.WB.dr_lateralSnow=[];   % lateral snow flux to other realizations
+    OUT.WB.dr_rain=[];          % this is only rain on frozen ground
+    OUT.WB.dr_lateral=[];       % lateral water flux to other realizations
+    % mismatches (known)
+    OUT.WB.dm_lacking =[];      % mismatch term due to lacking water for evapotranspiration 
+
+
     % energy balance (EB)
     % accumulated energy fluxes per output time in [ J / m^2 ]
     OUT.EB.Qg = [];         % ground heat flux (positive into ground)
@@ -52,6 +74,7 @@ function OUT = generateOUT()
     OUT.EB.Qh = [];         % sensible heat flux (positive into ground)
     OUT.EB.Qnet = [];
     OUT.EB.Qgeo = [];       % geothermal heat flux
+    OUT.EB.Qsurf = [];      % heat flux into uppermost grid cell
 
     OUT.EB.dE_soil_sens = [];
     OUT.EB.dE_soil_lat = [];
@@ -59,5 +82,14 @@ function OUT = generateOUT()
     OUT.EB.dE_snow_sens = [];
     OUT.EB.dE_snow_lat = [];
     OUT.EB.dE_snow = [];
+    
+    OUT.EB.Q_lateral = [];
+    
+    
+    % for DEBUGGING   
+    OUT.debugging.dE_dt_SEB = [];
+    OUT.debugging.dE_dt_cond = [];
+    OUT.debugging.K_grid = [];
+
 
 end
