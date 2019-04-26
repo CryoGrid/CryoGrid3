@@ -17,7 +17,7 @@ diary off
 add_modules;  %adds required modules
 
 %% Deal with possible restart from FINAL state
-startFromRun='190219_7w100y_higherPalsa7w_realization3_finalState1928';
+startFromRun=[];
 SETUP = startFromRunSETUP(startFromRun,'_v13');
 
 if SETUP.flag==0;
@@ -32,8 +32,8 @@ end
 
 % Name, Forcing and diary
 if SETUP.flag==0;
-    run_number='190220_5w100y_lowerPalsa';
-    forcingname='Suossjavri_WRF_Norstore_adapted100yr.mat';
+    run_number='190311_5w100y_trynewforcing';
+    forcingname='wrf3km_2006-2018_Suos_100yr.mat';
 else
     run_number=SETUP.run_name_new;
     forcingname=SETUP.forcingname;
@@ -161,7 +161,7 @@ spmd
         PARA.technical.saveDate='01.08.';                   % date of year when output file is written - no effect if "saveInterval" is empty
         PARA.technical.saveInterval=1;                      % interval [years] in which output files are written - if empty the entire time series is written - minimum is 1 year
         PARA.technical.waterCellSize=0.02;                  % default size of a newly added water cell when water ponds below water table [m]
-        PARA.technical.punctualSaveFlag=0;                  % used to save the state of the model at a punctual time. -1 : Do not use the functionality, 0 : Not done, 1 : Done, 2 : Do it now !
+        PARA.technical.punctualSaveFlag=-1;                  % used to save the state of the model at a punctual time. -1 : Do not use the functionality, 0 : Not done, 1 : Done, 2 : Do it now !
         PARA.technical.punctualSaveTime=datenum('23-Oct-1928 12:00:00'); % used to save the state of the model at a punctual time - Punctual time to save
         
         % subsurface grid
