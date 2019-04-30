@@ -21,7 +21,7 @@ startFromRun=[];
 SETUP = startFromRunSETUP(startFromRun,'_v13');
 
 if SETUP.flag==0;
-    number_of_realizations=5;  % <------ Number of realization ! 
+    number_of_realizations=7;  % <------ Number of realization ! 
 else
     number_of_realizations=SETUP.nbreal;
 end
@@ -32,8 +32,8 @@ end
 
 % Name, Forcing and diary
 if SETUP.flag==0;
-    run_number='190311_5w100y_trynewforcing';
-    forcingname='wrf3km_2006-2018_Suos_100yr.mat';
+    run_number= [datestr(date,'yymmdd') '_7w100y_roundPalsa15m'];
+    forcingname='Suossjavri_WRF_Norstore_adapted100yr.mat';
 else
     run_number=SETUP.run_name_new;
     forcingname=SETUP.forcingname;

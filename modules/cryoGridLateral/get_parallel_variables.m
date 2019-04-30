@@ -6,11 +6,14 @@ function PARA = get_parallel_variables(PARA)
 index = labindex;
 
 % topological relations
-area_tot = 200 + 40 + 40 + 40 + 200;
-PARA.ensemble.weight = [20 4 4 4 20]; % Has to be an integer
+rad=2; % radius of central palsa
+ring=0.4; % width of the surounding rings
+PARA.ensemble.weight = [ pi*(8^2-(rad+5*ring)^2)   pi*((rad+5*ring)^2-(rad+4*ring)^2)   pi*((rad+4*ring)^2-(rad+3*ring)^2)   pi*((rad+3*ring)^2-(rad+2*ring)^2)   pi*((rad+2*ring)^2-(rad+1*ring)^2)   pi*((rad+1*ring)^2-rad^2)   pi*rad^2;]; % Has to be an integer
+area_tot = sum(PARA.ensemble.weight);
 PARA.ensemble.area = PARA.ensemble.weight ./ sum(PARA.ensemble.weight) .* area_tot ; % in m^2
+PARA.ensemble.weight=round(PARA.ensemble.weight);
 % For in-line workers
-dist=[1.20 0.20 0.20 1.20];
+dist=[2.20 0.20 0.20 0.20 0.20 2.20];
 A=zeros(numlabs,numlabs);
 idx = sub2ind(size(A),[1:numlabs-1 2:numlabs],[2:numlabs 1:numlabs-1]);
 A(idx) = [dist dist];
@@ -18,14 +21,20 @@ PARA.ensemble.distanceBetweenPoints= A; %   %in m. Put 0 for all non-connected e
 A = double( PARA.ensemble.distanceBetweenPoints > 0 ); % adjacency matrix of the network (auxiliary)
 
 % topographical relations
-PARA.ensemble.initial_altitude = [300.0 300.50 301.0 301.50 302.0];	%in m a.s.l., this is the reference for the "zero" position of the grids
+PARA.ensemble.initial_altitude = linspace(300,301.5,7);	%in m a.s.l., this is the reference for the "zero" position of the grids
 PARA.ensemble.altitude = PARA.ensemble.initial_altitude;
 PARA.ensemble.surface_altitude = PARA.ensemble.initial_altitude;
 PARA.ensemble.soil_altitude = PARA.ensemble.initial_altitude;
 
 % parameters related to HEAT exchange
-PARA.ensemble.thermal_contact_length = 5 .* A;
-PARA.ensemble.thermalDistance = PARA.ensemble.distanceBetweenPoints;
+B=A;
+perimeters=[2*pi*(rad+5*ring) 2*pi*(rad+4*ring) 2*pi*(rad+3*ring) 2*pi*(rad+2*ring) 2*pi*(rad+1*ring) 2*pi*rad];
+B(idx)= [perimeters perimeters];
+PARA.ensemble.thermal_contact_length = B;
+B=A;
+thdist=[0.20 0.20 0.20 0.20 0.20 0.20];
+B(idx)= [thdist thdist];
+PARA.ensemble.thermalDistance = B;
 
 % parameters related to WATER exchange
 PARA.ensemble.water_fluxes = zeros( numlabs, numlabs ); % total water flux in [m] per sync interval from each worker to worker index
@@ -36,9 +45,9 @@ PARA.ensemble.hydraulic_contact_length = PARA.ensemble.thermal_contact_length;
 PARA.ensemble.infiltration_altitude = nan(1, numlabs);
 PARA.ensemble.hydraulicDistance = PARA.ensemble.distanceBetweenPoints;
 
-boundaryCondition={'DarcyReservoir','NoBC','NoBC','NoBC','NoBC'}; 		% set to 'DarcyReservoir' for an external water reservoir
-Darcy_elevation=[300 nan nan nan nan]; 				% Elevation of the Darcy reservoir that can drain or refill the worker it is connected to. NaN for workers without this boundary condition
-Darcy_fluxFactor=[1000*5*1e-5/1.20 nan nan nan nan]; 			% Taken as the hydraulic_contact_length*hydraulic_conductivity/hydraulic_distance. Defined for now like this, lets see if we wantto define it differently. NaN for workers without this boundary condition
+boundaryCondition={'DarcyReservoir','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC'}; 		% set to 'DarcyReservoir' for an external water reservoir
+Darcy_elevation=[300 nan nan nan nan nan nan]; 				% Elevation of the Darcy reservoir that can drain or refill the worker it is connected to. NaN for workers without this boundary condition
+Darcy_fluxFactor=[1000*5*1e-5/1.20 nan nan nan nan nan nan]; 			% Taken as the hydraulic_contact_length*hydraulic_conductivity/hydraulic_distance. Defined for now like this, lets see if we wantto define it differently. NaN for workers without this boundary condition
 PARA.ensemble.boundaryCondition(length(boundaryCondition)).type=boundaryCondition{end};
 [PARA.ensemble.boundaryCondition.type]=boundaryCondition{:};
 for i=1:numlabs
@@ -51,7 +60,7 @@ end
 % parameters related to snow exchange
 % to be specificed by user
 PARA.ensemble.terrain_index_snow = calculateTerrainIndexSnow(PARA.ensemble.altitude, PARA.ensemble.weight);
-PARA.ensemble.immobile_snow_height = [ 0.05 0.05 0.05 0.05 0.05 ];
+PARA.ensemble.immobile_snow_height = [ 0.05 0.05 0.05 0.05 0.05 0.05 0.05];
 PARA.ensemble.snow_scaling = ones(1, numlabs);  % New variable for the new snow scheme from Jan
 
 % parameters related to infiltration scheme
@@ -83,7 +92,7 @@ Strati_mire =[    0.0     0.80    0.05    0.15    1   0.80    ;...
 Strati_palsa_initial=Strati_mire; % Start from the mire strati
 Strati_palsa_initial(1,2)=PARA.soil.fieldCapacity; % Set the upper layer at FC
 palsaHeight=PARA.ensemble.initial_altitude(2:end)-PARA.ensemble.initial_altitude(1); % Base palsa height on elevations
-ActiveLayer=[0.9 0.9 0.8 0.7]; % Input active layers
+ActiveLayer=[0.9 0.9 0.85 0.8 0.75 0.7]; % Input active layers
 if labindex < 2;
     PARA.soil.layer_properties=Strati_mire;
 else
