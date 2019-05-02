@@ -15,7 +15,7 @@ firstSedimentCell = find( cT_sediment, 1, 'first' );
 % determine amount to deposit
 sedimentToDeposit = K_delta(firstSedimentCell) .* ( 1 - GRID.soil.cT_natPor(firstSedimentCell) - GRID.soil.cT_mineral(firstSedimentCell) - GRID.soil.cT_organic(firstSedimentCell) );
 depositionType = 1;
-if abs(sedimentToDeposit)<1e-9 % create ne cell
+if abs(sedimentToDeposit)<1e-9 % create new cell
     depositionType = 2;
     if firstSedimentCell==1 % no water above sediment
         sedimentToDeposit = K_delta(firstSedimentCell) .* ( 1 - GRID.soil.cT_natPor(firstSedimentCell) );

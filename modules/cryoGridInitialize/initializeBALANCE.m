@@ -50,4 +50,11 @@ function BALANCE = initializeBALANCE(T, wc, c_cTgrid, lwc_cTgrid, GRID, PARA)
     BALANCE.water.dm_lacking=0;
     
     BALANCE.water.dr_water_fluxes_out=zeros(numlabs,numlabs);
+    
+    
+    % MASS (SEDIMENT)
+    BALANCE.mass.M_organic = nansum( GRID.general.K_delta(GRID.soil.cT_domain) .* GRID.soil.cT_organic ) + GRID.soil.residualOrganic;
+    BALANCE.mass.M_mineral = nansum( GRID.general.K_delta(GRID.soil.cT_domain) .* GRID.soil.cT_mineral ) + GRID.soil.residualMineral;
+    BALANCE.mass.dM_organic = 0;
+    BALANCE.mass.dM_mineral = 0;
 end

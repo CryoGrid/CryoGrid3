@@ -33,4 +33,13 @@ function BALANCE = updateBALANCE(T, wc, c_cTgrid, lwc_cTgrid, BALANCE, GRID, PAR
     BALANCE.water.W_snow = nansum( GRID.snow.Snow_i + GRID.snow.Snow_w ) + GRID.snow.SWEinitial;
     BALANCE.water.dW_snow = BALANCE.water.dW_snow + (BALANCE.water.W_snow - W_snow_old)*1000; % in [mm]
     
+    
+    % mass (sediment)
+    M_organic_old = BALANCE.mass.M_organic;
+    BALANCE.mass.M_organic = nansum( GRID.general.K_delta(GRID.soil.cT_domain) .* GRID.soil.cT_organic ) + GRID.soil.residualOrganic;
+    BALANCE.mass.dM_organic = BALANCE.mass.dM_organic + ( BALANCE.mass.M_organic - M_organic_old );
+
+    M_mineral_old = BALANCE.mass.M_mineral;
+    BALANCE.mass.M_mineral = nansum( GRID.general.K_delta(GRID.soil.cT_domain) .* GRID.soil.cT_mineral ) + GRID.soil.residualMineral;
+    BALANCE.mass.dM_mineral = BALANCE.mass.dM_mineral + ( BALANCE.mass.M_mineral - M_mineral_old ); 
 end

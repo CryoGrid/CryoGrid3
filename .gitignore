@@ -3,3 +3,4 @@ runs/*
 scripts/*
 forcing/*
 *.temp
+*.orig
