@@ -87,23 +87,25 @@ Strati_mire =[    0.0     0.80    0.05    0.15    1   0.80    ;...
                   0.5     0.80    0.05    0.15    1   0.80    ;...
                   3.0     0.50    0.50    0.00    2   0.50    ;...
                  10.0     0.03    0.97    0.00    1   0.03   ];
+             
+% Define who is permafrost             
+ActiveLayer=[NaN 0.9 0.9 0.85 0.8 0.75 0.7]; % Input active layers
 
 % Construct Palsa strati for each worker
 Strati_palsa_initial=Strati_mire; % Start from the mire strati
 Strati_palsa_initial(1,2)=PARA.soil.fieldCapacity; % Set the upper layer at FC
-palsaHeight=PARA.ensemble.initial_altitude(2:end)-PARA.ensemble.initial_altitude(1); % Base palsa height on elevations
-ActiveLayer=[0.9 0.9 0.85 0.8 0.75 0.7]; % Input active layers
-if labindex < 2;
+palsaHeight=PARA.ensemble.initial_altitude-min(PARA.ensemble.initial_altitude);
+
+if isnan(ActiveLayer(labindex));
     PARA.soil.layer_properties=Strati_mire;
 else
-    PARA.soil.layer_properties=stratiXice(Strati_palsa_initial, palsaHeight(labindex-1), ActiveLayer(labindex-1)); % Modify the ice, mineral and organic content
+    PARA.soil.layer_properties=stratiXice(Strati_palsa_initial, palsaHeight(labindex), ActiveLayer(labindex)); % Modify the ice, mineral and organic content
 end
-
 
 % different initial conditions
 % to be specificed by user
 T_z    =[-5 0 0.1 0.5 1 2 10 30 500 1000]';
-ActiveLayer=[0.5 ActiveLayer];
+ActiveLayer(isnan(ActiveLayer))=0.5;
 if min(ActiveLayer)>0.1 && max(ActiveLayer)<1;
     T_z(4)=ActiveLayer(labindex);
 else
@@ -111,7 +113,7 @@ else
 end
 T_mire =[10 5 2 1.5 2 2 2 2 4 10]';
 T_palsa=[10 5 2 0 -1 -1 1 2 4 10]';
-if labindex < 2;
+if isnan(ActiveLayer(labindex));
     PARA.Tinitial=[T_z T_mire];
 else
     PARA.Tinitial=[T_z T_palsa];
