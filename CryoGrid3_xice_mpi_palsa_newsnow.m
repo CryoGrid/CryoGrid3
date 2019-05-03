@@ -32,7 +32,7 @@ end
 
 % Name, Forcing and diary
 if SETUP.flag==0;
-    run_number= [datestr(date,'yymmdd') '_14w50y_roundPalsa3m'];
+    run_number= [datestr(date,'yymmdd') '_14w50y_roundPalsa1hsync'];
     forcingname='Suossjavri_WRF_Norstore_adapted50yr.mat';
 else
     run_number=SETUP.run_name_new;
@@ -103,7 +103,7 @@ spmd
         %------ model parameters --------------------------------------------------
         
         % geometry configuration
-        PARA.ensemble.geomSetup=3; % Numbver of the geometrical Setup
+        PARA.ensemble.geomSetup=2; % Numbver of the geometrical Setup
         
         % parameters related to soil
         PARA.soil.albedo=0.2;       % albedo snow-free surface
@@ -161,7 +161,7 @@ spmd
         PARA.technical.maxTimestep=300 ./ 3600 ./ 24;       % largest possible time step in [days] - here 300 seconds
         PARA.technical.targetDeltaE=1e5;                    % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
         PARA.technical.outputTimestep= 3 ./ 24.0;           % output time step in [days] - here three hours
-        PARA.technical.syncTimeStep = 6 ./ 24.0;            % output time step in [days] - here three hours
+        PARA.technical.syncTimeStep = 1 ./ 24.0;            % output time step in [days] - here three hours
         PARA.technical.saveDate='01.08.';                   % date of year when output file is written - no effect if "saveInterval" is empty
         PARA.technical.saveInterval=1;                      % interval [years] in which output files are written - if empty the entire time series is written - minimum is 1 year
         PARA.technical.waterCellSize=0.02;                  % default size of a newly added water cell when water ponds below water table [m]
@@ -427,7 +427,7 @@ spmd
         % calling PARA.ensemble is only allowed here
         if PARA.modules.lateral
             if t==TEMPORARY.syncTime %communication between workers
-                fprintf('\n\t\t\tCryoGridLateral: sync - start (Worker %1.0f)\n', labindex);
+                % fprintf('\n\t\t\tCryoGridLateral: sync - start (Worker %1.0f)\n', labindex);
                 
                 % update auxiliary variables and common thresholds
                 labBarrier();
@@ -454,7 +454,7 @@ spmd
                 
                 % determine next sync time
                 TEMPORARY.syncTime=round((TEMPORARY.syncTime + PARA.technical.syncTimeStep)./PARA.technical.syncTimeStep).*PARA.technical.syncTimeStep;
-                fprintf('\t\t\tsync - done\n');
+                % fprintf('\t\t\tsync - done\n');
             end
         end
         
