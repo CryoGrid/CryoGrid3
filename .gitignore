@@ -1,6 +1,0 @@
-modules/*/*.orig
-runs/*
-scripts/*
-forcing/*
-*.temp
-*.orig
