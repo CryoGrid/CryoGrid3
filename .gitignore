@@ -1,4 +1,0 @@
-*.m.orig
-modules/*/*.m.orig
-*.m~
-modules/*/*.m~
