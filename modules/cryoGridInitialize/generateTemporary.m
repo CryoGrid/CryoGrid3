@@ -43,10 +43,6 @@ TEMPORARY.bottomBucketSoilDepth_sum=0;
 TEMPORARY.water2pool_sum=0;
 TEMPORARY.water2pool=0;
 
-TEMPORARY.unfrozen_organic_volume_time = 0;
-TEMPORARY.unfrozen_organic_volume_time_aerobic = 0;
-TEMPORARY.unfrozen_organic_volume_time_anaerobic = 0;
-
 TEMPORARY.excessIceThawed = 0;
 
 

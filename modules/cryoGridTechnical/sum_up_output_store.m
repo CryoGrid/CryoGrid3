@@ -1,4 +1,4 @@
-function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, FORCING, saveDir, run_number) 
+function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, FORCING, saveDir, run_number, cm) 
 
 TEMPORARY.timestep_sum=TEMPORARY.timestep_sum+(timestep*24*3600)*timestep;
 TEMPORARY.T_sum=TEMPORARY.T_sum+T.*timestep;
@@ -120,9 +120,6 @@ if  t==TEMPORARY.outputTime
         %OUT.lateral.terrain_index_snow=[ OUT.lateral.terrain_index_snow; PARA.ensemble.terrain_index_snow ];
         OUT.lateral.snow_scaling = [ OUT.lateral.snow_scaling; PARA.ensemble.snow_scaling ];
         OUT.lateral.water_fluxes = cat(3,OUT.lateral.water_fluxes, BALANCE.water.dr_water_fluxes_out );     % vector containing water fluxes in [m/s] to the current worker
-        %OUT.lateral.snow_fluxes = [ OUT.lateral.snow_fluxes; snow_fluxes ];                      % vector containing snow fluxes in [m SWE / s] to the current worker
-        %OUT.lateral.heat_fluxes = [ OUT.lateral.heat_fluxes; heat_fluxes ];                      % vector containing depth-integrated heat fluxes in [W/m^2] to the current worker
-        %OUT.lateral.snow_flux = [ OUT.lateral.snow_flux;  TEMPORARY.snow_flux_lateral ];      % accumulated lateral snow fluxes per output interval in [m SWE] to the current worker
         OUT.lateral.dE_tot = [ OUT.lateral.dE_tot ; TEMPORARY.dE_tot_lateral];      % vector containing depth-integrated lateral heat fluxes per output interval in [J/m^2] to the current worker
         OUT.lateral.dE_cell = cat( 3, OUT.lateral.dE_cell, TEMPORARY.dE_cell_lateral );    % matrix containing cell-wise, accumulated lateral heat fluxes in [J/m^3] to the current worker
         
@@ -144,13 +141,6 @@ if  t==TEMPORARY.outputTime
     
     end
     
-    % related to carbon
-    OUT.carbon.unfrozen_organic_volume_time = [ OUT.carbon.unfrozen_organic_volume_time;  TEMPORARY.unfrozen_organic_volume_time ];
-    TEMPORARY.unfrozen_organic_volume_time=0;
-    OUT.carbon.unfrozen_organic_volume_time_aerobic = [ OUT.carbon.unfrozen_organic_volume_time_aerobic;  TEMPORARY.unfrozen_organic_volume_time_aerobic ];
-    TEMPORARY.unfrozen_organic_volume_time_aerobic=0;    
-    OUT.carbon.unfrozen_organic_volume_time_anaerobic = [ OUT.carbon.unfrozen_organic_volume_time_anaerobic;  TEMPORARY.unfrozen_organic_volume_time_anaerobic ];
-    TEMPORARY.unfrozen_organic_volume_time_anaerobic=0;    
     % related to excess ice
     OUT.xice.excessIceThawed = [ OUT.xice.excessIceThawed; TEMPORARY.excessIceThawed ] ;
     TEMPORARY.excessIceThawed = 0;
@@ -244,6 +234,8 @@ if  t==TEMPORARY.outputTime
         iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_output' datestr(t,'yyyy')  '.mat' ], OUT);
         iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_finalState'  datestr(t,'yyyy') '.mat' ], T, wc, t, SEB, PARA, GRID);
         iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_altitudes' datestr(t,'yyyy') '.png'], OUT, PARA );
+        iPlotTemperature( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_temperature' datestr(t,'yyyy') '.png'], OUT, PARA, GRID, cm );
+        iPlotWaterContent( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_waterContent' datestr(t,'yyyy') '.png'], OUT, PARA, GRID );
         OUT = generateOUT();  
         TEMPORARY.saveTime=datenum(str2num(datestr(t,'yyyy'))+1, str2num(datestr(t,'mm')), str2num(datestr(t,'dd')), str2num(datestr(t,'HH')), str2num(datestr(t,'MM')), 0);
     end

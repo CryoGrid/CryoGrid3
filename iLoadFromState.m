@@ -1,9 +1,0 @@
-function [T, wc, t, SEB, PARA, GRID] = iLoadFromState( fname )
-
-FINAL=load( fname );
-T=FINAL.FINAL.T;
-wc=FINAL.FINAL.wc;
-t=FINAL.FINAL.t;
-SEB=FINAL.FINAL.SEB;
-PARA=FINAL.FINAL.PARA;
-GRID=FINAL.FINAL.GRID;

@@ -1,11 +1,7 @@
-%load('/home/jnitzbon/remote/cirrus/data/scratch/nitzbon/CryoGrid/CryoGrid3_infiltration_xice_mpi_polygon/runs/VALIDATION_199710-201412_xice0_xH1_xW1_xS1_fC0.3_fR0.6_fT0.1_eR0.20_eT0.10_K1.0e-05_KRes5.0e-05_eRes0.00_fc0.50_snowDens200/VALIDATION_199710-201412_xice0_xH1_xW1_xS1_fC0.3_fR0.6_fT0.1_eR0.20_eT0.10_K1.0e-05_KRes5.0e-05_eRes0.00_fc0.50_snowDens200_realization1_output2000.mat')
-
 % this script is run when the model output is saved (default every year)
 % and calculates some "high-level" diagnostics which can then be saved
 % separately for each realization and year 
 function DIAG = diagnose_output_yearly( OUT, PARA, GRID, FORCING )
-
-%addpath( '../CryoGrid3Visualization/nansuite/' );
 
     DIAG = {};
     ts = OUT.timestamp();
@@ -95,8 +91,7 @@ function DIAG = diagnose_output_yearly( OUT, PARA, GRID, FORCING )
                             OUT.WB.dr_external( startSnowFreeIndex:endSnowFreeIndex ) + ...      %should be 0
                             OUT.WB.dr_excessSnow( startSnowFreeIndex:endSnowFreeIndex ) );       %should be 0
     DIAG.accumDeltaWsoil = sum( OUT.WB.dW_soil( startSnowFreeIndex:endSnowFreeIndex ) ); 
-    DIAG.accumDeltaS = DIAG.accumP + DIAG.accumM + DIAG.accumET + DIAG.accumRint + DIAG.accumRext;   % ideally, this should match with DeltaWsoil 
-    
+    DIAG.accumDeltaS = DIAG.accumP + DIAG.accumM + DIAG.accumET + DIAG.accumRint + DIAG.accumRext;
     
     %total excess ice melt [ m ]
     DIAG.excessIceThawed = sum( OUT.xice.excessIceThawed );
@@ -104,18 +99,8 @@ function DIAG = diagnose_output_yearly( OUT, PARA, GRID, FORCING )
     %total ground subsidence [ m ]
     DIAG.subsidence = OUT.location.soil_altitude(end) - OUT.location.soil_altitude(1);
     
-    %time-integrated unfrozen organic matter volume (aerobic/anearobic) [ m sec ]
-    DIAG.unfrozenOrganic = sum( OUT.carbon.unfrozen_organic_volume_time );
-    DIAG.unfrozenOrganicAerobic = sum( OUT.carbon.unfrozen_organic_volume_time_aerobic );
-    DIAG.unfrozenOrganicAnaerobic = sum( OUT.carbon.unfrozen_organic_volume_time_anaerobic );
-    
     %accumulated sediment fluxes per worker (no necessarily applied yet)
     DIAG.accumSedimentOrganic = sum( sum( OUT.lateral.sediment_fluxes_o ) );
     DIAG.accumSedimentMineral = sum( sum( OUT.lateral.sediment_fluxes_m ) );
     DIAG.accumSedimentDiff = sum( sum( OUT.lateral.sediment_fluxes_diff ) );
     DIAG.accumSedimentAdv = sum( sum( OUT.lateral.sediment_fluxes_adv ) );
-    
-    
-    
-    
-    

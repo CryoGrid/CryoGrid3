@@ -1,8 +1,10 @@
-function fig = plot_VLWCfield_vs_time(OUT, PARA, GRID)
+function fig = iPlotWaterContent(OUT, PARA, GRID)
 
     ts = OUT.timestamp();
     LWCs = OUT.liquidWater();
+
     zs = PARA.location.initial_altitude-GRID.general.cT_grid; 
+
     fig=figure('visible','off');
 
     % limits
@@ -22,5 +24,10 @@ function fig = plot_VLWCfield_vs_time(OUT, PARA, GRID)
     datetick('x','mmm');%, 'keepticks'); 
     xlabel('time')
     ylabel('$z$ [m]', 'Interpreter', 'latex');
-    xlabel(cbar, '$T$ [$^\circ$C]', 'Interpreter', 'latex');
+    xlabel(cbar, '$\theta_w$ [-]', 'Interpreter', 'latex');
+    grid('on');
+
     hold off;
+    
+    saveas( fig, filename);
+end
