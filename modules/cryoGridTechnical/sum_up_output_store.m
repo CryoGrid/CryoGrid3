@@ -1,4 +1,4 @@
-function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, FORCING, saveDir, run_number, cm) 
+function [TEMPORARY, OUT, BALANCE] = sum_up_output_store(t, T, wc, lwc, timestep, TEMPORARY, BALANCE, PARA, GRID, SEB, OUT, FORCING, saveDir, run_number) 
 
 TEMPORARY.timestep_sum=TEMPORARY.timestep_sum+(timestep*24*3600)*timestep;
 TEMPORARY.T_sum=TEMPORARY.T_sum+T.*timestep;
@@ -234,8 +234,8 @@ if  t==TEMPORARY.outputTime
         iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_output' datestr(t,'yyyy')  '.mat' ], OUT);
         iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_finalState'  datestr(t,'yyyy') '.mat' ], T, wc, t, SEB, PARA, GRID);
         iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_altitudes' datestr(t,'yyyy') '.png'], OUT, PARA );
-        iPlotTemperature( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_temperature' datestr(t,'yyyy') '.png'], OUT, PARA, GRID, cm );
-        iPlotWaterContent( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_waterContent' datestr(t,'yyyy') '.png'], OUT, PARA, GRID );
+        iPlotTemperature( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_temperature' datestr(t,'yyyy') '.png'], OUT, PARA, GRID);
+        iPlotWaterContent( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_waterContent' datestr(t,'yyyy') '.png'], OUT, PARA, GRID );
         OUT = generateOUT();  
         TEMPORARY.saveTime=datenum(str2num(datestr(t,'yyyy'))+1, str2num(datestr(t,'mm')), str2num(datestr(t,'dd')), str2num(datestr(t,'HH')), str2num(datestr(t,'MM')), 0);
     end

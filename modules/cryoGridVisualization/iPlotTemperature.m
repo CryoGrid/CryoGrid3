@@ -1,4 +1,6 @@
-function fig = iPlotTemperatures(filename, OUT, PARA, GRID, cm)
+function fig = iPlotTemperature(filename, OUT, PARA, GRID)
+
+	cm = iLoadColormap('cm_blueautumn.mat');
 
     ts = OUT.timestamp();
     Ts = OUT.cryoGrid3();
@@ -17,7 +19,7 @@ function fig = iPlotTemperatures(filename, OUT, PARA, GRID, cm)
     % colormap and colorbar
     caxis( [ -40, 20] );
     colormap(gca, cm.Colormap_blueautumn);
-    cbar=colorbar('location','westoutside');
+    cbar=colorbar('location','eastoutside');
     % layout
     axis( [ ts(1) ts(end) minz maxz ] );
     datetick('x','mmm');%, 'keepticks'); 

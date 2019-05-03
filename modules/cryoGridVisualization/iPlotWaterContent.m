@@ -1,4 +1,4 @@
-function fig = iPlotWaterContent(OUT, PARA, GRID)
+function fig = iPlotWaterContent( filename, OUT, PARA, GRID)
 
     ts = OUT.timestamp();
     LWCs = OUT.liquidWater();
@@ -18,7 +18,7 @@ function fig = iPlotWaterContent(OUT, PARA, GRID)
     caxis( [ 0, 1] );
     colormap(gca, 'parula');
     colormap(gca, flipud(colormap));
-    cbar=colorbar('location','westoutside');
+    cbar=colorbar('location','eastoutside');
     % layout
     axis( [ ts(1) ts(end) minz maxz ] );
     datetick('x','mmm');%, 'keepticks'); 
