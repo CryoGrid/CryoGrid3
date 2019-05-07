@@ -17,11 +17,11 @@ diary off
 add_modules;  %adds required modules
 
 %% Deal with possible restart from FINAL state
-startFromRun='190426_7w100y_roundPalsa15m_realization3_finalState1948';
+startFromRun=[]; %'190426_7w100y_roundPalsa15m_realization3_finalState1948';
 SETUP = startFromRunSETUP(startFromRun,'_v1');
 
 if SETUP.flag==0;
-    number_of_realizations=14;  % <------ Number of realization ! 
+    number_of_realizations=7;  % <------ Number of realization !!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
 else
     number_of_realizations=SETUP.nbreal;
 end
@@ -32,8 +32,8 @@ end
 
 % Name, Forcing and diary
 if SETUP.flag==0;
-    run_number= [datestr(date,'yymmdd') '_14w50y_roundPalsa1hsync'];
-    forcingname='Suossjavri_WRF_Norstore_adapted50yr.mat';
+    run_number= [datestr(date,'yymmdd') '_7w100y_redoPalsa150cm'];
+    forcingname='Suossjavri_WRF_Norstore_adapted100yr.mat';
 else
     run_number=SETUP.run_name_new;
     forcingname=SETUP.forcingname;
@@ -103,7 +103,7 @@ spmd
         %------ model parameters --------------------------------------------------
         
         % geometry configuration
-        PARA.ensemble.geomSetup=2; % Numbver of the geometrical Setup
+        PARA.ensemble.geomSetup=1; % Numbver of the geometrical Setup
         
         % parameters related to soil
         PARA.soil.albedo=0.2;       % albedo snow-free surface
@@ -161,7 +161,7 @@ spmd
         PARA.technical.maxTimestep=300 ./ 3600 ./ 24;       % largest possible time step in [days] - here 300 seconds
         PARA.technical.targetDeltaE=1e5;                    % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
         PARA.technical.outputTimestep= 3 ./ 24.0;           % output time step in [days] - here three hours
-        PARA.technical.syncTimeStep = 1 ./ 24.0;            % output time step in [days] - here three hours
+        PARA.technical.syncTimeStep = 6 ./ 24.0;            % output time step in [days] - here three hours
         PARA.technical.saveDate='01.08.';                   % date of year when output file is written - no effect if "saveInterval" is empty
         PARA.technical.saveInterval=1;                      % interval [years] in which output files are written - if empty the entire time series is written - minimum is 1 year
         PARA.technical.waterCellSize=0.02;                  % default size of a newly added water cell when water ponds below water table [m]

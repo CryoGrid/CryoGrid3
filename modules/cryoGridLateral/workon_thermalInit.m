@@ -1,3 +1,5 @@
+%% First works
+
 % Work on input of thermal initialisation
 
 % Create variable
@@ -43,3 +45,13 @@ load('190426_7w100y_roundPalsa15m_realization6_settings.mat')
 thermalInit(6).layer_properties=PARA.soil.layer_properties;
 load('190426_7w100y_roundPalsa15m_realization7_settings.mat')
 thermalInit(7).layer_properties=PARA.soil.layer_properties;
+
+%% Comparing the storgae is ok
+
+addpath ..\..\runs\190426_7w100y_roundPalsa15m
+
+A=geomSetup(1).thermalInit(1).Tinitial;
+load 190426_7w100y_roundPalsa15m_realization1_settings.mat
+B=PARA.Tinitial;
+C=A-B;
+fprintf('Bonjour\n')
