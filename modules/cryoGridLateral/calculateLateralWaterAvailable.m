@@ -22,7 +22,7 @@ if lostWater>0; % worker is loosing water
    availableWaterVect=( wc(1:bottomBucketcTIndex)- fieldC) .* K_deltaSoil(1:bottomBucketcTIndex);
    availableWaterVect( availableWaterVect < 0) = 0;
    availableWater=sum(availableWaterVect);
-   fprintf('\t\t\tAvailable water (w%1.0f) : %3.2e m\n', labindex, availableWater)
+   % fprintf('\t\t\tAvailable water (w%1.0f) : %3.2e m\n', labindex, availableWater)
    loss=find(workerFluxes<0);
    
    % Use the losing point of view

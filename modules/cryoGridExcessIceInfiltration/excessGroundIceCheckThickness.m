@@ -1,4 +1,4 @@
-function [ flag ] = excessGroundIceCheckThickness(GRID, threshold)
+function [ flag,finalThick ] = excessGroundIceCheckThickness(GRID, threshold)
 % When Xice + lateral heat are on, this function checks if cells are thick
 % enough to support shrinking when the Xice module cannot route the water
 % up because of overlying frozen cells.

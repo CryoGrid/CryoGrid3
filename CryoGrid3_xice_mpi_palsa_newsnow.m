@@ -17,8 +17,8 @@ diary off
 add_modules;  %adds required modules
 
 %% Deal with possible restart from FINAL state
-startFromRun=[];
-SETUP = startFromRunSETUP(startFromRun,'_v13');
+startFromRun='190426_7w100y_roundPalsa15m_realization3_finalState1948';
+SETUP = startFromRunSETUP(startFromRun,'_v1');
 
 if SETUP.flag==0;
     number_of_realizations=14;  % <------ Number of realization ! 
@@ -53,8 +53,8 @@ spmd
         
         % ------assign some variables
         saveDir=SETUP.saveDir;
-        PARA.technical.punctualSaveFlag=0;                  % used to save the state of the model at a punctual time. -1 : Do not use the functionality, 0 : Not done, 1 : Done, 2 : Do it now !
-        PARA.technical.punctualSaveTime=datenum('23-Oct-1928 12:00:00'); % used to save the state of the model at a punctual time - Punctual time to save
+        PARA.technical.punctualSaveFlag=0;                  % used to save the state of the model at a punctual time. -1 : do not use the functionality. To use it : 0 (0 = not yet done, 1 : Already done, 2 : Do it now !)
+        PARA.technical.punctualSaveTime=datenum('20-Sept-1948 12:00:00'); % used to save the state of the model at a punctual time - Punctual time to save
         
         % ------load forcing
         [FORCING, ~]=load_forcing_from_file(PARA); % load FORCING mat-file
@@ -165,7 +165,7 @@ spmd
         PARA.technical.saveDate='01.08.';                   % date of year when output file is written - no effect if "saveInterval" is empty
         PARA.technical.saveInterval=1;                      % interval [years] in which output files are written - if empty the entire time series is written - minimum is 1 year
         PARA.technical.waterCellSize=0.02;                  % default size of a newly added water cell when water ponds below water table [m]
-        PARA.technical.punctualSaveFlag=-1;                  % used to save the state of the model at a punctual time. -1 : Do not use the functionality, 0 : Not done, 1 : Done, 2 : Do it now !
+        PARA.technical.punctualSaveFlag=-1;                % used to save the state of the model at a punctual time. -1 : do not use the functionality. To use it : 0 (0 = not yet done, 1 : Already done, 2 : Do it now !)
         PARA.technical.punctualSaveTime=datenum('23-Oct-1928 12:00:00'); % used to save the state of the model at a punctual time - Punctual time to save
         
         % subsurface grid

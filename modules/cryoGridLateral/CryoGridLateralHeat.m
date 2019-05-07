@@ -4,7 +4,7 @@ function [ T, TEMPORARY ] = CryoGridLateralHeat( PARA, GRID, BALANCE, TEMPORARY,
     % check preconditions
     precondition_heatExchange = true; %no specific conditions so far
     if precondition_heatExchange
-        fprintf('\t\t\tsync - exchanging heat\n');
+        % fprintf('\t\t\tsync - exchanging heat\n');
         % calculate lateral heat fluxes
         PACKAGE_heatExchange.T = T;
         PACKAGE_heatExchange.cT_grid = GRID.general.cT_grid;

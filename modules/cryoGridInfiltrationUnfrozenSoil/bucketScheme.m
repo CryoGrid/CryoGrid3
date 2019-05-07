@@ -9,8 +9,8 @@ soilType = GRID.soil.cT_soilType;
 fieldCapacity = zeros(size(soilType));
 residualWaterContent = zeros(size(soilType));
 for i=1:size(PARA.soil.soilTypes,1)
-	fieldCapacity(soilType==i) = PARA.soil.soilTypes( i, 2 );
-	residualWaterContent(soilType==i) = PARA.soil.soilTypes( i, 1 );
+    fieldCapacity(soilType==i) = PARA.soil.soilTypes( i, 2 );
+    residualWaterContent(soilType==i) = PARA.soil.soilTypes( i, 1 );
 end
 
 lacking_water=0;
@@ -23,7 +23,7 @@ while  T(i)>0 && i<=i_max
     actual_water= max( min_water,  wc(i).*K_delta(i)+dwc_dt(i) );
     
     lacking_water = lacking_water + (actual_water - (wc(i).*K_delta(i)+dwc_dt(i) ) );
-
+    
     dwc_dt(i+1)=dwc_dt(i+1) + max(0, actual_water-max_water);  %when excess water, move it to next grid cell
     wc(i)=min(max_water, actual_water)./K_delta(i);
     i=i+1;

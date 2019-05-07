@@ -1,7 +1,7 @@
 function [PARA] = CryoGridLateralSnow( PARA, GRID )
     
     labBarrier();
-    fprintf('\t\t\tsync - calculating snow scaling factors \n');
+    % fprintf('\t\t\tsync - calculating snow scaling factors \n');
     
     % calculate scaling factors for all realizations and store in location struct
     PARA.ensemble.snow_scaling = calculateSnowScalingFactors(PARA,GRID);

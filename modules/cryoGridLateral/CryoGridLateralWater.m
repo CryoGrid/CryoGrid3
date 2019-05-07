@@ -5,7 +5,7 @@ function [wc, GRID, BALANCE] = CryoGridLateralWater( PARA, GRID, BALANCE, T, wc)
     precondition_waterExchange = checkPreconditionWaterExchange( T, GRID );
     if precondition_waterExchange
         % WRAPPER
-        fprintf('\t\t\tsync - exchanging water\n');
+        % fprintf('\t\t\tsync - exchanging water\n');
         % calculate lateral water fluxes
         water_fluxes= zeros(numlabs,numlabs); % in m of height change
         PACKAGE_waterExchange.water_table_altitude = PARA.ensemble.water_table_altitude(labindex);
