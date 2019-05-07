@@ -4,7 +4,7 @@ T=T(GRID.soil.cT_domain);
 K_delta=GRID.general.K_delta(GRID.soil.cT_domain);  %in m
 porosity=1-GRID.soil.cT_mineral-GRID.soil.cT_organic;
 soilType = GRID.soil.cT_soilType;
-[~,i_max]=min(abs((PARA.location.altitude - GRID.soil.soilGrid)-PARA.soil.infiltration_limit_altitude));
+[~,i_max]=min(abs((PARA.location.altitude - GRID.general.K_grid(GRID.soil.K_domain))-PARA.soil.infiltration_limit_altitude));
 
 fieldCapacity = zeros(size(soilType));
 residualWaterContent = zeros(size(soilType));

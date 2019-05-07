@@ -6,7 +6,7 @@ inf_cT_index = NaN;
 if isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0; % Condition to work on infiltration
     T=T(GRID.soil.cT_domain);
     i=1;
-    [~,i_max]=min(abs((PARA.location.altitude - GRID.soil.soilGrid)-PARA.soil.infiltration_limit_altitude));
+    [~,i_max]=min(abs((PARA.location.altitude - GRID.general.K_grid(GRID.soil.K_domain))-PARA.soil.infiltration_limit_altitude));
 
     while  T(i)>0 && i<=i_max
         i=i+1;

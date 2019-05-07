@@ -14,7 +14,7 @@ else
     K_delta=GRID.general.K_delta(GRID.soil.cT_domain);  %in m
     soilType = GRID.soil.cT_soilType;
     fieldCapacity = zeros(size(soilType));
-    [~,i_max]=min(abs((PARA.location.altitude - GRID.soil.soilGrid)-PARA.soil.infiltration_limit_altitude));
+    [~,i_max]=min(abs((PARA.location.altitude - GRID.general.K_grid(GRID.soil.K_domain))-PARA.soil.infiltration_limit_altitude));
     for i=1:size(PARA.soil.soilTypes,1)
         fieldCapacity(soilType==i) = PARA.soil.soilTypes( i, 2 );
     end
