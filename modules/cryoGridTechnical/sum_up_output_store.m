@@ -114,6 +114,7 @@ if  t==TEMPORARY.outputTime || PARA.technical.punctualSaveFlag==2
     OUT.location.soil_altitude= [OUT.location.soil_altitude; PARA.location.soil_altitude];
     OUT.location.surface_altitude=[OUT.location.surface_altitude; PARA.location.surface_altitude];
     OUT.location.infiltration_altitude = [OUT.location.infiltration_altitude; PARA.location.infiltration_altitude];
+    OUT.location.pfTable_altitude = [OUT.location.pfTable_altitude; PARA.location.pfTable_altitude];
     OUT.location.water_table_altitude=[OUT.location.water_table_altitude; PARA.location.water_table_altitude];
     
     OUT.location.infiltration_altitude_mean = [OUT.location.infiltration_altitude_mean ; TEMPORARY.bottomBucketSoilDepth];

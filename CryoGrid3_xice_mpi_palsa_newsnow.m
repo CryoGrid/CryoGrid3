@@ -180,6 +180,7 @@ spmd
         PARA.location.altitude = PARA.location.initial_altitude;                % refers to the terrain surface, including water but excluding snow; used to generate pressure forcing based on barometric altitude formula, if pressure forcing is not given
         PARA.location.soil_altitude = PARA.location.initial_altitude;           % refers to the soil surface, excluding water body and snow
         PARA.location.infiltration_altitude = nan;                              % defined at runtime
+        PARA.location.pfTable_altitude=NaN;                                     % defined at runtime
         PARA.location.water_table_altitude = nan;                               % defined at runtime
         PARA.soil.infiltration_limit_altitude= PARA.location.initial_altitude - PARA.soil.infiltration_limit_depth;    % absolute altitude to which infiltration occurs, updated when ground subsides
         PARA.location.bottomBucketSoilcTIndex = nan; % defined at runtime
@@ -401,7 +402,7 @@ spmd
         PARA.location.altitude = getAltitude( PARA, GRID );
         PARA.location.surface_altitude = getSurfaceAltitude( PARA, GRID );
         PARA.location.soil_altitude = getSoilAltitude( PARA, GRID );
-        [PARA.location.infiltration_altitude, PARA.location.bottomBucketSoilcTIndex] = getInfiltrationAltitude( PARA, GRID, T);
+        [PARA.location.infiltration_altitude, PARA.location.bottomBucketSoilcTIndex, PARA.location.pfTable_altitude] = getInfiltrationAltitude( PARA, GRID, T);
         [PARA.location.water_table_altitude, GRID.soil.flag] = getWaterTableAltitudeFC(T, wc, GRID, PARA);
         PARA.soil.infiltration_limit_altitude = PARA.location.soil_altitude - PARA.soil.infiltration_limit_depth;
         

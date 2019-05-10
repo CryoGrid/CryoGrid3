@@ -2,7 +2,7 @@ function [ ] = iPlotAltitudes( filename, OUT, PARA )
 
     ts = OUT.timestamp();
     water_table = OUT.location.water_table_altitude();
-    frost_table = OUT.location.infiltration_altitude();
+    frost_table = OUT.location.pfTable_altitude();
     surface_level = OUT.location.surface_altitude;
     terrain_level = OUT.location.altitude();
     try

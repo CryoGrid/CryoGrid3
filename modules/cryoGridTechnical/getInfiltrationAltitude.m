@@ -1,7 +1,8 @@
-function [ inf_altitude, inf_cT_index] = getInfiltrationAltitude( PARA, GRID, T)
+function [ inf_altitude, inf_cT_index, pfTable_altitude] = getInfiltrationAltitude( PARA, GRID, T)
 % Function that gives the cT index of the bottom cell of the bucket.
 inf_altitude = NaN;
 inf_cT_index = NaN;
+pfTable_altitude = NaN;
 
 if isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0; % Condition to work on infiltration
     T=T(GRID.soil.cT_domain);
@@ -13,6 +14,9 @@ if isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0; % Condition t
     end
     inf_cT_index=i-1;
     inf_altitude = PARA.location.initial_altitude - PARA.location.shrinkage - GRID.general.K_grid(GRID.soil.cT_domain_ub+inf_cT_index);
+    if i<i_max;
+       pfTable_altitude=inf_altitude;
+    end
 end
 
 

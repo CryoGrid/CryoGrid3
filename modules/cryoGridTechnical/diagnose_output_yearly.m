@@ -51,8 +51,8 @@ function DIAG = diagnose_output_yearly( OUT, PARA, GRID, FORCING )
     % maxiumum thaw depth (TDmax) [ m ] % this does not work for very deep
     % thawing, since infiltration altitude is not defined when surface
     % frozen 
-    [ ~, idx ] = min( OUT.location.infiltration_altitude() );
-    DIAG.TDmax = OUT.location.soil_altitude(idx) - OUT.location.infiltration_altitude(idx) ;
+    [ ~, idx ] = min( OUT.location.pfTable_altitude() );
+    DIAG.TDmax = OUT.location.soil_altitude(idx) - OUT.location.pfTable_altitude(idx) ;
     DIAG.t_TDmax = ts(idx);
     DIAG.doy_TDmax = day( datetime( ts(idx), 'ConvertFrom','datenum'), 'dayofyear' );
     

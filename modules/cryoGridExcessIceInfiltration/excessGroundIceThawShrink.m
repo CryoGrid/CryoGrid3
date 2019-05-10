@@ -57,7 +57,7 @@ GRID = initializeSoilThermalProperties(GRID, PARA);
 PARA.location.altitude = getAltitude( PARA, GRID );
 PARA.location.soil_altitude = getSoilAltitude(PARA, GRID);
 PARA.location.surface_altitude = getSurfaceAltitude(PARA, GRID);
-[PARA.location.infiltration_altitude, PARA.location.bottomBucketSoilcTIndex] = getInfiltrationAltitude( PARA, GRID, T);
+[PARA.location.infiltration_altitude, PARA.location.bottomBucketSoilcTIndex, PARA.location.pfTable_altitude] = getInfiltrationAltitude( PARA, GRID, T);
 [PARA.location.water_table_altitude, GRID.soil.flag] = getWaterTableAltitudeFC(T, wc, GRID, PARA);
 PARA.soil.infiltration_limit_altitude = PARA.location.soil_altitude - PARA.soil.infiltration_limit_depth;
 

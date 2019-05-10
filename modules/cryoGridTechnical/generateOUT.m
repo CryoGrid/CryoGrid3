@@ -36,6 +36,7 @@ function OUT = generateOUT()
     OUT.location.surface_altitude=[];
     OUT.location.infiltration_altitude = [];
     OUT.location.water_table_altitude=[];
+    OUT.location.pfTable_altitude=[];
     % averaged over output interval
     OUT.location.infiltration_altitude_mean = [];
     OUT.location.water_table_altitude_mean=[];
