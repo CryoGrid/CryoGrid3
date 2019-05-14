@@ -220,17 +220,22 @@ if  t==TEMPORARY.outputTime || PARA.technical.punctualSaveFlag==2
   
     TEMPORARY.outputTime=round((TEMPORARY.outputTime+PARA.technical.outputTimestep)./PARA.technical.outputTimestep).*PARA.technical.outputTimestep;
  
-    %write output files      
+    %write output files
     if  round((t-TEMPORARY.saveTime).*48)==0 || PARA.technical.punctualSaveFlag==2
         fprintf('Saving Output\n')
         suffix=[];
         if PARA.technical.punctualSaveFlag==2
             suffix='_punctualSave';
         end
+        OUT  = outputSize( PARA.technical.saving, OUT  ); % Streamline output if asked for
         iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_output' datestr(t,'yyyy') suffix  '.mat' ], OUT);
-        iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_finalState'  datestr(t,'yyyy') suffix '.mat' ], T, wc, t, SEB, PARA, GRID);
-        iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_altitudes' datestr(t,'yyyy') suffix '.png'], OUT, PARA );
-        OUT = generateOUT();  
+        if PARA.technical.saving>=10 || PARA.technical.saving==-1;
+            iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_altitudes' datestr(t,'yyyy') suffix '.png'], OUT, PARA );
+            if PARA.technical.saving>=100 || PARA.technical.saving==-1;
+                iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_finalState'  datestr(t,'yyyy') suffix '.mat' ], T, wc, t, SEB, PARA, GRID);
+            end
+        end
+        OUT = generateOUT();
         TEMPORARY.saveTime=datenum(str2num(datestr(t,'yyyy'))+1, str2num(datestr(t,'mm')), str2num(datestr(t,'dd')), str2num(datestr(t,'HH')), str2num(datestr(t,'MM')), 0);
     end
     if PARA.technical.punctualSaveFlag==2

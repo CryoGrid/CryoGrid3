@@ -104,6 +104,7 @@ spmd
         
         % geometry configuration
         PARA.ensemble.geomSetup=1; % Numbver of the geometrical Setup
+        PARA.technical.saving=-1; % Adjust the amount of files saved. % -1: Normal outputs, 1: light, 2: monthly means, 3: yearly means, x10(10,20,30): +Plot, x100(100,200,300): +Plot +FINAL
         
         % parameters related to soil
         PARA.soil.albedo=0.2;       % albedo snow-free surface

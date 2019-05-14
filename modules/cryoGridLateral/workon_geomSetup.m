@@ -262,5 +262,4 @@ clear area radius weight A B dist idx perimeters thdist ActiveLayer i ispf palsa
 
 %% Save
 clear slash
-geomSetup2=geomSetup;
-save('geomSetup2.mat','geomSetup2')
+save('geomSetup.mat','geomSetup')
