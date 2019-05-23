@@ -32,7 +32,7 @@ end
 
 % Name, Forcing and diary
 if SETUP.flag==0;
-    run_number= [datestr(date,'yymmdd') '_14w50y_redo3mDiscret'];
+    run_number= [datestr(date,'yymmdd') '_14w50y_150cmTankMire'];
     forcingname='Suossjavri_WRF_Norstore_adapted50yr.mat';
 else
     run_number=SETUP.run_name_new;
@@ -103,8 +103,8 @@ spmd
         %------ model parameters --------------------------------------------------
         
         % geometry configuration
-        PARA.ensemble.geomSetup=5; % Numbver of the geometrical Setup
-        PARA.technical.saving=20; % Adjust the amount of files saved. % -1: Normal outputs, 1: light, 2: monthly means, 3: yearly means, x10(10,20,30): +Plot, x100(100,200,300): +Plot +FINAL
+        PARA.ensemble.geomSetup=10; % Numbver of the geometrical Setup
+        PARA.technical.saving=-1; % Adjust the amount of files saved. % -1: Normal outputs, 1: light, 2: monthly means, 3: yearly means, x10(10,20,30): +Plot, x100(100,200,300): +Plot +FINAL
         
         % parameters related to soil
         PARA.soil.albedo=0.2;       % albedo snow-free surface
