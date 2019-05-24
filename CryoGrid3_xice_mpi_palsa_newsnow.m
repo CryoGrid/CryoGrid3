@@ -21,7 +21,7 @@ startFromRun=[]; %'190426_7w100y_roundPalsa15m_realization3_finalState1948';
 SETUP = startFromRunSETUP(startFromRun,'_v1');
 
 if SETUP.flag==0;
-    number_of_realizations=14;  % <------ Number of realization !!!!!!!!!!!!!!!!!!!!!!!!!!!!! 
+    number_of_realizations=14;  % <------ Number of realization !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 else
     number_of_realizations=SETUP.nbreal;
 end
@@ -32,8 +32,8 @@ end
 
 % Name, Forcing and diary
 if SETUP.flag==0;
-    run_number= [datestr(date,'yymmdd') '_14w50y_150cmTankMire'];
-    forcingname='Suossjavri_WRF_Norstore_adapted50yr.mat';
+    run_number= [datestr(date,'yymmdd') '_14w100y_150cmTank30cm'];
+    forcingname='Suossjavri_WRF_Norstore_adapted100yr.mat';
 else
     run_number=SETUP.run_name_new;
     forcingname=SETUP.forcingname;
@@ -89,9 +89,9 @@ spmd
         % z     w/i     m       o     type porosity
         % default stratigraphy used in publication:
         PARA.soil.layer_properties=[    0.0     0.55    0.05    0.15    1   0.80    ;...
-                                        0.5     0.80    0.05    0.15    1   0.80    ;...
-                                        3.0     0.50    0.50    0.00    2   0.50    ;...
-                                       10.0     0.03    0.97    0.00    1   0.03    ];
+            0.5     0.80    0.05    0.15    1   0.80    ;...
+            3.0     0.50    0.50    0.00    2   0.50    ;...
+            10.0     0.03    0.97    0.00    1   0.03    ];
         % soil stratigraphy
         % column 1: start depth of layer (first layer must start with 0) - each layer extends until the beginning of the next layer, the last layer extends until the end of the model domain
         % column 2: volumetric water+ice content
@@ -103,8 +103,8 @@ spmd
         %------ model parameters --------------------------------------------------
         
         % geometry configuration
-        PARA.ensemble.geomSetup=10; % Numbver of the geometrical Setup
-        PARA.technical.saving=-1; % Adjust the amount of files saved. % -1: Normal outputs, 1: light, 2: monthly means, 3: yearly means, x10(10,20,30): +Plot, x100(100,200,300): +Plot +FINAL
+        PARA.ensemble.geomSetup=12; % Numbver of the geometrical Setup
+        PARA.technical.saving=2; % Adjust the amount of files saved. % -1: Normal outputs, 1: light, 2: monthly means, 3: yearly means, x10(10,20,30): +Plot, x100(100,200,300): +Plot +FINAL
         
         % parameters related to soil
         PARA.soil.albedo=0.2;       % albedo snow-free surface
@@ -197,15 +197,15 @@ spmd
         
         %initial temperature profile -> first column depth [m] -> second column temperature [degree C]
         PARA.Tinitial = [-5     10   ;...
-                          0      5   ;...
-                          0.1    2   ;...
-                          0.5    0   ;...
-                          1     -1   ;...
-                          2     -2   ;...
-                         10      1   ;...
-                         30      2   ;...
-                        500      4   ;...
-                       1000     10   ];     % the geothermal gradient for Qgeo=0.05W/m^2 and K=2.746W/Km is about 18.2 K/km
+            0      5   ;...
+            0.1    2   ;...
+            0.5    0   ;...
+            1     -1   ;...
+            2     -2   ;...
+            10      1   ;...
+            30      2   ;...
+            500      4   ;...
+            1000     10   ];     % the geothermal gradient for Qgeo=0.05W/m^2 and K=2.746W/Km is about 18.2 K/km
         
         PARA = loadConstants( PARA );   % load natural constants and thermal properties of soil constituents into the PARA struct
         
@@ -350,7 +350,7 @@ spmd
             assert(imag(timestep)==0,'Main Error : timestep is complex')
         catch
             if sum(imag(SEB.dE_dt))~=0;
-               fprintf('Complex values in SEB.dE_dt\n') 
+                fprintf('Complex values in SEB.dE_dt\n')
             end
             assert(imag(timestep)==0,'Main Error : timestep is complex')
         end
@@ -469,9 +469,15 @@ spmd
     end
     
     % save final state and output at t=endtime
-    iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_output' datestr(t,'yyyy') '.mat'], OUT)
-    iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_finalState' datestr(t,'yyyy') '.mat'], T, wc, t, SEB, PARA, GRID)
-    iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_altitudes' datestr(t,'yyyy') '.png'], OUT, PARA );
+    OUT_saved  = outputSize( PARA.technical.saving, OUT  ); % Streamline output if asked for
+    iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_output' datestr(t,'yyyy') '.mat' ], OUT_saved);
+    if PARA.technical.saving>=10 || PARA.technical.saving==-1;
+        iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_altitudes' datestr(t,'yyyy') '.png'], OUT, PARA );
+        if PARA.technical.saving>=100 || PARA.technical.saving==-1;
+            iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_finalState'  datestr(t,'yyyy') '.mat' ], T, wc, t, SEB, PARA, GRID);
+        end
+    end
+    
 end
 
 if number_of_realizations>1
