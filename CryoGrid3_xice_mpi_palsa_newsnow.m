@@ -53,7 +53,7 @@ spmd
         
         % ------assign some variables
         saveDir=SETUP.saveDir;
-        PARA.technical.punctualSaveFlag=0;                  % used to save the state of the model at a punctual time. -1 : do not use the functionality. To use it : 0 (0 = not yet done, 1 : Already done, 2 : Do it now !)
+        PARA.technical.punctualSaveFlag=-1;                  % used to save the state of the model at a punctual time. -1 : do not use the functionality. To use it : 0 (0 = not yet done, 1 : Already done, 2 : Do it now !)
         PARA.technical.punctualSaveTime=datenum('20-Sept-1948 12:00:00'); % used to save the state of the model at a punctual time - Punctual time to save
         
         % ------load forcing
@@ -300,6 +300,7 @@ spmd
         
         
     end
+    PARA.ensemble.lastWaterChange=nan(1,3);
     %% ________________________________________________________________________
     % Time Integration Routine                                                I
     %                                                                         I

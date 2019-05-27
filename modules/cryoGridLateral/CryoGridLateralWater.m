@@ -53,6 +53,9 @@ function [wc, GRID, BALANCE] = CryoGridLateralWater( PARA, GRID, BALANCE, T, wc)
 
         water_fluxes=nansum(water_fluxes_gather,3);
         waterflux=nansum(water_fluxes(labindex,:))+boundary_water_flux;
+        
+        % Check for oscillating changes
+        [ PARA, waterflux ] = calculateLateralWaterOscillations( PARA, waterflux );
 
         % apply lateral water flux directly (as bulk subsurface flux)
         [wc, excess_water, lacking_water] = bucketScheme(T, wc, zeros( size(wc) ), GRID, PARA, waterflux);
