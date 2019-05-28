@@ -223,6 +223,7 @@ if  t==TEMPORARY.outputTime || PARA.technical.punctualSaveFlag==2
     %write output files
     if  round((t-TEMPORARY.saveTime).*48)==0 || PARA.technical.punctualSaveFlag==2
         fprintf('Saving Output\n')
+        [~,OUT]=pfTable(OUT,1); % Adjust the variable pfTable_altitude
         suffix=[];
         if PARA.technical.punctualSaveFlag==2
             suffix='_punctualSave';

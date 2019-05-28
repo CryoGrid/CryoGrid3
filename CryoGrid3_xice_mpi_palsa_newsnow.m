@@ -17,7 +17,7 @@ diary off
 add_modules;  %adds required modules
 
 %% Deal with possible restart from FINAL state
-startFromRun=[]; %'190426_7w100y_roundPalsa15m_realization3_finalState1948';
+startFromRun='190523_14w50y_150cmTankMire_realization1_finalState1967'; % []; %'190426_7w100y_roundPalsa15m_realization3_finalState1948';
 SETUP = startFromRunSETUP(startFromRun,'_v1');
 
 if SETUP.flag==0;
@@ -470,6 +470,7 @@ spmd
     end
     
     % save final state and output at t=endtime
+    [~,OUT]=pfTable(OUT,1);
     OUT_saved  = outputSize( PARA.technical.saving, OUT  ); % Streamline output if asked for
     iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(labindex) '_output' datestr(t,'yyyy') '.mat' ], OUT_saved);
     if PARA.technical.saving>=10 || PARA.technical.saving==-1;
