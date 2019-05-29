@@ -1017,6 +1017,14 @@ add.thermalInit=thermalInit;
 % clear related var
 clear area radius radius_i weight A B dist idx perimeters thdist ActiveLayer i ispf palsaHeight Strati_mire Strati_palsa_initial T_mire T_palsa T_z thermalInit top
 % geomSetup(15)=add;
+
+%% Setup 16 : Setup 10 but abrupt plateau
+add=geomSetup(10);
+add.descr='round 150cm abrupt';
+add.run='pending';
+add.initial_altitude=[300 300 301.5.*ones(1,12)];
+% geomSetup(16)=add;
+
 %% Save
 % load the existing document and append it rather than recalculating old
 % config because it might get inconsistent at some point when functions
