@@ -17,8 +17,8 @@ diary off
 add_modules;  %adds required modules
 
 %% Deal with possible restart from FINAL state
-startFromRun=[]; % '190523_14w50y_150cmTankMire_realization1_finalState1967'; % []; %'190426_7w100y_roundPalsa15m_realization3_finalState1948';
-SETUP = startFromRunSETUP(startFromRun,'_v1');
+startFromRun='190523_14w50y_150cmTankMire_realization1_finalState1967'; % []; %'190426_7w100y_roundPalsa15m_realization3_finalState1948';
+SETUP = startFromRunSETUP(startFromRun,'_v2');
 
 if SETUP.flag==0;
     number_of_realizations=14;  % <------ Number of realization !!!!!!!!!!!!!!!!!!!!!!!!!!!!!

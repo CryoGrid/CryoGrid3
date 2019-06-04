@@ -9,7 +9,7 @@ pattern(end)=waterflux;
 if sum(isnan(pattern))==0
     pos=sum(find(pattern>0));
     if mod(pos,2)==0 && pos>0 && pos<6
-        waterflux=waterflux/2;
+        waterflux=waterflux/3; % 3 seems to perform well, below, some oscillations are not killed, above, oscillations like --+--+--+--+--+ start appearing
         pattern(end)=waterflux;
         fprintf('\t\t\t calculateLateralWaterOscillations : dividing water flux\n')
     end
