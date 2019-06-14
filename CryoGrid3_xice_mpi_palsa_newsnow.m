@@ -17,7 +17,7 @@ diary off
 add_modules;  %adds required modules
 
 %% Deal with possible restart from FINAL state
-startFromRun='190523_14w50y_150cmTankMire_realization1_finalState1967'; % []; %'190426_7w100y_roundPalsa15m_realization3_finalState1948';
+startFromRun=[]; %'190523_14w50y_150cmTankMire_realization1_finalState1967'; % []; %'190426_7w100y_roundPalsa15m_realization3_finalState1948';
 SETUP = startFromRunSETUP(startFromRun,'_v2');
 
 if SETUP.flag==0;
@@ -32,8 +32,8 @@ end
 
 % Name, Forcing and diary
 if SETUP.flag==0;
-    run_number= [datestr(date,'yymmdd') '_14w100y_150cmAbrupt'];
-    forcingname='Suossjavri_WRF_Norstore_adapted100yr.mat';
+    run_number= [datestr(date,'yymmdd') '_14w50y_150cmTryWater'];
+    forcingname='Suossjavri_WRF_Norstore_adapted50yr.mat';
 else
     run_number=SETUP.run_name_new;
     forcingname=SETUP.forcingname;
@@ -103,7 +103,7 @@ spmd
         %------ model parameters --------------------------------------------------
         
         % geometry configuration
-        PARA.ensemble.geomSetup=16; % Numbver of the geometrical Setup
+        PARA.ensemble.geomSetup=10; % Numbver of the geometrical Setup
         PARA.technical.saving=2; % Adjust the amount of files saved. % -1: Normal outputs, 1: light, 2: monthly means, 3: yearly means, x10(10,20,30): +Plot, x100(100,200,300): +Plot +FINAL
         
         % parameters related to soil
