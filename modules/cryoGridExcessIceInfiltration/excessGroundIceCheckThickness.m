@@ -14,4 +14,6 @@ else
     
 end
 
+fprintf('Minimal Thickness : %4.3f\n', min(finalThick))
+
 end

@@ -32,8 +32,8 @@ end
 
 % Name, Forcing and diary
 if SETUP.flag==0;
-    run_number= [datestr(date,'yymmdd') '_14w50y_150cmTryWater'];
-    forcingname='Suossjavri_WRF_Norstore_adapted50yr.mat';
+    run_number= [datestr(date,'yymmdd') '_14w100y_TrSyf5'];
+    forcingname='Suossjavri_WRF_Norstore_adapted100yr.mat';
 else
     run_number=SETUP.run_name_new;
     forcingname=SETUP.forcingname;
@@ -103,8 +103,8 @@ spmd
         %------ model parameters --------------------------------------------------
         
         % geometry configuration
-        PARA.ensemble.geomSetup=10; % Numbver of the geometrical Setup
-        PARA.technical.saving=2; % Adjust the amount of files saved. % -1: Normal outputs, 1: light, 2: monthly means, 3: yearly means, x10(10,20,30): +Plot, x100(100,200,300): +Plot +FINAL
+        PARA.ensemble.geomSetup=21; % Numbver of the geometrical Setup
+        PARA.technical.saving=2; % Adjust the amount of files saved. % -1: Normal outputs // 1: light, 2: monthly means, 3: yearly means // x10(10,20,30): +Plot // x100(100,200,300): +Plot +FINAL
         
         % parameters related to soil
         PARA.soil.albedo=0.2;       % albedo snow-free surface
@@ -254,7 +254,7 @@ spmd
         % support shrinking when the Xice module cannot route the water up
         % because of overlying frozen cells.
         if PARA.modules.xice && PARA.modules.exchange_heat;
-            flag = excessGroundIceCheckThickness(GRID, 0.01); % Here 0.02 m is the minimum thickness that is tolerated
+            flag = excessGroundIceCheckThickness(GRID, 0.005); % The second input is the minimum thickness that is tolerated
             assert(flag ~= 0,'Cells to small for the amount of excess ice')
         end
         
