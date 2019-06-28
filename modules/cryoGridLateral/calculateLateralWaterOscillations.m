@@ -1,4 +1,4 @@
-function [ PARA, waterflux ] = calculateLateralWaterOscillations( PARA, waterflux )
+function [ PARA, waterflux ] = calculateLateralWaterOscillations( PARA, waterflux)
 % Check if the lateral fluxes generate oscillations in the water content.
 % So identify alternating patterns and brakes it.
 

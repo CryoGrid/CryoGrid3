@@ -1011,17 +1011,143 @@ close all
 % geomSetup(16)=add;
 
 %% Setup 17 : Back to translational symetry
+% addpath ..\cryoGridSoil
+% 
+% % General description
+% add.descr='TranslSym';
+% add.run='pending';
+% add.numlabs=14;
+% 
+% % Topological relashioships
+% latextent=20; % Lateral extent in meters
+% widths=   [ 50   2   0.5  0.3  0.3    0.3    0.3   0.3 0.3 0.3 0.5 1 3 8];
+% elevation=[300  300  300  301  301.5  301.6  301.7 linspace(301.8,302,7)];
+% add.area= latextent.*widths;
+% add.weight=round(1*add.area);
+% assert(sum(add.weight==0)==0,'Nul weight')
+% dist=(widths(2:end-2)+widths(3:end-1))/2;
+% dist=[dist(1) dist dist(end)];
+% A=zeros(add.numlabs,add.numlabs);
+% idx = sub2ind(size(A),[1:add.numlabs-1 2:add.numlabs],[2:add.numlabs 1:add.numlabs-1]);
+% A(idx) = [dist dist];
+% add.distanceBetweenPoints= A; %   %in m. Put 0 for all non-connected ensemble members
+% A = double( add.distanceBetweenPoints > 0 ); % adjacency matrix of the network (auxiliary)
+% add.A=A;
+% 
+% % Topographical relationships
+% add.initial_altitude=elevation;
+% 
+% % Heat exchange
+% surfaceFactor=1.1;
+% fprintf('Surface Factor : %3.2f\n',surfaceFactor)
+% B=A;
+% perimeters=surfaceFactor*latextent.*ones(1,13);
+% B(idx)= [perimeters perimeters];
+% add.thermal_contact_length = B;
+% B=A;
+% thdist=dist; %<-----
+% B(idx)= [thdist thdist];
+% add.thermalDistance = B;
+% 
+% % Water exchange
+% add.boundaryCondition={'DarcyReservoir','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC', 'NoBC'};
+% add.Darcy_elevation=[300 nan(1,13)];
+% add.Darcy_fluxFactor=[10*(perimeters(1)*1e-5/thdist(1)) nan(1,13)];
+% 
+% % Snow exchange
+% add.immobile_snow_height = 0.05.*ones(1,14);
+% 
+% % Thermal init
+% % Create variable
+% thermalInit(14).ActiveLayer=[];
+% thermalInit(14).layer_properties=[];
+% thermalInit(14).Tinitial=[];
+% 
+% % Active layers
+% ActiveLayer=[NaN NaN NaN linspace(0.9,0.7,11)]; % Input active layers
+% ispf=~isnan(ActiveLayer); % Define who is permafrost
+% 
+% % Stratigraphy
+% Strati_mire =[    0.0     0.80    0.05    0.15    1   0.80    ;...
+%                   0.5     0.80    0.05    0.15    1   0.80    ;...
+%                   3.0     0.50    0.50    0.00    2   0.50    ;...
+%                  10.0     0.03    0.97    0.00    1   0.03   ];
+% Strati_palsa_initial=Strati_mire; % Start from the mire strati
+% Strati_palsa_initial(1,2)=0.55; % Set the upper layer at FC
+% palsaHeight=add.initial_altitude - min(add.initial_altitude);
+% 
+% for i=1:14;
+%     if ispf(i)==0;
+%         thermalInit(i).layer_properties=Strati_mire;
+%     else
+%         thermalInit(i).layer_properties=stratiXice(Strati_palsa_initial, palsaHeight(i), ActiveLayer(i)); % Modify the ice, mineral and organic content
+%     end
+% end
+% 
+% % Initial T profiles
+% T_z    =[-5 0 0.1 0.5 1 2 10 30 500 1000]';
+% T_mire =[10 5 2 1.5 2 2 2 2 4 10]';
+% T_palsa=[10 5 2 0 -1 -1 1 2 4 10]';
+% ActiveLayer(isnan(ActiveLayer))=0.5;
+% assert(min(ActiveLayer)>0.1 && max(ActiveLayer)<1,'Check initial active layers and initial T profile')
+% for i=1:14;
+%     T_z(4)=ActiveLayer(i);
+%     if ispf(i)==0;
+%         thermalInit(i).Tinitial=[T_z T_mire];
+%     else
+%         thermalInit(i).Tinitial=[T_z T_palsa];
+%     end
+% end
+% 
+% ActiveLayer=num2cell(ActiveLayer);
+% [thermalInit.ActiveLayer]=ActiveLayer{:};
+% 
+% add.thermalInit=thermalInit;
+% 
+% % clear related var
+% clear elevation latextent surfaceFactor widths area radius radius_i weight A B dist idx perimeters thdist ActiveLayer i ispf palsaHeight Strati_mire Strati_palsa_initial T_mire T_palsa T_z thermalInit top
+
+%% Setup 18 : Setup 17 avec surfaceFactor = 2
+% rerun Setup 17
+% add.descr='Setup 17 surfaceFactor=2';
+
+%% Setup 19 : Setup 17 avec surfaceFactor = 3
+% rerun Setup 17
+% add.descr='Setup 17 surfaceFactor=3';
+
+%% Setup 20 : Setup 17 avec surfaceFactor = 4
+% rerun Setup 17
+% add.descr='Setup 17 surfaceFactor=4';
+
+%% Setup 21 : Setup 17 avec surfaceFactor = 5
+% rerun Setup 17
+% add.descr='Setup 17 surfaceFactor=5';
+
+%% Setup 22 : Setup 17 avec surfaceFactor = 1.5
+% rerun Setup 17
+%add.descr='Setup 17 surfaceFactor=1.5';
+
+%% Setup 23 : Setup 17 avec surfaceFactor = 1.25
+% rerun Setup 17
+% add.descr='Setup 17 surfaceFactor=1.25';
+
+%% Setup 24 : Setup 17 avec surfaceFactor = 1.1
+% rerun Setup 17
+% add.descr='Setup 17 surfaceFactor=1.1';
+
+%% Setup 25 : Setup 17 with linear slope
+% rerun Setup 17
 addpath ..\cryoGridSoil
 
 % General description
-add.descr='TranslSym';
+add.descr='Setup 17 with linear slope';
 add.run='pending';
 add.numlabs=14;
 
 % Topological relashioships
 latextent=20; % Lateral extent in meters
 widths=   [ 50   2   0.5  0.3  0.3    0.3    0.3   0.3 0.3 0.3 0.5 1 3 8];
-elevation=[300  300  300  301  301.5  301.6  301.7 linspace(301.8,302,7)];
+elevation=[300  300  linspace(300,301.7,8) linspace(301.8,302,4)];
 add.area= latextent.*widths;
 add.weight=round(1*add.area);
 assert(sum(add.weight==0)==0,'Nul weight')
@@ -1038,7 +1164,8 @@ add.A=A;
 add.initial_altitude=elevation;
 
 % Heat exchange
-surfaceFactor=5
+surfaceFactor=1.75;
+fprintf('Surface Factor : %3.2f\n',surfaceFactor)
 B=A;
 perimeters=surfaceFactor*latextent.*ones(1,13);
 B(idx)= [perimeters perimeters];
@@ -1106,18 +1233,22 @@ add.thermalInit=thermalInit;
 % clear related var
 clear elevation latextent surfaceFactor widths area radius radius_i weight A B dist idx perimeters thdist ActiveLayer i ispf palsaHeight Strati_mire Strati_palsa_initial T_mire T_palsa T_z thermalInit top
 
-%% Setup 18 : Setup 17 avec surfaceFactor = 2
-% rerun Setup 17
-add.descr='Setup 17 surfaceFactor=2';
-%% Setup 19 : Setup 17 avec surfaceFactor = 3
-% rerun Setup 17
-add.descr='Setup 17 surfaceFactor=3';
-%% Setup 20 : Setup 17 avec surfaceFactor = 4
-% rerun Setup 17
-add.descr='Setup 17 surfaceFactor=4';
-%% Setup 21 : Setup 17 avec surfaceFactor = 5
-% rerun Setup 17
-add.descr='Setup 17 surfaceFactor=5';
+%% Setup 26 : Setup 25 avec surfaceFactor = 1 instead of 1.1
+% rerun Setup 25
+% add.descr='Setup 25 surfaceFactor=1, not 1.1';
+
+%% Setup 27 : Setup 25 avec surfaceFactor = 1.25 instead of 1.1
+% rerun Setup 25
+% add.descr='Setup 25 surfaceFactor=1.25, not 1.1';
+
+%% Setup 28 : Setup 25 avec surfaceFactor = 1.5 instead of 1.1
+% rerun Setup 25
+% add.descr='Setup 25 surfaceFactor=1.5, not 1.1';
+
+%% Setup 29 : Setup 25 avec surfaceFactor = 1.75 instead of 1.1
+% rerun Setup 25
+% add.descr='Setup 25 surfaceFactor=1.75, not 1.1';
+
 %% Save
 % load the existing document and append it rather than recalculating old
 % config because it might get inconsistent at some point when functions
