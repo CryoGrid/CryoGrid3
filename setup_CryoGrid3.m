@@ -53,7 +53,6 @@ SETUP.critical_hillslope_angle = pi/4;
 VL     = [ 0.85, 0.00, 0.15, 1, 0.85 ] ;        % vegetation layer
 OLrev  = [ 0.75, 0.10, 0.15, 1, 0.75 ] ;        % active layer: organic horizon
 MLrev  = [ 0.65, 0.25, 0.10, 2, 0.65 ] ;        % active layer: mineral horizon
-MLrevSand  = [ 0.65, 0.25, 0.10, 1, 0.65 ] ;    % active layer: mineral horizon
 ILrev  = [ 0.65, 0.20, 0.15, 1, 0.55 ] ;        % intermediate layer: DTLB, Holocene
 ILrevY = [ 0.65, 0.25, 0.10, 1, 0.55 ] ;        % intermediate layer: Yedoma
 IWrev  = [ 0.95, 0.05, 0.00, 1, 0.55 ] ;        % ice wedge
