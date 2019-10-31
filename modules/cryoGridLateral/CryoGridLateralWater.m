@@ -36,7 +36,7 @@ function [wc, GRID, BALANCE] = CryoGridLateralWater( PARA, GRID, BALANCE, T, wc)
         water_fluxes_gather(:,:,labindex)=water_fluxes_worker;
         %fprintf('\t\t\tBoundary contribution :\t%3.2e m\n',boundary_water_flux)
 
-
+        % ### from here until "###": only necessary to have fluxes between all workers available for output
         % Send real fluxes all around
         for j=1:numlabs
             if j~=labindex
@@ -50,9 +50,10 @@ function [wc, GRID, BALANCE] = CryoGridLateralWater( PARA, GRID, BALANCE, T, wc)
                 water_fluxes_gather(:,:,j)=water_fluxes_worker_j;
             end
         end
-
-        water_fluxes=nansum(water_fluxes_gather,3);
-        waterflux=nansum(water_fluxes(labindex,:))+boundary_water_flux;
+        water_fluxes=nansum(water_fluxes_gather,3)./2;      % division by two because "water_fluxes_gather" contains all fluxes twice
+        
+        % ### from here: actual fluxes get applied 
+        waterflux=nansum(water_fluxes_worker(labindex,:))+boundary_water_flux;      % canged to "_worker" because that contains already the "real" fluxes
 
         % apply lateral water flux directly (as bulk subsurface flux)
         [wc, excess_water, lacking_water] = bucketScheme(T, wc, zeros( size(wc) ), GRID, PARA, waterflux);
