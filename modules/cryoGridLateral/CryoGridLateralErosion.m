@@ -2,7 +2,7 @@ function [ wc, GRID, TEMPORARY ] = CryoGridLateralErosion( PARA, GRID, wc, T, TE
 
 labBarrier();
 % check preconditions (are there two connected realizations between which erosion occurs)
-precondition_sedimentExchange = checkPreconditionWaterExchange( T, GRID ); % identical to water exchange: unfrozen upp
+precondition_sedimentExchange = checkPreconditionSedimentExchange( T, GRID, PARA ); % identical to water exchange
 
 if precondition_sedimentExchange
     
@@ -21,13 +21,13 @@ if precondition_sedimentExchange
     PACKAGE_sedimentExchange.erosion_condition = T(GRID.soil.cT_domain_ub)>0 && isempty(GRID.snow.cT_domain_ub);    %identical to water exchange
     
     for j=1:numlabs
-        if j~=labindex
-            labSend( PACKAGE_sedimentExchange, j, 2);
+        if PARA.ensemble.adjacency_sediment(labindex,j)==1
+            labSend( PACKAGE_sedimentExchange, j, 40);
         end
     end
     for j=1:numlabs
-        if j~=labindex
-            PACKAGE_sedimentExchange_j = labReceive(j, 2);
+        if PARA.ensemble.adjacency_sediment(labindex,j)==1
+            PACKAGE_sedimentExchange_j = labReceive(j, 40);
             [   sediment_change_tot(j),...
                 sediment_change_diff(j),...
                 sediment_change_adv(j),...

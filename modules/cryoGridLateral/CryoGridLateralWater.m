@@ -14,13 +14,13 @@ function [wc, GRID, BALANCE] = CryoGridLateralWater( PARA, GRID, BALANCE, T, wc)
         PACKAGE_waterExchange.soil_altitude = PARA.ensemble.soil_altitude(labindex);
 
         for j=1:numlabs
-            if j~=labindex
-                labSend( PACKAGE_waterExchange, j, 2);
+            if PARA.ensemble.adjacency_water(labindex,j)==1 % only send between connected workers to save computation time
+                labSend( PACKAGE_waterExchange, j, 20);
             end
         end
         for j=1:numlabs
-            if j~=labindex
-                PACKAGE_waterExchange_j = labReceive(j, 2);
+            if PARA.ensemble.adjacency_water(labindex,j)==1
+                PACKAGE_waterExchange_j = labReceive(j, 20);
                 water_fluxes = calculateLateralWaterDarcyFluxes( T, PACKAGE_waterExchange_j, GRID, PARA, j, water_fluxes);  % matrix containing all fluxes in [m/s] scaled to row index
             end
         end
@@ -40,13 +40,13 @@ function [wc, GRID, BALANCE] = CryoGridLateralWater( PARA, GRID, BALANCE, T, wc)
         % Send real fluxes all around
         for j=1:numlabs
             if j~=labindex
-                labSend( water_fluxes_worker, j, 5);
+                labSend( water_fluxes_worker, j, 22);
             end
         end
 
         for j=1:numlabs
             if j~=labindex
-                water_fluxes_worker_j = labReceive(j, 5);
+                water_fluxes_worker_j = labReceive(j, 22);
                 water_fluxes_gather(:,:,j)=water_fluxes_worker_j;
             end
         end

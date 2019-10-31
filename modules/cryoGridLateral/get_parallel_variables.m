@@ -20,9 +20,14 @@ PARA.ensemble.thermalDistance = PARA.ensemble.distanceBetweenPoints;
 PARA.ensemble.hydraulic_contact_length = PARA.ensemble.thermal_contact_length;
 PARA.ensemble.hydraulicDistance = PARA.ensemble.thermal_contact_length;
 
-% topographical relations
+% adjacency of all lateral exchange networks
 A = double( PARA.ensemble.distanceBetweenPoints > 0 ); % adjacency matrix of the network (auxiliary)
+PARA.ensemble.adjacency_water=A;
+PARA.ensemble.adjacency_heat=A;
+PARA.ensemble.adjacency_snow=A;
+PARA.ensemble.adjacency_sediment=A;
 
+% topographical relations
 PARA.ensemble.initial_altitude = [ 0, 1, 2 ]; %in m a.s.l.
 PARA.ensemble.altitude = PARA.ensemble.initial_altitude;  
 PARA.ensemble.surface_altitude = PARA.ensemble.initial_altitude;

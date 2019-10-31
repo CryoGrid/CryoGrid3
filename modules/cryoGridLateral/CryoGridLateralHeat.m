@@ -10,15 +10,15 @@ function [ T, TEMPORARY, BALANCE ] = CryoGridLateralHeat( PARA, GRID, BALANCE, T
         PACKAGE_heatExchange.K_grid = GRID.general.K_grid;
         PACKAGE_heatExchange.k_cTgrid = k_cTgrid;
         for j=1:numlabs
-            if j~=labindex
-                labSend( PACKAGE_heatExchange, j, 1);
+            if PARA.ensemble.adjacency_heat(labindex,j) % only send/recieve with connected realizations to save computation time
+                labSend( PACKAGE_heatExchange, j, 10);
             end
         end
         % provide temporary array for lateral heat fluxes
         dE_dt_lateral = zeros( length(GRID.general.cT_grid), 1);  %in [J/m^3/s]
         for j=1:numlabs
-            if j~=labindex
-                PACKAGE_heatExchange_j = labReceive(j, 1);
+            if PARA.ensemble.adjacency_heat(labindex,j)
+                PACKAGE_heatExchange_j = labReceive(j, 10);
                 [F_lateral_j, BALANCE] = calculateLateralHeatFluxes(T, k_cTgrid, PACKAGE_heatExchange_j,GRID, PARA, BALANCE, j);   % contribution from worker j to worker index in [ J/s ]
                 TEMPORARY.dE_cell_lateral(:,j) = TEMPORARY.dE_cell_lateral(:,j) + F_lateral_j ./ PARA.location.area .* PARA.technical.syncTimeStep.*24.*3600; % in [ J/m^2 ]
                 TEMPORARY.dE_tot_lateral(j) = TEMPORARY.dE_tot_lateral(j) + nansum(  F_lateral_j ./ PARA.location.area .* PARA.technical.syncTimeStep.*24.*3600 ); % depth intergrated in [ J/m^2 ]

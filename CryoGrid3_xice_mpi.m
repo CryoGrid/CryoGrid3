@@ -4,7 +4,7 @@
 %
 % Development by: S. Westermann and M. Langer 2015
 %
-% Development of the parallelized version by: L. Martin and J. Nitzbon 2017-2018
+% Development of the parallelized version by: L. Martin and J. Nitzbon 2017-2019
 %
 % ------------------------------------------------------------------------------
 delete( gcp( 'nocreate' ) );
@@ -99,7 +99,7 @@ spmd
     PARA.technical.maxSWE=0.4;                          % in [m] SWE
     PARA.technical.arraySizeT=5002;                     % number of values in the look-up tables for conductivity and capacity
     PARA.technical.starttime=datenum(2000,12,1);        % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum(2001,1,31);         % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.endtime=datenum(2001,7,1);         % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;       % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;       % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;                    % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K
@@ -234,7 +234,7 @@ spmd
     %                                                                         I
     %_________________________________________________________________________I
 
-    try
+    %try
         while t<PARA.technical.endtime
 
             %------ interpolate forcing data to time t ----------------------------
@@ -337,7 +337,7 @@ spmd
                     % update auxiliary variables and common thresholds
                     labBarrier();
                     [PARA] = updateAuxiliaryVariablesAndCommonThresholds(T, wc, GRID, PARA);
-
+                    
                     % HEAT exchange module
                     if PARA.modules.exchange_heat
                         [ T, TEMPORARY, BALANCE ] = CryoGridLateralHeat( PARA, GRID, BALANCE, TEMPORARY, T, k_cTgrid, c_cTgrid );
@@ -389,15 +389,15 @@ spmd
         iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_altitudes' datestr(t,'yyyy') '.png'], OUT, PARA );
         iPlotTemperature( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_temperature' datestr(t,'yyyy') '.png'], OUT, PARA, GRID);
         iPlotWaterContent( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_waterContent' datestr(t,'yyyy') '.png'], OUT, PARA, GRID );
-    catch
-        fprintf('Catched exception. Saved final state under subscript CRASH.\n');
+    %catch
+     %   fprintf('Catched exception. Saved final state under subscript CRASH.\n');
         % save final state and output at crash
-        iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_output' datestr(t,'yyyy') 'CRASH.mat'], OUT)
-        iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_finalState' datestr(t,'yyyy') 'CRASH.mat'], T, wc, t, SEB, PARA, GRID)
+      %  iSaveOUT( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_output' datestr(t,'yyyy') 'CRASH.mat'], OUT)
+       % iSaveState( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_finalState' datestr(t,'yyyy') 'CRASH.mat'], T, wc, t, SEB, PARA, GRID)
         %iPlotAltitudes( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_altitudes' datestr(t,'yyyy') 'CRASH.png'], OUT, PARA );
         %iPlotTemperature( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_temperature' datestr(t,'yyyy') 'CRASH.png'], OUT, PARA, GRID);
         %iPlotWaterContent( [ saveDir '/' run_number '/' run_number '_realization' num2str(index) '_waterContent' datestr(t,'yyyy') 'CRASH.png'], OUT, PARA, GRID );
-    end
+    %end
 end
 
 if number_of_realizations>1
