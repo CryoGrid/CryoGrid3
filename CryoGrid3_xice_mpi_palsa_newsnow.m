@@ -21,7 +21,7 @@ startFromRun=[]; %'190426_7w100y_roundPalsa15m_realization3_finalState1948';
 SETUP = startFromRunSETUP(startFromRun,'_v2');
 
 if SETUP.flag==0;
-    number_of_realizations=14;  % <------ Number of realization !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    number_of_realizations=40;  % <------ Number of realization !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 else
     number_of_realizations=SETUP.nbreal;
 end
@@ -32,7 +32,7 @@ end
 
 % Name, Forcing and diary
 if SETUP.flag==0;
-    run_number= [datestr(date,'yymmdd') '_14w100y_TrSymLinear1p5'];
+    run_number= [datestr(date,'yymmdd') '_40w100y_TS_setup30'];
     forcingname='Suossjavri_WRF_Norstore_adapted100yr.mat';
 else
     run_number=SETUP.run_name_new;
@@ -103,8 +103,8 @@ spmd
         %------ model parameters --------------------------------------------------
         
         % geometry configuration
-        PARA.ensemble.geomSetup=28; % Numbver of the geometrical Setup
-        PARA.technical.saving=20; % Adjust the amount of files saved. % -1: Normal outputs // 1: light, 2: monthly means, 3: yearly means // x10(10,20,30): +Plot // x100(100,200,300): +Plot +FINAL
+        PARA.ensemble.geomSetup=30; % Numbver of the geometrical Setup
+        PARA.technical.saving=2; % Adjust the amount of files saved. % -1: Normal outputs // 1: light, 2: monthly means, 3: yearly means // x10(10,20,30): +Plot // x100(100,200,300): +Plot +FINAL
         
         % parameters related to soil
         PARA.soil.albedo=0.2;       % albedo snow-free surface
