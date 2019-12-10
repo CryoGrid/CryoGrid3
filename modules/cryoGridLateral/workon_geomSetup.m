@@ -1251,105 +1251,209 @@ close all
 
 %% Setup 30 : Setup 25 adapted to 40 workers
 
-addpath ..\cryoGridSoil
+% addpath ..\cryoGridSoil
+% 
+% % General description
+% add.descr='Setup 25 with 40 workers (geom adapted)';
+% add.run='pending';
+% add.numlabs=40;
+% 
+% % Topological relashioships
+% latextent=20; % Lateral extent in meters
+% widths=[50,2,0.50,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,...
+%     0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,...
+%     0.30,0.30,0.30,0.30];
+% elevation=[300  300  linspace(300,301.7,8) linspace(301.8,302,30)];
+% add.area= latextent.*widths;
+% add.weight=round(1*add.area);
+% assert(sum(add.weight==0)==0,'Nul weight')
+% dist=(widths(2:end-2)+widths(3:end-1))/2;
+% dist=[dist(1) dist dist(end)];
+% A=zeros(add.numlabs,add.numlabs);
+% idx = sub2ind(size(A),[1:add.numlabs-1 2:add.numlabs],[2:add.numlabs 1:add.numlabs-1]);
+% A(idx) = [dist dist];
+% add.distanceBetweenPoints= A; %   %in m. Put 0 for all non-connected ensemble members
+% A = double( add.distanceBetweenPoints > 0 ); % adjacency matrix of the network (auxiliary)
+% add.A=A;
+% 
+% % Topographical relationships
+% add.initial_altitude=elevation;
+% 
+% % Heat exchange
+% surfaceFactor=1.1;
+% fprintf('Surface Factor : %3.2f\n',surfaceFactor)
+% B=A;
+% perimeters=surfaceFactor*latextent.*ones(1,39);
+% B(idx)= [perimeters perimeters];
+% add.thermal_contact_length = B;
+% B=A;
+% thdist=dist; %<-----
+% B(idx)= [thdist thdist];
+% add.thermalDistance = B;
+% 
+% % Water exchange
+% add.boundaryCondition={'DarcyReservoir','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC',...
+%     'NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC',...
+%     'NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC'};
+% add.Darcy_elevation=[300 nan(1,39)];
+% add.Darcy_fluxFactor=[10*(perimeters(1)*1e-5/thdist(1)) nan(1,39)];
+% 
+% % Snow exchange
+% add.immobile_snow_height = 0.05.*ones(1,40);
+% 
+% % Thermal init
+% % Create variable
+% thermalInit(40).ActiveLayer=[];
+% thermalInit(40).layer_properties=[];
+% thermalInit(40).Tinitial=[];
+% 
+% % Active layers
+% ActiveLayer=[NaN NaN NaN linspace(0.9,0.7,37)]; % Input active layers
+% ispf=~isnan(ActiveLayer); % Define who is permafrost
+% 
+% % Stratigraphy
+% Strati_mire =[    0.0     0.80    0.05    0.15    1   0.80    ;...
+%                   0.5     0.80    0.05    0.15    1   0.80    ;...
+%                   3.0     0.50    0.50    0.00    2   0.50    ;...
+%                  10.0     0.03    0.97    0.00    1   0.03   ];
+% Strati_palsa_initial=Strati_mire; % Start from the mire strati
+% Strati_palsa_initial(1,2)=0.55; % Set the upper layer at FC
+% palsaHeight=add.initial_altitude - min(add.initial_altitude);
+% 
+% for i=1:40
+%     if ispf(i)==0
+%         thermalInit(i).layer_properties=Strati_mire;
+%     else
+%         thermalInit(i).layer_properties=stratiXice(Strati_palsa_initial, palsaHeight(i), ActiveLayer(i)); % Modify the ice, mineral and organic content
+%     end
+% end
+% 
+% % Initial T profiles
+% T_z    =[-5 0 0.1 0.5 1 2 10 30 500 1000]';
+% T_mire =[10 5 2 1.5 2 2 2 2 4 10]';
+% T_palsa=[10 5 2 0 -1 -1 1 2 4 10]';
+% ActiveLayer(isnan(ActiveLayer))=0.5;
+% assert(min(ActiveLayer)>0.1 && max(ActiveLayer)<1,'Check initial active layers and initial T profile')
+% for i=1:40
+%     T_z(4)=ActiveLayer(i);
+%     if ispf(i)==0
+%         thermalInit(i).Tinitial=[T_z T_mire];
+%     else
+%         thermalInit(i).Tinitial=[T_z T_palsa];
+%     end
+% end
+% 
+% ActiveLayer=num2cell(ActiveLayer);
+% [thermalInit.ActiveLayer]=ActiveLayer{:};
+% 
+% add.thermalInit=thermalInit;
+% 
+% % clear related var
+% clear elevation latextent surfaceFactor widths area radius radius_i weight A B dist idx perimeters thdist ActiveLayer i ispf palsaHeight Strati_mire Strati_palsa_initial T_mire T_palsa T_z thermalInit top
 
-% General description
-add.descr='Setup 25 with 40 workers (geom adapted)';
-add.run='pending';
-add.numlabs=40;
+%% Setup 31 : Small setup with 2 workers to check the fluxes on Saga
 
-% Topological relashioships
-latextent=20; % Lateral extent in meters
-widths=[50,2,0.50,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,...
-    0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,...
-    0.30,0.30,0.30,0.30];
-elevation=[300  300  linspace(300,301.7,8) linspace(301.8,302,30)];
-add.area= latextent.*widths;
-add.weight=round(1*add.area);
-assert(sum(add.weight==0)==0,'Nul weight')
-dist=(widths(2:end-2)+widths(3:end-1))/2;
-dist=[dist(1) dist dist(end)];
-A=zeros(add.numlabs,add.numlabs);
-idx = sub2ind(size(A),[1:add.numlabs-1 2:add.numlabs],[2:add.numlabs 1:add.numlabs-1]);
-A(idx) = [dist dist];
-add.distanceBetweenPoints= A; %   %in m. Put 0 for all non-connected ensemble members
-A = double( add.distanceBetweenPoints > 0 ); % adjacency matrix of the network (auxiliary)
-add.A=A;
+% addpath ..\cryoGridSoil
+% 
+% % General description
+% add.descr='Setup with 2 workers (flux checking)';
+% add.run='pending';
+% add.numlabs=2;
+% 
+% % Topological relashioships
+% latextent=20; % Lateral extent in meters
+% widths=[0.5 0.5];
+% elevation=[300  301.5];
+% add.area= latextent.*widths;
+% add.weight=round(1*add.area);
+% assert(sum(add.weight==0)==0,'Nul weight')
+% dist=0.5;
+% % dist=[dist(1) dist dist(end)];
+% A=zeros(add.numlabs,add.numlabs);
+% idx = sub2ind(size(A),[1:add.numlabs-1 2:add.numlabs],[2:add.numlabs 1:add.numlabs-1]);
+% A(idx) = [dist dist];
+% add.distanceBetweenPoints= A; %   %in m. Put 0 for all non-connected ensemble members
+% A = double( add.distanceBetweenPoints > 0 ); % adjacency matrix of the network (auxiliary)
+% add.A=A;
+% 
+% % Topographical relationships
+% add.initial_altitude=elevation;
+% 
+% % Heat exchange
+% surfaceFactor=1.1;
+% fprintf('Surface Factor : %3.2f\n',surfaceFactor)
+% B=A;
+% perimeters=surfaceFactor*latextent;
+% B(idx)= [perimeters perimeters];
+% add.thermal_contact_length = B;
+% B=A;
+% thdist=dist; %<-----
+% B(idx)= [thdist thdist];
+% add.thermalDistance = B;
+% 
+% % Water exchange
+% add.boundaryCondition={'DarcyReservoir','NoBC'};
+% add.Darcy_elevation=[300 NaN];
+% add.Darcy_fluxFactor=[10*(perimeters(1)*1e-5/thdist(1)) NaN];
+% 
+% % Snow exchange
+% add.immobile_snow_height = 0.05.*ones(1,2);
+% 
+% % Thermal init
+% % Create variable
+% thermalInit(2).ActiveLayer=[];
+% thermalInit(2).layer_properties=[];
+% thermalInit(2).Tinitial=[];
+% 
+% % Active layers
+% ActiveLayer=[NaN 0.7]; % Input active layers
+% ispf=~isnan(ActiveLayer); % Define who is permafrost
+% 
+% % Stratigraphy
+% Strati_mire =[    0.0     0.80    0.05    0.15    1   0.80    ;...
+%                   0.5     0.80    0.05    0.15    1   0.80    ;...
+%                   3.0     0.50    0.50    0.00    2   0.50    ;...
+%                  10.0     0.03    0.97    0.00    1   0.03   ];
+% Strati_palsa_initial=Strati_mire; % Start from the mire strati
+% Strati_palsa_initial(1,2)=0.55; % Set the upper layer at FC
+% palsaHeight=add.initial_altitude - min(add.initial_altitude);
+% 
+% for i=1:2
+%     if ispf(i)==0
+%         thermalInit(i).layer_properties=Strati_mire;
+%     else
+%         thermalInit(i).layer_properties=stratiXice(Strati_palsa_initial, palsaHeight(i), ActiveLayer(i)); % Modify the ice, mineral and organic content
+%     end
+% end
+% 
+% % Initial T profiles
+% T_z    =[-5 0 0.1 0.5 1 2 10 30 500 1000]';
+% T_mire =[10 5 2 1.5 2 2 2 2 4 10]';
+% T_palsa=[10 5 2 0 -1 -1 1 2 4 10]';
+% ActiveLayer(isnan(ActiveLayer))=0.5;
+% assert(min(ActiveLayer)>0.1 && max(ActiveLayer)<1,'Check initial active layers and initial T profile')
+% for i=1:2
+%     T_z(4)=ActiveLayer(i);
+%     if ispf(i)==0
+%         thermalInit(i).Tinitial=[T_z T_mire];
+%     else
+%         thermalInit(i).Tinitial=[T_z T_palsa];
+%     end
+% end
+% 
+% ActiveLayer=num2cell(ActiveLayer);
+% [thermalInit.ActiveLayer]=ActiveLayer{:};
+% 
+% add.thermalInit=thermalInit;
+% 
+% % clear related var
+% clear elevation latextent surfaceFactor widths area radius radius_i weight A B dist idx perimeters thdist ActiveLayer i ispf palsaHeight Strati_mire Strati_palsa_initial T_mire T_palsa T_z thermalInit top
 
-% Topographical relationships
-add.initial_altitude=elevation;
-
-% Heat exchange
-surfaceFactor=1.1;
-fprintf('Surface Factor : %3.2f\n',surfaceFactor)
-B=A;
-perimeters=surfaceFactor*latextent.*ones(1,39);
-B(idx)= [perimeters perimeters];
-add.thermal_contact_length = B;
-B=A;
-thdist=dist; %<-----
-B(idx)= [thdist thdist];
-add.thermalDistance = B;
-
-% Water exchange
-add.boundaryCondition={'DarcyReservoir','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC',...
-    'NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC',...
-    'NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC','NoBC'};
-add.Darcy_elevation=[300 nan(1,39)];
-add.Darcy_fluxFactor=[10*(perimeters(1)*1e-5/thdist(1)) nan(1,39)];
-
-% Snow exchange
-add.immobile_snow_height = 0.05.*ones(1,40);
-
-% Thermal init
-% Create variable
-thermalInit(40).ActiveLayer=[];
-thermalInit(40).layer_properties=[];
-thermalInit(40).Tinitial=[];
-
-% Active layers
-ActiveLayer=[NaN NaN NaN linspace(0.9,0.7,37)]; % Input active layers
-ispf=~isnan(ActiveLayer); % Define who is permafrost
-
-% Stratigraphy
-Strati_mire =[    0.0     0.80    0.05    0.15    1   0.80    ;...
-                  0.5     0.80    0.05    0.15    1   0.80    ;...
-                  3.0     0.50    0.50    0.00    2   0.50    ;...
-                 10.0     0.03    0.97    0.00    1   0.03   ];
-Strati_palsa_initial=Strati_mire; % Start from the mire strati
-Strati_palsa_initial(1,2)=0.55; % Set the upper layer at FC
-palsaHeight=add.initial_altitude - min(add.initial_altitude);
-
-for i=1:40
-    if ispf(i)==0
-        thermalInit(i).layer_properties=Strati_mire;
-    else
-        thermalInit(i).layer_properties=stratiXice(Strati_palsa_initial, palsaHeight(i), ActiveLayer(i)); % Modify the ice, mineral and organic content
-    end
-end
-
-% Initial T profiles
-T_z    =[-5 0 0.1 0.5 1 2 10 30 500 1000]';
-T_mire =[10 5 2 1.5 2 2 2 2 4 10]';
-T_palsa=[10 5 2 0 -1 -1 1 2 4 10]';
-ActiveLayer(isnan(ActiveLayer))=0.5;
-assert(min(ActiveLayer)>0.1 && max(ActiveLayer)<1,'Check initial active layers and initial T profile')
-for i=1:40
-    T_z(4)=ActiveLayer(i);
-    if ispf(i)==0
-        thermalInit(i).Tinitial=[T_z T_mire];
-    else
-        thermalInit(i).Tinitial=[T_z T_palsa];
-    end
-end
-
-ActiveLayer=num2cell(ActiveLayer);
-[thermalInit.ActiveLayer]=ActiveLayer{:};
-
-add.thermalInit=thermalInit;
-
-% clear related var
-clear elevation latextent surfaceFactor widths area radius radius_i weight A B dist idx perimeters thdist ActiveLayer i ispf palsaHeight Strati_mire Strati_palsa_initial T_mire T_palsa T_z thermalInit top
+%% Setup 32 : Setup 30 with cm of immobile snow height
+% add=geomSetup(30);
+% add.descr='Setup 30 with 10 cm immobile snow height';
+% add.immobile_snow_height=0.10.*(add.immobile_snow_height./add.immobile_snow_height);
+% geomSetup(32)=add;
 
 %% Save
 % load the existing document and append it rather than recalculating old
