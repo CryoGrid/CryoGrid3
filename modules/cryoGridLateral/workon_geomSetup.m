@@ -1449,11 +1449,75 @@ close all
 % % clear related var
 % clear elevation latextent surfaceFactor widths area radius radius_i weight A B dist idx perimeters thdist ActiveLayer i ispf palsaHeight Strati_mire Strati_palsa_initial T_mire T_palsa T_z thermalInit top
 
-%% Setup 32 : Setup 30 with cm of immobile snow height
+%% Setup 32 : Setup 30 with 10 cm of immobile snow height
 % add=geomSetup(30);
 % add.descr='Setup 30 with 10 cm immobile snow height';
 % add.immobile_snow_height=0.10.*(add.immobile_snow_height./add.immobile_snow_height);
 % geomSetup(32)=add;
+
+%% Setup 33 : Setup 30 with 5 cm of immobile snow height AND thicker pf 
+add=geomSetup(30);
+add.descr='Setup 30 with thicker pf and 5 cm immobile snow height';
+add.immobile_snow_height = 0.05 .*(add.immobile_snow_height./add.immobile_snow_height);
+
+% Thermal init
+addpath ..\cryoGridSoil
+
+% Create variable
+thermalInit(40).ActiveLayer=[];
+thermalInit(40).layer_properties=[];
+thermalInit(40).Tinitial=[];
+
+% Active layers
+ActiveLayer=[NaN NaN NaN linspace(0.9,0.7,37)]; % Input active layers
+ispf=~isnan(ActiveLayer); % Define who is permafrost
+
+% Stratigraphy
+Strati_mire =[    0.0     0.80    0.05    0.15    1   0.80    ;...
+                  0.5     0.80    0.05    0.15    1   0.80    ;...
+                  3.0     0.50    0.50    0.00    2   0.50    ;...
+                 10.0     0.03    0.97    0.00    1   0.03   ];
+Strati_palsa_initial=Strati_mire; % Start from the mire strati
+Strati_palsa_initial(1,2)=0.55; % Set the upper layer at FC
+palsaHeight=add.initial_altitude - min(add.initial_altitude);
+
+for i=1:40
+    if ispf(i)==0
+        thermalInit(i).layer_properties=Strati_mire;
+    else
+        thermalInit(i).layer_properties=stratiXice(Strati_palsa_initial, palsaHeight(i), ActiveLayer(i)); % Modify the ice, mineral and organic content
+    end
+end
+
+% Initial T profiles
+T_z    =[-5 0 0.1 0.5 1 2 10 30 500 1000]';
+T_mire =[10 5 2 1.5 2 2 2 2 4 10]';
+T_palsa=[10 5 2 0 -1 -1 0 2 4 10]';  % <------------------- Here change T(z) initial
+ActiveLayer(isnan(ActiveLayer))=0.5;
+assert(min(ActiveLayer)>0.1 && max(ActiveLayer)<1,'Check initial active layers and initial T profile')
+for i=1:40
+    T_z(4)=ActiveLayer(i);
+    if ispf(i)==0
+        thermalInit(i).Tinitial=[T_z T_mire];
+    else
+        thermalInit(i).Tinitial=[T_z T_palsa];
+    end
+end
+
+ActiveLayer=num2cell(ActiveLayer);
+[thermalInit.ActiveLayer]=ActiveLayer{:};
+
+add.thermalInit=thermalInit;
+
+% clear related var
+clear ActiveLayer i ispf palsaHeight Strati_mire Strati_palsa_initial T_mire T_palsa T_z thermalInit
+geomSetup(33)=add;
+
+%% Setup 34 : Setup 33 with 0 cm of immobile snow height
+add=geomSetup(33);
+add.descr='Setup 33 with 0 cm immobile snow height';
+add.immobile_snow_height = 0 .*(add.immobile_snow_height./add.immobile_snow_height);
+geomSetup(34)=add;
 
 %% Save
 % load the existing document and append it rather than recalculating old
