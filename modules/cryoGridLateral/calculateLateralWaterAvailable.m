@@ -40,7 +40,8 @@ if lostWater>0 % worker is loosing water
     % Fill the worker matrix from the losing point of view
        for i=1:length(loss)
            final_mat_worker(labindex,loss(i))=scal_fact*workerFluxes(loss(i));
-           final_mat_worker(loss(i),labindex)=scal_fact*(-1)*workerFluxes(loss(i))*PARA.ensemble.area(labindex)/PARA.ensemble.area(loss(i));
+           final_mat_worker(loss(i),labindex)=scal_fact*(-1)*workerFluxes(loss(i))*PARA.ensemble.area(labindex)/PARA.ensemble.area(loss(i)) ...
+               .* PARA.ensemble.hydraulic_contact_length(loss(i),labindex) ./ PARA.ensemble.hydraulic_contact_length(labindex, loss(i));
        end
 
     % Apply also to boundary fluxes

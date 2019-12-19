@@ -99,7 +99,7 @@ spmd
     PARA.technical.maxSWE=0.4;                          % in [m] SWE
     PARA.technical.arraySizeT=5002;                     % number of values in the look-up tables for conductivity and capacity
     PARA.technical.starttime=datenum(2000,10,1);        % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum(2001,4,1);         % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.endtime=datenum(2001,10,1);         % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;       % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;       % largest possible time step in [days] - here 300 seconds
     PARA.technical.targetDeltaE=1e5;                    % maximum energy change of a grid cell between time steps in [J/m3]  %1e5 corresponds to heating of pure water by 0.025 K

@@ -5,12 +5,10 @@ function water_fluxes = calculateLateralWaterDarcyFluxes(T, PACKAGE_waterExchang
 % GRID will contain the soil water content.
 % T is the temperature vector of the current worker.
 % packageWorkerj has to be a bundle as defined considering necessary inputs
-
 index = labindex;
 
 % Check whether the considered workers (index, j) are hydrologically connceted
-
-if PARA.ensemble.hydraulic_contact_length(index,j)>0
+if PARA.ensemble.adjacency_water(index,j)>0
     % conditions for water infiltration / exchanges
     infiltration_condition_index = isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0;
     infiltration_condition_j = PACKAGE_waterExchange_j.infiltration_condition;
@@ -40,14 +38,14 @@ if PARA.ensemble.hydraulic_contact_length(index,j)>0
 
             % Calculate the maximum exchanged water volume
             DeltaH = waterpotWj - waterpotWindex;
-            contact_height = waterpotWj - nanmax( [ waterpotWindex, inf_j ]);
-            %contact_height = waterpotWj - nanmax( [ inf_index, inf_j ]);
+            %contact_height = waterpotWj - nanmax( [ waterpotWindex, inf_j ]);
+            contact_height = waterpotWj - nanmax( [ inf_index, inf_j ]);
 
             %Distance=sqrt(DeltaH^2 + PARA.ensemble.hydraulicDistance(j,index)^2);
-            section=contact_height .* PARA.ensemble.hydraulic_contact_length(j,index);
+            section=contact_height .* PARA.ensemble.hydraulic_contact_length(index,j);      % important to have (index,j) in case of asymmetric hydraulic contact length!!!
             DarcyFlux=K * (DeltaH/PARA.ensemble.hydraulicDistance(j,index)) * section; % in m3/sec
             % Attribute water height changes
-            water_fluxes(j,index) = -1 * (DarcyFlux * PARA.technical.syncTimeStep * 3600 * 24 / PARA.ensemble.area(j)); % syncTimeStep in days, Darcy flux in m3/sec
+            %water_fluxes(j,index) = -1 * (DarcyFlux * PARA.technical.syncTimeStep * 3600 * 24 / PARA.ensemble.area(j)); % syncTimeStep in days, Darcy flux in m3/sec
             water_fluxes(index,j) = DarcyFlux * PARA.technical.syncTimeStep * 3600 * 24 / PARA.ensemble.area(index); % syncTimeStep in days, Darcy flux in m3/sec
            
 
@@ -55,12 +53,12 @@ if PARA.ensemble.hydraulic_contact_length(index,j)>0
 
             % Calculate maximum of the exchange water volume
             DeltaH= waterpotWindex - waterpotWj;
-            contact_height =waterpotWindex - nanmax( [ waterpotWj, inf_index ] );
-            %contact_height =waterpotWindex - nanmax( [ inf_index, inf_j ] );
+            %contact_height =waterpotWindex - nanmax( [ waterpotWj, inf_index ] );
+            contact_height =waterpotWindex - nanmax( [ inf_index, inf_j ] );
             %Distance=sqrt(DeltaH^2 + PARA.ensemble.hydraulicDistance(j,index)^2);
-            section=contact_height .* PARA.ensemble.hydraulic_contact_length(j,index);
+            section=contact_height .* PARA.ensemble.hydraulic_contact_length(index,j);      % important to have (index,j) in case of asymmetric hydraulic contact length!!!
             DarcyFlux=K * (DeltaH/PARA.ensemble.hydraulicDistance(j,index)) * section; % in m3/sec            % Attribute water height changes
-            water_fluxes(j,index) = DarcyFlux * PARA.technical.syncTimeStep *24 *3600 / PARA.ensemble.area(j); % syncTimeStep in days, Darcy flux in m3/sec
+            %water_fluxes(j,index) = DarcyFlux * PARA.technical.syncTimeStep *24 *3600 / PARA.ensemble.area(j); % syncTimeStep in days, Darcy flux in m3/sec
             water_fluxes(index,j) = -1 * (DarcyFlux * PARA.technical.syncTimeStep *24 *3600 / PARA.ensemble.area(index)); % syncTimeStep in days, Darcy flux in m3/sec
             
 

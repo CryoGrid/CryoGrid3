@@ -49,7 +49,12 @@ function BALANCE = initializeBALANCE(T, wc, c_cTgrid, lwc_cTgrid, GRID, PARA)
     % mismatch
     BALANCE.water.dm_lacking=0;
     
-    BALANCE.water.dr_water_fluxes_out=zeros(numlabs,numlabs);
+    if PARA.modules.lateral
+        BALANCE.water.lateral_water_fluxes_vector=zeros(1,numlabs);
+        BALANCE.water.lateral_water_fluxes_matrix=zeros(numlabs,numlabs);
+        BALANCE.water.lateral_water_fluxes_boundary = 0;
+        %BALANCE.water.dr_water_fluxes_out=zeros(numlabs,numlabs);
+    end
     
     
     % MASS (SEDIMENT)
