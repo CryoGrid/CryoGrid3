@@ -105,7 +105,7 @@ for i=1:SETUP.numRealizations
 end
 
 % forcing data 
-SETUP.forcingFile = ['Samoylov_' SETUP.scenario '_1901_2300_CryoGrid_windModified_repeat2090sTo2160.mat'];
+SETUP.forcingFile = ['Samoylov_' SETUP.scenario '_1901_2300_CryoGrid_github.mat'];
 
 % output directory
 SETUP.saveDir = './runs';
