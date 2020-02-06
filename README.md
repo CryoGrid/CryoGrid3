@@ -21,7 +21,7 @@ The version of this release `v1.1.0` has been extended by a scheme for the later
 - The code has been tested using the *MATLAB* versions `R2017a` and `R2018b`.
 - To run the code, a CPU with at least 4 cores is required. 
 
-### Installation guide
+### Installation
 A dedicated installation or compilation of the code is not necessary.
 
 ### Usage
