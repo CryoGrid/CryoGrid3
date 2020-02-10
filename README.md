@@ -1,7 +1,7 @@
 # CryoGrid3
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3628658.svg)](https://doi.org/10.5281/zenodo.3628658)
 
-##Background
+## Background
 
 **CryoGrid 3** is a land-surface scheme dedicated to modeling of ground temperatures in permafrost environments. Its excess ice module **Xice** is capable of simulating ground subsidence and thermokarst lake formation due to melting of excess ground ice. The basic version of **CryoGrid 3** and **Xice** is described in the following article:
 
@@ -21,7 +21,7 @@ The version of this release `v1.1.0` has been extended by a scheme for the later
 - The code has been tested using the *MATLAB* versions `R2017a` and `R2018b`.
 - To run the code, a CPU with at least 4 cores is required. 
 
-### Installation guide
+### Installation
 A dedicated installation or compilation of the code is not necessary.
 
 ### Usage
