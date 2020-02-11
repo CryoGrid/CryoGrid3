@@ -1,5 +1,5 @@
 # CryoGrid3
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3628658.svg)](https://doi.org/10.5281/zenodo.3628658)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3648266.svg)](https://doi.org/10.5281/zenodo.3648266)
 
 ## Background
 
