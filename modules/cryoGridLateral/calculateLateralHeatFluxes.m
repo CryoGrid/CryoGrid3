@@ -1,12 +1,11 @@
 function [F, BALANCE] = calculateLateralHeatFluxes(T_index, k_index, PACKAGE_heatExchange_j, GRID, PARA, BALANCE, j)
     % returns a vector spanning the entire cT-grid containing the lateral heat fluxes in [J/s]
-    %ccc index is labindex, j corresponding worker,  *_index also used for vector index...! avoid double use of index...
+    %ccc index is labindex, j corresponding worker,  *_index also used for vector index...! avoid double use of infdex...
     %tsvd IS  if there is lateral heat exchange between a layer which is pond and a soil layer, the distance between these 2 tiles is re-defined (for water, i.e. T>0) assuming that the exchange is between
     %the mid-point of the soil tile and the pond border (assuming the pond being well-mixed (vertically and laterally)
     
     F = zeros( length(GRID.general.cT_grid), 1); 
-    if PARA.ensemble.thermal_contact_length(labindex,j)>0  % calculate lateral heat flux only for laterally connected workers
-%tsvd IS NOR    if PARA.ensemble.thermal_contact_length(labindex,j)>0  % calculate lateral heat flux only for laterally connected workers
+    if PARA.ensemble.thermal_contact_length(labindex)>0  % calculate lateral heat flux only for laterally connected workers
         
         T_j = PACKAGE_heatExchange_j.T;
         k_j = PACKAGE_heatExchange_j.k_cTgrid;

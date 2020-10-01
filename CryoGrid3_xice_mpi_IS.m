@@ -29,8 +29,9 @@ else
     PARA.modules.exchange_heat=0; PARA.modules.exchange_water=0; PARA.modules.exchange_snow=0; 
 end
 % tsvd IS   specify output directory
-OutDir = '/data/permarisk/CryoGrid3/Runs_paper_final/'
+%OutDir = '/data/permarisk/CryoGrid3/Runs_paper_final/'
 %OutDir = '/data/permarisk/CryoGrid3/Runs_Norilsk/'
+OutDir=PARA.Exp.OutDir ;
 ExpSet=PARA.Exp.ExpSet;
 if(PARA.modules.xice); ExpSet=[ExpSet,'_xice'];end
 
@@ -71,9 +72,9 @@ else
     PARA.soil.fieldCapacity_Gravel_surface=0.1;  % water holding capacity of gravel surface layer in embankment  
     PARA.soil.evaporationDepth=0.10;        % depth to which evaporation occurs - place on grid cell boundaries   
     PARA.soil.rootDepth=0.20;               % depth affected by transpiration - place on grid cell boundaries
-    PARA.soil.ratioET=0.5;                  % 1: only transpiration; 0: only evaporation, values in between must be made dependent on LAI, etc.  
-% tsvd IS  externalWaterFlux gets now re-defined tile specific in get_par_vars.m    
-    %PARA.soil.externalWaterFlux=0.;        % external water flux / drainage in [m/day]
+    PARA.soil.ratioET=0.5;                  % 1: only transpiration; 0: only evaporation, values in between must be made dependent on LAI, etc.  % gets overwritten in get_parallel_vars.m
+% 
+    PARA.soil.externalWaterFlux=0.;        % external water flux / drainage in [m/day]  tsvd IS  gets  re-defined tile specific in get_par_vars.m    
 %    PARA.soil.externalWaterFlux=0.01;        % external water flux / drainage in [m/day]
     PARA.soil.drainage=0; % if activated, drainage of outermost tundra tile active and defined according to parameter setting in get_par_vars.m
     PARA.soil.convectiveDomain=[];          % soil domain where air convection due to buoyancy is possible -> start and end [m] - if empty no convection is possible
@@ -116,8 +117,8 @@ else
     PARA.technical.SWEperCell=0.005;                    % SWE per grid cell in [m] - determines size of snow grid cells
     PARA.technical.maxSWE=0.4;                          % in [m] SWE
     PARA.technical.arraySizeT=5002;                     % number of values in the look-up tables for conductivity and capacity
-    PARA.technical.starttime=datenum(2000, 7, 1 );     % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum( 2020, 5, 31, 23, 0, 0)       % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.starttime=datenum(1979, 6, 1 );     % starttime of the simulation - if empty start from first value of time series
+    PARA.technical.endtime=datenum( 2019, 12, 31, 23, 0, 0) % endtime of the simulation - if empty end at last value of time series
     %PARA.technical.endtime=datenum( 1979, 6, 3);      % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;       % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;       % largest possible time step in [days] - here 300 seconds
@@ -139,10 +140,13 @@ else
     % parameters related to the specific location (gets updated in get_parallel_variables.m according to ensemble parameter settings)
 %tsvd PARA.location.area=1.0;                             % area represented by the run [m^2] (here a dummy value of 1.0 is set which is overwritten for individual tiles)
 % attention: initial_altitude gets newly defined in get_parallel_variables for all ensemble members!
-    PARA.location.latitude  = 70.2;         % [deg]  Deadhorse                                                                                                                                               -
-    PARA.location.longitude = -148.46;      % [deg]        
-    PARA.location.initial_altitude=0.0;                % altitude in [m a.s.l.]
-%     if(PARA.modules.infrastructure==1) % Deadhorse - altitude in [m a.s.l.]
+%     PARA.location.latitude  = 70.2;         % [deg]  Deadhorse                                                                                                                                               -
+%     PARA.location.longitude = -148.46;      % [deg]        
+%     PARA.location.initial_altitude=0.0;                % altitude in [m a.s.l.]
+    PARA.location.latitude  = 52.39;         % [deg]  Potsdam                                                                                                                                               -
+    PARA.location.longitude = 13.06;      % [deg]        
+    PARA.location.initial_altitude=35.;                % altitude in [m a.s.l.]
+    %     if(PARA.modules.infrastructure==1) % Deadhorse - altitude in [m a.s.l.]
 %         PARA.location.initial_altitude=20.0;            
 %     elseif(PARA.modules.infrastructure==2)
 %         PARA.location.initial_altitude=100.0; 
@@ -224,29 +228,41 @@ else
     if ~success
         warning('A problem with the Forcing occured.');
     end
-%tsvd IS 
-    switch string(PARA.IS.TileType)  % remove snow from road and re-distribute to embankment shoulder and toe
-        case 'road' % assume that snow is always removed from road
-            FORCING.data.snowfall = zeros(length(FORCING.data.snowfall),1);  % assume that snow is always removed imediately (i.e. prevent snowfall) 
-        case 'shoulder'  
-             FORCING.data.snowfall =  FORCING.data.snowfall *4.;
-             if(PARA.IS.RoadOrientation) % use increased SWR for south-facing road
-                 FORCING.data.Sin = FORCING.data.Sin_south;
-             end  
-        case 'toe'  
-             FORCING.data.snowfall =  FORCING.data.snowfall *4.; 
-        case {'pile','tank_bottom'}    
-             FORCING.data.Tair = zeros(length(FORCING.data.snowfall),1);  % todotodo  replace by lowpass filtered Tair...
-            %FORCING.data.Tair = FORCING.data.TairLowPass;
-            FORCING.data.snowfall = zeros(length(FORCING.data.snowfall),1);
-            FORCING.data.rainfall = zeros(length(FORCING.data.snowfall),1);
-%             FORCING.data.wind = 1e-4 * ones(length(FORCING.data.snowfall),1); %  problem if setting to 0?
-%             FORCING.data.Sin = zeros(length(FORCING.data.snowfall),1);
-%             FORCING.data.Lin = zeros(length(FORCING.data.snowfall),1);
-%             FORCING.data.q = zeros(length(FORCING.data.snowfall),1);
-%             FORCING.data.p = 1e5 * ones(length(FORCING.data.snowfall),1);
+%tsvd IS   update forcing...
+%% Gravel Road
+    if strcmp(PARA.Exp.Case,'GravelRoad') % Gravel Road
+            switch string(PARA.IS.TileType)  % remove snow from road and re-distribute to embankment shoulder and toe
+                case 'road' % assume that snow is always removed from road
+                    FORCING.data.snowfall = zeros(length(FORCING.data.snowfall),1);  % assume that snow is always removed imediately (i.e. prevent snowfall) 
+                case 'shoulder'  
+                     FORCING.data.snowfall =  FORCING.data.snowfall *4.;
+                     if(PARA.IS.RoadOrientation) % use increased SWR for south-facing road
+                         FORCING.data.Sin = FORCING.data.Sin_south;
+                     end  
+                case 'toe'  
+                     FORCING.data.snowfall =  FORCING.data.snowfall *4.; 
+            end
     end
-
+%% Fuel Tank
+    if strcmp(PARA.Exp.Case,'FuelTank')
+            switch string(PARA.IS.TileType)  % remove snow from road and re-distribute to embankment shoulder and toe
+                case {'pile','tank_bottom'}    
+                    FORCING.data.Tair = FORCING.data.TairLowPass0p005;
+                    FORCING.data.snowfall = zeros(length(FORCING.data.snowfall),1);
+                    FORCING.data.rainfall = zeros(length(FORCING.data.snowfall),1);
+                    FORCING.data.wind = FORCING.data.wind/10.; % reduce wind by 1 order of magnitude
+                    FORCING.data.Sin = zeros(length(FORCING.data.snowfall),1);
+                    %Lout = PARA.surf.epsilon.*sigma.*(T(GRID.air.cT_domain_lb+1)+273.15).^4 + (1-PARA.surf.epsilon).*FORCING.i.Lin;
+                    FORCING.data.Lin = PARA.constants.sigma .* (FORCING.data.Tair+273.15).^4;
+                %   FORCING.data.q = zeros(length(FORCING.data.snowfall),1);  % leave pressure and specific humidity un-modified   zzz modify q? consistency constrain...?
+                case {'shoulder','foundation_base'}    
+                    FORCING.data.rainfall = zeros(length(FORCING.data.snowfall),1); % prevent infiltration
+                case 'toe'  
+                    FORCING.data.rainfall = zeros(length(FORCING.data.snowfall),1); % prevent infiltration
+                    FORCING.data.snowfall =  FORCING.data.snowfall *1.5;             % increase snowfall by 50% for snow accumulation at shoulder and toe (retention basin)
+            end
+    end
+%%
     PARA = initializeParameters(PARA, FORCING); %set start time, etc.
     
     %----------------create and initialize the grids --------------------------

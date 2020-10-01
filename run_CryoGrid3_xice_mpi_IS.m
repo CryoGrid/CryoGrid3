@@ -14,9 +14,10 @@ end
 
 %% infrastructure parameters
 PARA.modules.infrastructure=1;  % 1: gravel road setting for Deadhorse
-PARA.IS.EBHag = 2.5;  % embankement height above ground  %todotodo  do switch case ... or load in LoadExpSEtting.m...
-%PARA.IS.EBHag = 5.0;  % embankement height above ground  %todotodo  do switch case ... or load in LoadExpSEtting.m...
-PARA.IS.EBHbg = 1.5;  % embankement height below ground  (total embankment thickness is the sum of EBHag and EBHbg)
+%PARA.IS.EBHag = 2.5;  % embankement height above ground  %todotodo  do switch case ... or load in LoadExpSEtting.m...
+%PARA.IS.EBHbg = 1.5;  % embankement height below ground  (total embankment thickness is the sum of EBHag and EBHbg)
+PARA.IS.EBHag = 4.0;  % embankement height above ground  %todotodo  do switch case ... or load in LoadExpSEtting.m...
+PARA.IS.EBHbg = 0.;  % embankement height below ground  (total embankment thickness is the sum of EBHag and EBHbg)
 % further specifications (tile widths, tile tpye, etc. in get_parallel_variables.m
 %%
 

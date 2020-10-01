@@ -5,10 +5,12 @@ function [zL1Tpos_ub,zL1Tpos_lb,zL2Tpos_ub,zL2Tpos_lb,zL3Tpos_ub,zL3Tpos_lb] = f
 % zsoil : layer mid-points
 % diagTL determines how diagnostic is calculated:  0: calculation of thawed layers based on T>0 criterium, 1: talik occurence is calc based on LWC>threshold criterium
 
+fid=fopen('test.txt','wt');
 
 clear ind* Dind* zL*
 SwitchPlot=0;
-zL1Tpos_ub(size(Z,2))=NaN; zL1Tpos_lb(size(Z,2))=NaN; zL2Tpos_ub(size(Z,2))=NaN; zL2Tpos_lb(size(Z,2))=NaN; zL3Tpos_ub(size(Z,2))=NaN; zL3Tpos_lb(size(Z,2))=NaN;
+%zL1Tpos_ub(size(Z,2))=NaN; zL1Tpos_lb(size(Z,2))=NaN; zL2Tpos_ub(size(Z,2))=NaN; zL2Tpos_lb(size(Z,2))=NaN; zL3Tpos_ub(size(Z,2))=NaN; zL3Tpos_lb(size(Z,2))=NaN;
+zL1Tpos_ub=nan(1,length(Z));zL1Tpos_lb=nan(1,length(Z));  zL2Tpos_ub=nan(1,length(Z));zL2Tpos_lb=nan(1,length(Z));  zL3Tpos_ub=nan(1,length(Z));zL3Tpos_lb=nan(1,length(Z));  
 
 for ti=1:size(Z,2) % time loop
 %for ti=1:2 % time loop
@@ -30,21 +32,25 @@ for ti=1:size(Z,2) % time loop
         zL1Tpos_ub(ti)=zsoil(indThaw(1));
         switch length(DindThaw_gt1) 
             case 0 % only 1 thaw layer
+%                fprintf(fid,' 1 thaw layer')
                 zL1Tpos_lb(ti)=zsoil(indThaw(end));
                 zL2Tpos_ub(ti)=NaN; zL2Tpos_lb(ti)=NaN;
                 zL3Tpos_ub(ti)=NaN; zL3Tpos_lb(ti)=NaN;
             case 1 % 2 thaw layers
+%                fprintf(fid,' 2 thaw layers')
                 zL1Tpos_lb(ti)=zsoil(indThaw(DindThaw_gt1));
                 zL2Tpos_ub(ti)=zsoil(indThaw(DindThaw_gt1+1));
                 zL2Tpos_lb(ti)=zsoil(indThaw(end));   
                 zL3Tpos_ub(ti)=NaN; zL3Tpos_lb(ti)=NaN;
             case 2 % 3 thaw layers
+%                fprintf(fid,' 3 thaw layers')
                 zL1Tpos_lb(ti)=zsoil(indThaw(DindThaw_gt1(1)));
                 zL2Tpos_ub(ti)=zsoil(indThaw(DindThaw_gt1(1)+1));
                 zL2Tpos_lb(ti)=zsoil(indThaw(DindThaw_gt1(2)));
                 zL3Tpos_ub(ti)=zsoil(indThaw(DindThaw_gt1(2)+1));
                 zL3Tpos_lb(ti)=zsoil(indThaw(end));
             otherwise
+%                fprintf(fid,' >3 thaw layers')
                if(length(DindThaw_gt1>2)); disp(['WARNING: number of taliks is: ',num2str(length(DindThaw_gt1))]); end
                zL1Tpos_lb(ti)=zsoil(indThaw(DindThaw_gt1(1)));
                zL2Tpos_ub(ti)=zsoil(indThaw(DindThaw_gt1(1)+1));

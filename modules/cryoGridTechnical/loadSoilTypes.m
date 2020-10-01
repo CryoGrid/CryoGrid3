@@ -9,5 +9,6 @@ function [PARA] = loadSoilTypes( PARA )
                             [ 0.05, PARA.soil.fieldCapacity_Peat, 4.00, 2.0 ]; ...            % 4: Peat 
                             [ 0.05, PARA.soil.fieldCapacity_Gravel, 4.00, 2.0 ]; ...	      % 5: Gravel                       
                             [ 0.05, PARA.soil.fieldCapacity_Gravel_surface, 4.00, 2.0 ]; ...  % 6: surface Gravel                       
-                            [ 0.00, 0.01, 4.00, 2.0 ]; ...                                      % 7: concrete     %tsvd NOR                  
-                            [ 0.00, 0.01, 4.00, 2.0 ] ];                                        % 8: steel                 
+                            [ 0.00, 0.01, 4.00, 2.0 ]; ...                                    % 7: concrete     %tsvd NOR                  
+                            [ 0.00, 0.01, 4.00, 2.0 ]; ...                                    % 8: steel                 
+                            [ 0.00, 0.01, 4.00, 2.0 ] ];                                      % 9: styrofoam    so far dummy values...      

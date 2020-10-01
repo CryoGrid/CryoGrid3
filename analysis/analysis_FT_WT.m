@@ -7,18 +7,19 @@ function analysis_FT_WT(numTiles,year,LoadData,LoadDataRef)  % indicate number o
 %ccc loadData switch needed? prob not...
 
 if(LoadData==1)
-   ExpLoc='Prudhoe'; 
-   % ExpSet='exW2mm_snow4_SinS_xice'
-   ExpSetRef='exW2mm_snow4_SinS_xice'
-   ExpSet='exW2mm_snow4'
-    %ExpSetRef='exW2mm_snow4'
-   Scen='RCP85';
-   Runs='Runs_ERL_submission/';
+%    ExpLoc='Prudhoe'; 
+%    % ExpSet='exW2mm_snow4_SinS_xice'
+%    ExpSetRef='exW2mm_snow4_SinS_xice'
+%    ExpSet='exW2mm_snow4'
+%     %ExpSetRef='exW2mm_snow4'
+%    Scen='RCP85';
+%    Runs='Runs_ERL_submission/';
 
-%     ExpLoc='Norilsk'
-%     ExpSet='Norilsk_tundra_ms190'
-%     Scen='ERA5';
-%     Runs='Runs_Norilsk/';
+    ExpLoc='Norilsk'
+    ExpSet='ms190'
+    ExpSetRef='ms190'
+    Scen='ERA5';
+    Runs='Runs_Norilsk/';
     Out=['N:/permarisk/CryoGrid3/',Runs];  
     %Out='M:/Norilsk/OUT/'
     OutDir=[Out,ExpSet,'/',num2str(numTiles),'tiles/']   

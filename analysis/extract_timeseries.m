@@ -2,7 +2,7 @@
 clear all
 
 numTiles=5
-startyear=1975; endyear=2094;
+startyear=1990; endyear=2010;
 years=startyear:endyear;
 iii=0; % counter
 %zLminTpos=zeros(length(years),numTiles); zLminLWC=zeros(length(years),numTiles); % depth z of Thaw Depth maximum (based on T>0 criterium)
