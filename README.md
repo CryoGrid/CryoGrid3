@@ -1,4 +1,5 @@
 # CryoGrid3
+[![DOI](https://zenodo.org/badge/113200069.svg)](https://zenodo.org/badge/latestdoi/113200069)
 
 ## Background
 
@@ -14,7 +15,9 @@ Version `v1.1.0` has been extended by a scheme for the lateral transport of sedi
 
 Nitzbon, J., Westermann, S., Langer, M., Martin, L. C. P., Strauss, J., Laboor, S., & Boike, J. (2020). Fast response of cold ice-rich permafrost in northeast Siberia to a warming climate. *Nature Communications*, 11, 2201. [https://doi.org/10.1038/s41467-020-15725-8](https://doi.org/10.1038/s41467-020-15725-8)
 
-This branch hosts a version which has been extended by a multi-scale tiling scheme. It has been used for simulations presented in a research article to be submitted to *The Cryosphere*.
+This version `v1.2.0` has been extended by a multi-scale tiling scheme. It has been used for simulations presented in a research article submitted to *The Cryosphere* and published as a preprint in *The Cryosphere Discussions*:
+
+Nitzbon, J., Langer, M., Martin, L. C. P., Westermann, S., Schneider von Deimling, T., & Boike, J. (2020). Effects of multi-scale heterogeneity on the simulated evolution of ice-rich permafrost lowlands under a warming climate. The Cryosphere Discussions, 1–29. [https://doi.org/10.5194/tc-2020-137](https://doi.org/10.5194/tc-2020-137)
 
 ## Instructions
 
