@@ -32,7 +32,7 @@ if(PARA.modules.parallelMode==1)
     spmd
     index=labindex;  
    %  diary on; diary([ 'T_',num2str(labindex),'_log.txt'])
-    CryoGrid3_xice_mpi_IS(PARA) % call of main program
+    CryoGrid3_xice_mpi_IS(PARA); % call of main program
     end
     delete(gcp('nocreate')) 
 else % single worker  - make sure that PARA.modules.lateral set to 0!

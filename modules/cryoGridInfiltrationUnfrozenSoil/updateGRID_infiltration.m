@@ -8,7 +8,7 @@ function [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, 
     %%% step 2a) remove cells filled with air (e.g. due to evaporation
     %%% of uppermost grid cell )
     while (GRID.soil.cT_mineral(1)+GRID.soil.cT_organic(1)+wc(1)<1e-6)
-        disp('infiltration - update GRID - removing air cell')
+        disp('infiltration - update GRID - removing air cell') %4
 
         % adjust air and soil domains and boundaries
         GRID.air.cT_domain(GRID.soil.cT_domain_ub)=1;
@@ -35,11 +35,13 @@ function [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, 
 
     %%% step 2b) ponding of surface runoff below water table
     while surface_runoff>1e-6 && ...                                % not >0 as sometimes numerical errors occur during calculation of surface_runoff
-            PARA.location.initial_altitude-GRID.general.K_grid(GRID.soil.cT_domain_ub)<PARA.location.absolute_maxWater_altitude
-            %wc(1)>=1   % this prevents a bug for very small
+            PARA.location.initial_altitude-GRID.general.K_grid(GRID.soil.cT_domain_ub) < (PARA.location.absolute_maxWater_altitude -1e-9)  %tsvd fix for ...
+        %PARA.location.initial_altitude-GRID.general.K_grid(GRID.soil.cT_domain_ub)<PARA.location.absolute_maxWater_altitude
+
+        %wc(1)>=1   % this prevents a bug for very small
             %surface_runoff when upper cell not filled // but this
             %does not allow ponding on top of actual soil
-        disp('infiltration - update GRID - ponding of water below water table')
+        disp('infiltration - update GRID - ponding of water below water table') %1
 
         h = PARA.location.absolute_maxWater_altitude - ( PARA.location.initial_altitude - GRID.general.K_grid(GRID.soil.cT_domain_ub) ) ;   % this is guruanteed to be >0
 
@@ -84,7 +86,7 @@ function [ wc, GRID, surface_runoff ] = updateGRID_infiltration(wc, GRID, PARA, 
     soilGRIDsizeNew = sum(GRID.soil.cT_domain);
     cellsChanged = soilGRIDsizeNew - soilGRIDsizeOld;
     if cellsChanged > 0
-        disp( [ 'infiltration - reinitializing LUT - ', num2str(cellsChanged), ' new water cell(s)' ] );
+        disp( [ 'infiltration - reinitializing LUT - ', num2str(cellsChanged), ' new water cell(s)' ] ); %2
         GRID.soil.cT_water = wc;
         GRID = initializeSoilThermalProperties(GRID, PARA);   
     elseif cellsChanged < 0

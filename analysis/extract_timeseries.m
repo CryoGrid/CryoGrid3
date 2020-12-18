@@ -1,28 +1,31 @@
 % extract variables for timeseries plot for indicated tile number
 clear all
 
-numTiles=5
-startyear=1990; endyear=2010;
+numTiles=1
+startyear=1979; endyear=2019;
 years=startyear:endyear;
+%startyear_F=87649; % 1.1.1980 for forcing timeseriesfsave
 iii=0; % counter
-%zLminTpos=zeros(length(years),numTiles); zLminLWC=zeros(length(years),numTiles); % depth z of Thaw Depth maximum (based on T>0 criterium)
+%ts=zeros(350000,1);
+%T_tiles=zeros(zdim,tdim,numTiles);
+zLminTpos=zeros(length(years),numTiles); zLminLWC=zeros(length(years),numTiles); % depth z of Thaw Depth maximum (based on T>0 criterium)
 
-SetLoc='Prudhoe'; 
-ExpSet='exW2mm_snow4_SinS_xice'
-%SetLoc='HapVal'
-%ExpSet='exW2mm_snow4_new'
-Scen='RCP85';
-Out='N:/permarisk/CryoGrid3/Runs_ERL_submission/';    
-%Out = '/data/permarisk/CryoGrid3/Runs_ERL_submission/'; 
+SetLoc='Potsdam'; 
+ExpSet='Test_ms'
+Scen='ERA5';
+%Scen='RCP85CCSM';
+%Out='N:/permarisk/CryoGrid3/Runs_paper_final/';    
+Out = '/data/permarisk/CryoGrid3/Runs_Potsdam/'; 
 OutDir=[Out,ExpSet,'/',num2str(numTiles),'tiles/']; %OutDir=[Out,ExpSet,'/',num2str(numTiles),'tiles/'];
+
+%forcingFile=['../forcing/GFDL_',SetLoc,'_',Scen,'_1970-2100']; 
+%forcingFile=['../forcing/ERAint_',SetLoc,'_',Scen,'_1979-2019full']; % ERA
+forcingFile='../forcing/ERA5_Telegrafenberg_1979-2019.mat'
 
 paraFile=[OutDir,SetLoc,'_',Scen,'_',ExpSet,'_T1_settings']; 
 outFile=[OutDir,SetLoc,'_',Scen,'_',ExpSet,'_out',num2str(startyear),'_T1']
-load(paraFile); load(outFile) 
-forcingFile=['../forcing/',PARA.forcing.filename];
-load(forcingFile);
-
-startyearF=find(ismember(FORCING.data.t_span,datenum(startyear,1,1))); endyearF=find(ismember(FORCING.data.t_span,datenum(endyear,1,1))); %find indices in forcing timevector to cover same spanned by startyear to endyear
+load(forcingFile); load(paraFile); load(outFile)   
+startyearF=find(ismember(FORCING.data.t_span,datenum(startyear,1,1))); endyearF=find(ismember(FORCING.data.t_span,datenum(endyear,12,31))); %find indices in forcing timevector to cover same spanned by startyear to endyear
 z1=GRID.soil.cT_domain_ub; [~,z2]=min(abs(GRID.general.cT_grid-50)); % constrain soil domain to 50m
 zsoil_tiles = PARA.ensemble.initial_altitude - GRID.general.cT_grid(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_lb);
         
@@ -31,6 +34,8 @@ timeF=FORCING.data.time(startyearF:endyearF); TairF=FORCING.data.Tair(startyearF
 
 %%
 for n=1:numTiles  % loop over tiles
+    [~,idx002(n)] = min(abs(zsoil_tiles(:,n)+0.02)); [~,idx005(n)] = min(abs(zsoil_tiles(:,n)+0.05)); [~,idx01(n)] = min(abs(zsoil_tiles(:,n)+0.1));
+    [~,idx02(n)] = min(abs(zsoil_tiles(:,n)+0.2)); [~,idx05(n)] = min(abs(zsoil_tiles(:,n)+0.5)); [~,idx1(n)] = min(abs(zsoil_tiles(:,n)+1)); 
     [~,idx5(n)] = min(abs(zsoil_tiles(:,n)+5)); [~,idx10(n)] = min(abs(zsoil_tiles(:,n)+10)); [~,idx20(n)] = min(abs(zsoil_tiles(:,n)+20));
     for i=1:length(years) % year loop  
         outFile = [OutDir,SetLoc,'_',Scen,'_',ExpSet,'_out',num2str(years(i)),'_T',num2str(n)]  
@@ -93,6 +98,8 @@ for n=1:numTiles  % loop over tiles
     %%%eval(['T_tiles(:,:,n)=T_T',num2str(n),';']) 
     %%%eval('Tsoil_tiles(:,:,n) = T_tiles(GRID.soil.cT_domain_ub:GRID.soil.cT_domain_lb,:,n);')
     eval(['Tsoil_tiles(:,:,n)=Tsoil_T',num2str(n),';']) %cccc could be coded more efficiently without extracting _T fields for individual tiles...!?
+    eval('Tsoil_2cm_tiles = squeeze(Tsoil_tiles(idx002(n),:,:)); Tsoil_5cm_tiles = squeeze(Tsoil_tiles(idx005(n),:,:)); Tsoil_10cm_tiles = squeeze(Tsoil_tiles(idx01(n),:,:));')
+    eval('Tsoil_20cm_tiles = squeeze(Tsoil_tiles(idx02(n),:,:)); Tsoil_50cm_tiles = squeeze(Tsoil_tiles(idx05(n),:,:)); Tsoil_1m_tiles = squeeze(Tsoil_tiles(idx1(n),:,:));')
     eval('Tsoil_5m_tiles = squeeze(Tsoil_tiles(idx5(n),:,:)); Tsoil_10m_tiles = squeeze(Tsoil_tiles(idx10(n),:,:)); Tsoil_20m_tiles = squeeze(Tsoil_tiles(idx20(n),:,:));')
     eval(['LWC_tiles(:,:,n)=LWC_T',num2str(n),';'])
     eval(['FT_tiles(:,n)=FT_T',num2str(n),';']);  eval(['WT_tiles(:,n)=WT_T',num2str(n),';']);
@@ -104,13 +111,13 @@ for n=1:numTiles  % loop over tiles
     eval(['snowOut_tiles(:,n)=snowOut_T',num2str(n),';']);  eval(['WT_tiles(:,n)=WT_T',num2str(n),';']);
     iii=0;
 end
-saveDir='Data/Runs_ERL_submission';
+saveDir='Data/Runs_Potsdam';
 %saveDir='Test';
 
 if ~exist(saveDir,'dir'); mkdir(saveDir); end 
 % Tsoil matrix gets rather large for long timeseries!
-%save([saveDir,'/Data',num2str(numTiles),'_T_',SetLoc,'_',Scen,'_',ExpSet],'ts*','zsoil*','idx*','Tsoil*','-v7.3'); % data can be stored >2GB, but compression makes things slow... 
-save([saveDir,'/Data',num2str(numTiles),'_Tsoil_10m20m_',SetLoc,'_',Scen,'_',ExpSet],'ts*','Tsoil_5m*','Tsoil_10m*','Tsoil_20m*'); 
+save([saveDir,'/Data',num2str(numTiles),'_T_',SetLoc,'_',Scen,'_',ExpSet],'ts*','zsoil*','idx*','Tsoil*','-v7.3'); % data can be stored >2GB, but compression makes things slow... 
+save([saveDir,'/Data',num2str(numTiles),'_Tsoil_zi_',SetLoc,'_',Scen,'_',ExpSet],'ts*','Tsoil_*m*'); 
 save([saveDir,'/Data',num2str(numTiles),'_FTWT_',SetLoc,'_',Scen,'_',ExpSet],'ts*','zsoil*','FT*','zL*','WT*','SL*','SnowHeight*');
 save([saveDir,'/Data',num2str(numTiles),'_Q_',SetLoc,'_',Scen,'_',ExpSet],'ts*','zsoil*','Q*');
 save([saveDir,'/Data',num2str(numTiles),'_F_',SetLoc,'_',Scen],'*rain*','*snow*','timeF','TairF')  

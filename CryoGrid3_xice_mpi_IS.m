@@ -60,6 +60,7 @@ else
     PARA.soil.epsilon=0.97;     % emissvity snow-free surface
     PARA.soil.z0=1e-3;          % roughness length [m] snow-free surface
     PARA.soil.rs=50;            % surface resistance against evapotransiration [m^-1] snow-free surface
+    PARA.soil.rs_frozen=100;    %tsvd  surface resistance against sublimation [m^-1] snow-free surface
     PARA.soil.Qgeo=0.05;        % geothermal heat flux [W/m2]
     PARA.soil.kh_bedrock=3.0;   % thermal conductivity of the mineral soil fraction [W/mK]
     
@@ -118,7 +119,7 @@ else
     PARA.technical.maxSWE=0.4;                          % in [m] SWE
     PARA.technical.arraySizeT=5002;                     % number of values in the look-up tables for conductivity and capacity
     PARA.technical.starttime=datenum(1979, 6, 1 );     % starttime of the simulation - if empty start from first value of time series
-    PARA.technical.endtime=datenum( 2019, 12, 31, 23, 0, 0) % endtime of the simulation - if empty end at last value of time series
+    PARA.technical.endtime=datenum( 2019, 12, 31, 23, 0, 0); % endtime of the simulation - if empty end at last value of time series
     %PARA.technical.endtime=datenum( 1979, 6, 3);      % endtime of the simulation - if empty end at last value of time series
     PARA.technical.minTimestep=0.1 ./ 3600 ./ 24;       % smallest possible time step in [days] - here 0.1 seconds
     PARA.technical.maxTimestep=300 ./ 3600 ./ 24;       % largest possible time step in [days] - here 300 seconds
@@ -313,7 +314,7 @@ end % end restart condition
              
     %% ________________________________________________________________________
     % Time Integration Routine                                                I
-    while t<PARA.technical.endtime        
+    while t<PARA.technical.endtime             
         %------ interpolate forcing data to time t ----------------------------
         FORCING = interpolateForcingData(t, FORCING);
         

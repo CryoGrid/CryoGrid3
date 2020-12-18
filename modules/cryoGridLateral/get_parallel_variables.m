@@ -17,15 +17,12 @@ EBT  =  EBHag+EBHbg;  % total embankment thickness
  
 switch numlabs % define tile widths
     case 1
-        disp('single mode - 1 tile');
-        PARA.ensemble.TileType={'tundra'}; 
-        %PARA.ensemble.TileType={'road'}; 
-        %PARA.ensemble.TileType={'pile'}; 
-        %PARA.ensemble.TileType={'foundation_base'};
+        %PARA.ensemble.TileType={'tundra'}; 
+        %PARA.IS.TileType={'tundra'};  %ccc needed double def. for .IS and .ensemble?
+        PARA.ensemble.TileType='road'; 
+        PARA.IS.TileType='road';  
+        disp(['single mode: ',PARA.IS.TileType,' reference']);
         PARA.ensemble.TileWidth = 100;
-        disp('single mode - tundra reference');
-        PARA.IS.TileType={'tundra'};  
-        %PARA.ensemble.TileWidth = 10;
     case 2
         disp('1 gravel road tile, 1 tundra tile');
         PARA.ensemble.TileType = {'road','tundra'};  
@@ -153,10 +150,8 @@ for n=1:numlabs
 %% 1tile (test) case        
     else  
         PARA.ensemble.initial_altitude(n) = 0.;
-        PARA.ensemble.snow.relative_maxSnow(n) = rel_maxSnow;  
-        PARA.ensemble.soil.albedo(n)=0.2;      % albedo snow-free surface
-        PARA.ensemble.soil.externalWaterFlux(n) = 0.0; % external water flux / drainage in [m/day]  temptemp
-        PARA.ensemble.soil.ratioET(n) = 0.5;
+        PARA.soil.externalWaterFlux = -0.02; % external water flux / drainage in [m/day]  temptemp
+        PARA.soil.ratioET = 0.5;
     end
 end
 %%        
@@ -425,11 +420,14 @@ elseif strcmp(PARA.Exp.Case,'FuelTank')
 %%   1Tile setting 
 else
     BR = 10.0; % depth bedrock
+%    PARA.soil.layer_properties = ...
+%    [0.0    0.1    0.5    0.1    1   0.4 ;...   % surface layer
+%     0.1    0.3    0.55   0.05   1   0.4 ;...    % mineral (sandy) soil
+%     BR     0.3    0.7    0.00   1   0.3 ];      % bedrock    
     PARA.soil.layer_properties = ...
-    [0.0    0.2     0.3    0.1    1   0.6 ;...   % surface layer
-     0.1    0.25    0.55   0.05   1   0.4 ;...    % mineral (sandy) soil
-     BR     0.3    0.7    0.00   1   0.3 ];      % bedrock    
-    check_layer_properties(PARA)    
+     [0.0    0.3    0.6   0.05   1   0.35 ;...    % mineral (sandy) soil
+     BR     0.3    0.7    0.00   1   0.3 ];      % bedrock
+     check_layer_properties(PARA)    
 end
 
 
