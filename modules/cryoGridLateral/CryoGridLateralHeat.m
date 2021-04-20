@@ -50,13 +50,15 @@ function [ T, TEMPORARY, BALANCE ] = CryoGridLateralHeat( PARA, GRID, BALANCE, T
         for jj=1:2 % lateral heat exchange with previous and next tile
             j = j_adjacent(jj); % first exchange with previous tile, then exchange with next tile     
             PACKAGE_heatExchange_j = PACKAGE_heatExchange_adjacent(jj);
-            %tsvd IS   contact_length_index_j = PARA.ensemble.thermal_contact_length(j, labindex);  
-            contact_length_index_j = PARA.ensemble.thermal_contact_length(labindex); % contact length is same for Gravel Road setting
+            contact_length_index_j = PARA.ensemble.thermal_contact_length(j, labindex);  
+            %tsvd NOR contact_length_index_j = PARA.ensemble.thermal_contact_length(labindex);  % contact length is same for all tiles!
+            
             [F_lateral_j, BALANCE] = calculateLateralHeatFluxes(T, k_cTgrid, PACKAGE_heatExchange_j,GRID, PARA, BALANCE, j);   % contribution from worker j to worker index in [ J/s ]
 %             if(labindex==1 && j_prevWorker==numlabs  || labindex==numlabs && j_nextWorker==1 ) % no lateral exchange between outer tiles!
 %                F_lateral_j = zeros( length(GRID.general.cT_grid), 1);
 %             end
-       if(contact_length_index_j >0)   %zzz
+       if(contact_length_index_j >0)   
+       %tsvd IS NOR     if(contact_length_index_j >0)   
 %tsvd   fluxes now expressed w.r.t. vertical lateral cross section, not w.r.t horizontal "area"
      %tsvd      TEMPORARY.dE_cell_lateral(:,j) = TEMPORARY.dE_cell_lateral(:,j) + F_lateral_j ./ PARA.location.area .* PARA.technical.syncTimeStep.*24.*3600; % in [ J/m^2 ]
             TEMPORARY.dE_cell_lateral(:,j) = TEMPORARY.dE_cell_lateral(:,j) + F_lateral_j ./ (contact_length_index_j * GRID.general.K_delta) * PARA.technical.syncTimeStep *24.*3600; % in [ J/m^2 ]    
@@ -65,8 +67,8 @@ function [ T, TEMPORARY, BALANCE ] = CryoGridLateralHeat( PARA, GRID, BALANCE, T
             TEMPORARY.dE_tot_lateral(j) = TEMPORARY.dE_tot_lateral(j) + trapz(GRID.general.cT_grid, F_lateral_j ./ (contact_length_index_j * GRID.general.K_delta) * PARA.technical.syncTimeStep *24.*3600 ); % depth intergrated in [ J/m^2 ]
             %TEMPORARY.dE_tot_lateral(j) = TEMPORARY.dE_tot_lateral(j) + nansum(F_lateral_j ./ contact_length_index_j * PARA.technical.syncTimeStep *24.*3600 )/nansum(GRID.general.K_delta); % depth weighted sum in [ J/m^2 ]
 % github xice_mpi  dE_dt_lateral = dE_dt_lateral + F_lateral_j./PARA.location.area;    % sum up contributions from all realizations in [ J/ m^2 /s ]
-%tsvd IS    dE_dt_lateral = dE_dt_lateral + F_lateral_j./ (contact_length_index_j * GRID.general.K_delta); % sum up contributions from all realizations in [ J/ m^2 /s ]
-            dE_dt_lateral = dE_dt_lateral + F_lateral_j; % sum up contributions from all realizations in [ J/s ]
+            dE_dt_lateral = dE_dt_lateral + F_lateral_j./ (contact_length_index_j * GRID.general.K_delta); % sum up contributions from all realizations in [ J/ m^2 /s ]
+%tsvd NOR   dE_dt_lateral = dE_dt_lateral + F_lateral_j; % sum up contributions from all realizations in [ J/s ]
        end
             if(numlabs==2) % if only 2 tiles, only 1 loop is needed
                 break
@@ -95,10 +97,12 @@ function [ T, TEMPORARY, BALANCE ] = CryoGridLateralHeat( PARA, GRID, BALANCE, T
  %tsvd       T = T + dE_dt_lateral./c_cTgrid.*PARA.technical.syncTimeStep.*24.*3600 ./ GRID.general.K_delta ; % division by K_delta necessary as dE_dt_lateral in [ J / m^2 / s ]
  % github xice_mpi   T = T + dE_dt_lateral./c_cTgrid.*PARA.technical.syncTimeStep.*24.*3600 ./ GRID.general.K_delta ; % division by K_delta necessary as dE_dt_lateral in [ J / m^2 / s ]
        
-%tsvd IS     T = T + dE_dt_lateral./c_cTgrid.*PARA.technical.syncTimeStep.*24.*3600 ./ PARA.ensemble.TileWidth(labindex); % division by tile width as dE_dt_lateral in [ J / m^2 / s ]
-%tvd NOR
-         TileVOL =  PARA.ensemble.area(labindex) * GRID.general.K_delta; 
-         T = T + dE_dt_lateral./c_cTgrid.*PARA.technical.syncTimeStep.*24.*3600 ./ TileVOL; % division by grid cell volume of tile     
+         T = T + dE_dt_lateral./c_cTgrid.*PARA.technical.syncTimeStep.*24.*3600 ./ PARA.ensemble.TileWidth(labindex); % division by tile width as dE_dt_lateral in [ J / m^2 / s ]
+%tsvd IS NOR    TileVOL =  PARA.ensemble.area(labindex) * GRID.general.K_delta; 
+%         if(strcmp(PARA.IS.TileType,'pile'))
+%             TileVOL = TileVOL/5.; % account for different geometry for pile
+%         end 
+%         T = T + dE_dt_lateral./c_cTgrid.*PARA.technical.syncTimeStep.*24.*3600 ./ TileVOL; % division by grid cell volume of tile     
         % account for lateral heat fluxes in diagnostic BALANCE struct
         % (summed contribution from all connected realizations)
 %tsvd  nansum is incorrect!   dE_dt_lateral is already sum over workers!       BALANCE.energy.Q_lateral = BALANCE.energy.Q_lateral + nansum(  dE_dt_lateral ) .* PARA.technical.syncTimeStep.*24.*3600;  % in [ J / m^2 ]

@@ -9,13 +9,7 @@ GRID.lake.unfrozenWaterSurface=false;
 PARA.surf.albedo  = PARA.soil.albedo;
 PARA.surf.epsilon = PARA.soil.epsilon;
 PARA.surf.z0      = PARA.soil.z0;
-%PARA.surf.rs      = PARA.soil.rs;
-%tsvd adapt surface resistance if soil surface is frozen
-if T(GRID.soil.cT_domain_ub)<=0 
-    PARA.surf.rs = PARA.soil.rs_frozen;
-else
-    PARA.surf.rs = PARA.soil.rs;
-end
+PARA.surf.rs      = PARA.soil.rs;
     
 % check if snow cover exists 
 if GRID.snow.cT_domain(GRID.air.cT_domain_lb+1)==1

@@ -31,7 +31,7 @@ end
 %__________________________________________________________________________
 Sout = PARA.surf.albedo*FORCING.i.Sin;
 Lout = PARA.surf.epsilon.*sigma.*(T(GRID.air.cT_domain_lb+1)+273.15).^4 + (1-PARA.surf.epsilon).*FORCING.i.Lin;
-Qnet = FORCING.i.Sin-Sout + FORCING.i.Lin - Lout ;  %tsvd cccc   should be PARA.surf.epsilon*FORCING.i.Lin
+Qnet = FORCING.i.Sin-Sout + FORCING.i.Lin - Lout ;  
 
 
 
@@ -39,7 +39,6 @@ Qnet = FORCING.i.Sin-Sout + FORCING.i.Lin - Lout ;  %tsvd cccc   should be PARA.
 if PARA.modules.infiltration
     
     % snow cover or uppermost grid cell frozen --> no ET ; this includes the case of a frozen water body
-    %tsvd  sublimation is considered for Qe, but not for the water balance
     if ~isempty(GRID.snow.cT_domain_ub) || T(GRID.soil.cT_domain_ub)<=0
         Qe=real(Q_eq(FORCING.i.wind, z, PARA.surf.z0, FORCING.i.q, FORCING.i.Tair, T(GRID.air.cT_domain_lb+1), Lstar, PARA.surf.rs, FORCING.i.p, PARA));
         %assert( ~isnan(Qh), 'surfaceEnergyBalanceInfiltration - Qe is nan' );
@@ -56,7 +55,7 @@ if PARA.modules.infiltration
         %assert( ~isnan(Qe_pot), 'surfaceEnergyBalanceInfiltration - Qe_pot is nan' );
 
         if Qe_pot>0
-            soilType=GRID.soil.cT_soilType(); %tsvd  use FieldCapacity consistently from soilType Matrix! ccc
+            soilType=GRID.soil.cT_soilType(); 
             fieldCapacity = zeros(size(soilType));
             for i=1:size(PARA.soil.soilTypes,1)
                 fieldCapacity(soilType==i) = PARA.soil.soilTypes( i, 2 );

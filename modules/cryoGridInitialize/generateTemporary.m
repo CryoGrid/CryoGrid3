@@ -7,7 +7,6 @@ TEMPORARY.syncTime=t+PARA.technical.syncTimeStep;
 
 if ~isempty(PARA.technical.saveInterval)
     TEMPORARY.saveTime=datenum(str2num(datestr(t,'yyyy'))+1,  str2num(PARA.technical.saveDate(4:5)), str2num(PARA.technical.saveDate(1:2)))-PARA.technical.outputTimestep;
-    %TEMPORARY.saveTime=datenum(str2num(datestr(t,'yyyy')),  str2num(PARA.technical.saveDate(4:5)), str2num(PARA.technical.saveDate(1:2)))-PARA.technical.outputTimestep; %tsvd IS
 else
     TEMPORARY.saveTime=PARA.technical.endtime+PARA.technical.outputTimestep;
 end

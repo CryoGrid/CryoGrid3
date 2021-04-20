@@ -2,10 +2,9 @@ function GRID=makeGrids(PARA)
 
 
 GRID.snow.snowCellSize=PARA.technical.SWEperCell/(PARA.snow.rho_snow/PARA.constants.rho_w);
-%tsvd IS  extend snow grid to 2.1m 
+%tsvd IS  extend snow grid to 1.8m to cover max snow accumulation at toe (max of 1.7m)
 GRID.snow.snowGrid=[-1.*(PARA.technical.maxSWE./(PARA.technical.SWEperCell)+2).*GRID.snow.snowCellSize:GRID.snow.snowCellSize:-GRID.snow.snowCellSize]';
-%GRID.snow.snowGrid = (-2.0:0.02:-0.02)';
-GRID.snow.snowGrid = (-2.1:0.02:-0.02)'; %NOR  extend to 2.1m 
+GRID.snow.snowGrid = (-2.0:0.02:-0.02)';
 GRID.soil.soilGrid=PARA.technical.subsurfaceGrid;
 
 K_grid =[GRID.snow.snowGrid;  GRID.soil.soilGrid]; %grid on which the conductivty information lives (edges of grid cells)

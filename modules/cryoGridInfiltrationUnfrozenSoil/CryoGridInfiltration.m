@@ -42,7 +42,7 @@ if isempty(GRID.snow.cT_domain_ub) && T(GRID.soil.cT_domain_ub)>0   %no snow cov
         end
 
         if actualWater>h
-            disp('infiltration - removing excess water from upper cell'); %3
+            disp('infiltration - removing excess water from upper cell');
             wc(1)=h./cellSize;
             surface_runoff = surface_runoff + actualWater-h;
         end

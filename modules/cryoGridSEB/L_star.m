@@ -13,7 +13,7 @@ Lstar=mean(SEB.L_star);
     
 rho = p./(PARA.constants.R_a.*Tz); %air density [kg m^(-3)]
 cp = PARA.constants.c_a / PARA.constants.rho_a; %1005;
-L=1000.*(2500.8 - 2.36.*(Tz-273.15));  %latent heat of evaporation of water  [J/kg] - https://en.wikipedia.org/wiki/Latent_heat
+L=1000.*(2500.8 - 2.36.*(Tz-273.15));  %latent heat of evaporation of water
 kappa = PARA.constants.kappa; %0.4;
 g = PARA.constants.g; %9.81;
 
